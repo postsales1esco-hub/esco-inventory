@@ -239,7 +239,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-stat-value" id="statTotalItems">0</div>
         </div>
         <div class="iv-stat warn">
-          <div class="iv-stat-label">พร้อมใช้ต่ำ</div>
+          <div class="iv-stat-label">Stock น้อย</div>
           <div class="iv-stat-value" id="statLow">0</div>
         </div>
         <div class="iv-stat reserve">
@@ -265,6 +265,15 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <div class="iv-card">
         <p class="iv-card-title">เคลื่อนไหวล่าสุด</p>
         <div id="recentTxList" class="iv-tx-list"></div>
+      </div>
+
+      <div class="iv-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+          <p class="iv-card-title" style="margin:0;">สินค้าขายดี</p>
+          <select class="iv-input" id="topMoversYear" style="width:auto;padding:6px 10px;font-size:12.5px;" onchange="renderTopMovers()"></select>
+        </div>
+        <p class="iv-hint" id="topMoversSummary" style="margin-bottom:10px;"></p>
+        <div id="topMoversList" class="iv-item-list"></div>
       </div>
 
       <div class="iv-card">
@@ -330,6 +339,29 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             <div>
               <label class="iv-label">กำหนดคืน (ไม่บังคับ)</label>
               <input class="iv-input" type="date" id="txDueDate">
+            </div>
+          </div>
+
+          <div id="reserveFields" class="iv-hide">
+            <div class="iv-form-row two">
+              <div>
+                <label class="iv-label">SVSO No.</label>
+                <input class="iv-input" type="text" id="txSvso" placeholder="เช่น SVSO-00123">
+              </div>
+              <div>
+                <label class="iv-label">Quotation No.</label>
+                <input class="iv-input" type="text" id="txQuotation" placeholder="เช่น QT-00456">
+              </div>
+            </div>
+            <div class="iv-form-row two">
+              <div>
+                <label class="iv-label">Customer Name</label>
+                <input class="iv-input" type="text" id="txCustomer" placeholder="ชื่อลูกค้า">
+              </div>
+              <div>
+                <label class="iv-label">ผู้จอง</label>
+                <input class="iv-input" type="text" id="txRequestedBy" placeholder="ชื่อผู้จอง">
+              </div>
             </div>
           </div>
 
@@ -758,7 +790,8 @@ function setMode(mode){
   submit.textContent = meta.submitText;
   document.getElementById('modeHint').textContent = meta.hint;
   document.getElementById('borrowFields').classList.toggle('iv-hide', mode!=='BORROW');
-  document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'จองไว้สำหรับ (เช่น SVSO / ชื่องาน)' : 'หมายเหตุ (ไม่บังคับ)';
+  document.getElementById('reserveFields').classList.toggle('iv-hide', mode!=='RESERVE');
+  document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'หมายเหตุเพิ่มเติม (ไม่บังคับ)' : 'หมายเหตุ (ไม่บังคับ)';
   document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
   if(mode!=='IN') setInSubMode('single');
   updateTxCurrentQty();
@@ -872,11 +905,26 @@ async function submitTransaction(){
     showToast(`จ่ายออก ${qty} ${item.unit} แล้ว`);
   }
   else if(currentMode==='RESERVE'){
-    reservations.push({id:uid(), itemId, qty, note, ts:Date.now(), status:'active'});
+    const svso = document.getElementById('txSvso').value.trim();
+    const quotation = document.getElementById('txQuotation').value.trim();
+    const customer = document.getElementById('txCustomer').value.trim();
+    const requestedBy = document.getElementById('txRequestedBy').value.trim();
+    const composedNote = [
+      svso ? 'SVSO: '+svso : '',
+      quotation ? 'ใบเสนอราคา: '+quotation : '',
+      customer ? 'ลูกค้า: '+customer : '',
+      requestedBy ? 'ผู้จอง: '+requestedBy : '',
+      note
+    ].filter(Boolean).join(' · ');
+    reservations.push({id:uid(), itemId, qty, svso, quotation, customer, requestedBy, note, ts:Date.now(), status:'active'});
     await saveReservations();
-    ledger.push({id:uid(), itemId, type:'RESERVE', qty, note, ts:Date.now()});
+    ledger.push({id:uid(), itemId, type:'RESERVE', qty, note: composedNote, ts:Date.now()});
     await saveLedger();
     showToast(`จอง ${qty} ${item.unit} แล้ว`);
+    document.getElementById('txSvso').value='';
+    document.getElementById('txQuotation').value='';
+    document.getElementById('txCustomer').value='';
+    document.getElementById('txRequestedBy').value='';
   }
   else if(currentMode==='BORROW'){
     const borrower = document.getElementById('txBorrower').value.trim();
@@ -907,11 +955,21 @@ async function fulfillReservation(id){
     return;
   }
   r.status = 'fulfilled';
-  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดจ่ายจากรายการจอง'+(r.note?': '+r.note:''), ts:Date.now()});
+  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดจ่ายจากรายการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now()});
   await saveReservations();
   await saveLedger();
   showToast(`ตัดจ่าย ${r.qty} ${item?item.unit:''} จากรายการจองแล้ว`);
   renderAll();
+}
+
+function reservationSummary(r){
+  return [
+    r.svso ? 'SVSO: '+r.svso : '',
+    r.quotation ? 'ใบเสนอราคา: '+r.quotation : '',
+    r.customer ? 'ลูกค้า: '+r.customer : '',
+    r.requestedBy ? 'ผู้จอง: '+r.requestedBy : '',
+    r.note || ''
+  ].filter(Boolean).join(' · ');
 }
 
 async function releaseReservation(id){
@@ -919,7 +977,7 @@ async function releaseReservation(id){
   const r = reservations.find(x=>x.id===id);
   if(!r || r.status!=='active') return;
   r.status = 'released';
-  ledger.push({id:uid(), itemId:r.itemId, type:'RELEASE', qty:r.qty, note:'ยกเลิกการจอง'+(r.note?': '+r.note:''), ts:Date.now()});
+  ledger.push({id:uid(), itemId:r.itemId, type:'RELEASE', qty:r.qty, note:'ยกเลิกการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now()});
   await saveReservations();
   await saveLedger();
   showToast('ยกเลิกรายการจองแล้ว');
@@ -1361,6 +1419,52 @@ function renderRecentTx(){
   list.innerHTML = recent.map(txHtml).join('');
 }
 
+function renderTopMovers(){
+  const yearSel = document.getElementById('topMoversYear');
+  const outEntries = ledger.filter(t=>t.type==='OUT');
+  const years = Array.from(new Set(outEntries.map(t=> new Date(t.ts).getFullYear()))).sort((a,b)=>b-a);
+  const currentYear = new Date().getFullYear();
+  if(!years.includes(currentYear)) years.unshift(currentYear);
+
+  const prevSelected = yearSel.value;
+  yearSel.innerHTML = years.map(y=>`<option value="${y}">ปี ${y}</option>`).join('');
+  if(prevSelected && years.includes(parseInt(prevSelected))) yearSel.value = prevSelected;
+  const selectedYear = parseInt(yearSel.value) || currentYear;
+
+  const totals = {};
+  let grandTotal = 0;
+  outEntries.filter(t=> new Date(t.ts).getFullYear()===selectedYear).forEach(t=>{
+    totals[t.itemId] = (totals[t.itemId]||0) + t.qty;
+    grandTotal += t.qty;
+  });
+
+  const ranked = Object.entries(totals)
+    .map(([itemId, qty])=> ({item: items.find(i=>i.id===itemId), qty}))
+    .filter(r=> r.item)
+    .sort((a,b)=> b.qty - a.qty)
+    .slice(0, 10);
+
+  const summaryEl = document.getElementById('topMoversSummary');
+  const listEl = document.getElementById('topMoversList');
+
+  if(ranked.length===0){
+    summaryEl.textContent = `ยังไม่มีข้อมูลจ่ายออกในปี ${selectedYear}`;
+    listEl.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีข้อมูล</div><div class="iv-empty-sub">จะแสดงเมื่อมีการจ่ายออกในปีนี้</div></div>`;
+    return;
+  }
+
+  summaryEl.textContent = `จ่ายออกรวมทั้งปี ${selectedYear}: ${grandTotal} ชิ้น จาก ${Object.keys(totals).length} รายการสินค้า — แสดง Top ${ranked.length}`;
+  listEl.innerHTML = ranked.map((r, idx)=> `<div class="iv-item">
+      <div class="iv-item-main">
+        <div class="iv-item-name">#${idx+1}  ${r.item.name}</div>
+        <div class="iv-item-meta">${r.item.itemNo}</div>
+      </div>
+      <div class="iv-item-right">
+        <span class="iv-odo out" style="background:var(--out);">${r.qty} ${r.item.unit}</span>
+      </div>
+    </div>`).join('');
+}
+
 const TX_ICON = {IN:'▲', OUT:'▼', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
 const TX_SIGN = {IN:'+', OUT:'−', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
 const TX_CLASS = {IN:'in', OUT:'out', RESERVE:'reserve', RELEASE:'release', BORROW:'borrow', RETURN:'return'};
@@ -1388,11 +1492,18 @@ function renderPending(){
   }else{
     rList.innerHTML = activeRes.map(r=>{
       const item = items.find(i=>i.id===r.itemId);
+      const metaBits = [];
+      if(r.svso) metaBits.push('SVSO: '+r.svso);
+      if(r.quotation) metaBits.push('ใบเสนอราคา: '+r.quotation);
+      if(r.customer) metaBits.push('ลูกค้า: '+r.customer);
+      if(r.requestedBy) metaBits.push('ผู้จอง: '+r.requestedBy);
+      if(r.note) metaBits.push(r.note);
+      metaBits.push('จองเมื่อ '+fmtDate(r.ts));
       return `<div class="iv-tx">
         <div class="iv-tx-icon reserve">⚑</div>
         <div class="iv-tx-main">
           <div class="iv-tx-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-          <div class="iv-tx-meta">${item?item.itemNo:''}${r.note? ' · '+r.note:''} · จองเมื่อ ${fmtDate(r.ts)}</div>
+          <div class="iv-tx-meta">${item?item.itemNo:''}${item?' · ':''}${metaBits.join(' · ')}</div>
         </div>
         <div class="iv-tx-qty reserve">${r.qty}</div>
         <div class="iv-tx-actions">
@@ -1474,6 +1585,7 @@ function renderAll(){
   renderLowStock();
   renderOverdue();
   renderRecentTx();
+  renderTopMovers();
   populateItemSelect();
   renderPending();
   renderItems();
@@ -1517,6 +1629,10 @@ function exportToExcel(){
       'Item No.': item ? item.itemNo : '',
       'Description': item ? item.name : '(deleted item)',
       'Qty': r.qty,
+      'SVSO No.': r.svso || '',
+      'Quotation No.': r.quotation || '',
+      'Customer Name': r.customer || '',
+      'Requested By': r.requestedBy || '',
       'Note': r.note || '',
       'Status': r.status,
       'Reserved On': fmtDate(r.ts)
