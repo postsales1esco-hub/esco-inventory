@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Esco Inventory Quantity</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#F4F3EE;
+  --panel:#FFFFFF;
+  --ink:#14181B;
+  --ink-soft:#5B6360;
+  --border:#DEDAD0;
+  --in:#2F9E64;
+  --in-soft:#E4F5EB;
+  --out:#D6491F;
+  --out-soft:#FBE7DE;
+  --warn:#C2860F;
+  --warn-soft:#FBF0D9;
+  --reserve:#2E6E9E;
+  --reserve-soft:#E1EDF5;
+  --borrow:#7C4FBF;
+  --borrow-soft:#EEE6F8;
+  --stripe:#14181B;
+}
+
+*{box-sizing:border-box;}
+.iv-root{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  min-height:100%;
+  padding:0;
+  -webkit-font-smoothing:antialiased;
+}
+.iv-shell{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+
+.iv-header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+.iv-title{font-family:'Archivo',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.01em;margin:0;}
+.iv-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
+.iv-badge{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--ink);color:var(--bg);padding:5px 10px;border-radius:3px;letter-spacing:0.05em;}
+
+.iv-tabs{display:flex;flex-wrap:wrap;gap:2px;background:var(--border);border-radius:8px;padding:3px;margin-bottom:20px;}
+.iv-tab{flex:1 1 18%;min-width:90px;text-align:center;padding:10px 6px;font-family:'Archivo',sans-serif;font-weight:600;font-size:12.5px;border-radius:6px;cursor:pointer;color:var(--ink-soft);transition:all .15s ease;user-select:none;}
+.iv-tab.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.iv-tab:hover:not(.active){color:var(--ink);}
+
+.iv-panel{display:none;}
+.iv-panel.active{display:block;animation:ivFade .18s ease;}
+@keyframes ivFade{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:translateY(0);}}
+
+/* ---- Summary strip ---- */
+.iv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.iv-stat{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 12px;}
+.iv-stat-label{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);}
+.iv-stat-value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:23px;margin-top:4px;}
+.iv-stat.warn .iv-stat-value{color:var(--warn);}
+.iv-stat.out .iv-stat-value{color:var(--out);}
+.iv-stat.reserve .iv-stat-value{color:var(--reserve);}
+.iv-stat.borrow .iv-stat-value{color:var(--borrow);}
+
+/* ---- Quick entry (stock in/out) ---- */
+.iv-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
+.iv-card-title{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+.iv-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.iv-dot.in{background:var(--in);}
+.iv-dot.out{background:var(--out);}
+.iv-dot.reserve{background:var(--reserve);}
+.iv-dot.borrow{background:var(--borrow);}
+
+.iv-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.iv-toggle-btn{padding:11px 6px;border-radius:8px;border:1.5px solid var(--border);background:var(--panel);font-family:'Archivo',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;text-align:center;transition:all .12s ease;color:var(--ink-soft);}
+.iv-toggle-btn.sel-in{border-color:var(--in);background:var(--in-soft);color:var(--in);}
+.iv-toggle-btn.sel-out{border-color:var(--out);background:var(--out-soft);color:var(--out);}
+.iv-toggle-btn.sel-reserve{border-color:var(--reserve);background:var(--reserve-soft);color:var(--reserve);}
+.iv-toggle-btn.sel-borrow{border-color:var(--borrow);background:var(--borrow-soft);color:var(--borrow);}
+
+.iv-hint{font-size:11.5px;color:var(--ink-soft);margin:-4px 0 12px;line-height:1.5;}
+
+.iv-form-row{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;}
+.iv-form-row.two{grid-template-columns:1fr 1fr;}
+label.iv-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);display:block;margin-bottom:5px;}
+select.iv-input,input.iv-input,textarea.iv-input{
+  width:100%;padding:10px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:'Inter',sans-serif;font-size:14px;background:#fff;color:var(--ink);
+}
+input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;border-color:var(--ink);}
+.iv-qty-input{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;text-align:center;}
+
+.iv-combo{position:relative;}
+.iv-combo-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--panel);border:1.5px solid var(--border);border-radius:8px;max-height:240px;overflow-y:auto;z-index:30;box-shadow:0 8px 20px rgba(0,0,0,.10);}
+.iv-combo-item{padding:10px 12px;cursor:pointer;display:flex;gap:10px;align-items:baseline;border-bottom:1px solid var(--border);}
+.iv-combo-item:last-child{border-bottom:none;}
+.iv-combo-item:hover,.iv-combo-item.active{background:var(--bg);}
+.iv-combo-item-no{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
+.iv-combo-item-name{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.iv-combo-empty{padding:14px 12px;color:var(--ink-soft);font-size:12.5px;text-align:center;}
+
+.iv-btn{width:100%;padding:13px;border-radius:8px;border:none;font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:.02em;color:#fff;transition:filter .12s;}
+.iv-btn:hover{filter:brightness(1.08);}
+.iv-btn:active{filter:brightness(0.94);}
+.iv-btn.in{background:var(--in);}
+.iv-btn.out{background:var(--out);}
+.iv-btn.reserve{background:var(--reserve);}
+.iv-btn.borrow{background:var(--borrow);}
+.iv-btn.neutral{background:var(--ink);}
+.iv-btn:disabled{background:var(--border);color:var(--ink-soft);cursor:not-allowed;}
+.iv-btn-sm{padding:8px 12px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-family:'Archivo',sans-serif;font-weight:700;font-size:11.5px;cursor:pointer;color:var(--ink-soft);white-space:nowrap;}
+.iv-btn-sm:hover{filter:brightness(0.97);}
+.iv-btn-sm.pos{border-color:var(--in);color:var(--in);}
+.iv-btn-sm.neg{border-color:var(--out);color:var(--out);}
+
+/* ---- Odometer-style qty display ---- */
+.iv-odo{display:inline-flex;font-family:'JetBrains Mono',monospace;font-weight:700;background:var(--ink);color:var(--bg);border-radius:5px;padding:3px 8px;font-size:15px;letter-spacing:.03em;}
+.iv-odo.sm{font-size:11.5px;padding:2px 6px;}
+.iv-odo.reserve{background:var(--reserve);}
+.iv-odo.borrow{background:var(--borrow);}
+
+/* ---- item cards ---- */
+.iv-item-list{display:flex;flex-direction:column;gap:8px;}
+.iv-item{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:9px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.iv-item.low{border-left-color:var(--warn);}
+.iv-item.zero{border-left-color:var(--out);}
+.iv-item.overdue{border-left-color:var(--borrow);}
+.iv-item-main{min-width:0;flex:1;}
+.iv-item-name{font-weight:600;font-size:14px;}
+.iv-item-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:2px;}
+.iv-item-badges{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+.iv-item-right{display:flex;align-items:center;gap:10px;}
+.iv-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;}
+.iv-tag.low{background:var(--warn-soft);color:var(--warn);}
+.iv-tag.zero{background:var(--out-soft);color:var(--out);}
+.iv-tag.reserve{background:var(--reserve-soft);color:var(--reserve);}
+.iv-tag.borrow{background:var(--borrow-soft);color:var(--borrow);}
+.iv-tag.overdue{background:var(--out-soft);color:var(--out);}
+.iv-del{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:5px;}
+.iv-del:hover{background:var(--out-soft);color:var(--out);}
+
+/* ---- item table ---- */
+.iv-table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+table.iv-item-table{width:100%;border-collapse:collapse;}
+table.iv-item-table thead th{
+  font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);
+  text-align:left;padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap;
+}
+table.iv-item-table thead th.num{text-align:right;}
+table.iv-item-table tbody td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+table.iv-item-table tbody tr:last-child td{border-bottom:none;}
+table.iv-item-table tbody tr.low td{background:var(--warn-soft);}
+table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
+.iv-td-itemno{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:12.5px;white-space:nowrap;}
+.iv-td-desc{font-size:13.5px;line-height:1.35;}
+.iv-td-desc-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-soft);margin-top:2px;}
+.iv-td-qty{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;text-align:right;white-space:nowrap;}
+.iv-td-qty .unit{font-size:10px;font-weight:500;color:var(--ink-soft);margin-left:3px;}
+.iv-td-actions{text-align:right;white-space:nowrap;}
+@media (max-width:600px){
+  .iv-table-wrap{overflow-x:auto;}
+  table.iv-item-table{min-width:520px;}
+}
+
+/* ---- transactions ---- */
+.iv-tx-list{display:flex;flex-direction:column;gap:6px;}
+.iv-tx{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex-wrap:wrap;}
+.iv-tx-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;flex-shrink:0;}
+.iv-tx-icon.in{background:var(--in-soft);color:var(--in);}
+.iv-tx-icon.out{background:var(--out-soft);color:var(--out);}
+.iv-tx-icon.reserve{background:var(--reserve-soft);color:var(--reserve);}
+.iv-tx-icon.release{background:var(--reserve-soft);color:var(--reserve);}
+.iv-tx-icon.borrow{background:var(--borrow-soft);color:var(--borrow);}
+.iv-tx-icon.return{background:var(--borrow-soft);color:var(--borrow);}
+.iv-tx-main{flex:1;min-width:0;}
+.iv-tx-name{font-size:13px;font-weight:600;}
+.iv-tx-meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:1px;}
+.iv-tx-qty{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;}
+.iv-tx-qty.in{color:var(--in);}
+.iv-tx-qty.out{color:var(--out);}
+.iv-tx-qty.reserve, .iv-tx-qty.release{color:var(--reserve);}
+.iv-tx-qty.borrow, .iv-tx-qty.return{color:var(--borrow);}
+.iv-tx-actions{display:flex;gap:6px;width:100%;margin-top:2px;}
+
+.iv-empty{text-align:center;padding:40px 20px;color:var(--ink-soft);}
+.iv-empty-title{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;color:var(--ink);margin-bottom:4px;}
+.iv-empty-sub{font-size:12.5px;}
+
+.iv-search{margin-bottom:12px;}
+
+.iv-add-toggle{display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.iv-plus{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;transition:transform .15s ease;}
+.iv-plus.open{transform:rotate(45deg);}
+
+.iv-hide{display:none;}
+
+.iv-toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);font-family:'Archivo',sans-serif;font-weight:600;font-size:13px;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:all .25s ease;z-index:50;white-space:nowrap;}
+.iv-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.iv-section-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:22px 0 8px;}
+.iv-section-title:first-child{margin-top:0;}
+
+.iv-footnote{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);text-align:center;margin-top:26px;line-height:1.6;}
+
+@media (max-width:480px){
+  .iv-stats{grid-template-columns:1fr 1fr;}
+  .iv-form-row.two{grid-template-columns:1fr 1fr;}
+  .iv-tab{flex:1 1 45%;}
+}
+</style>
+</head>
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<div class="iv-root">
+  <div class="iv-shell">
+
+    <div class="iv-header">
+      <div>
+        <p class="iv-title">Esco Inventory Quantity</p>
+        <p class="iv-sub" id="ivDateLine">— รับ · จ่าย · จอง · ยืม —</p>
+      </div>
+      <div class="iv-badge" id="ivSyncBadge">SYNCED</div>
+    </div>
+
+    <div class="iv-tabs">
+      <div class="iv-tab active" data-tab="items">รายการสินค้า</div>
+      <div class="iv-tab" data-tab="dash">ภาพรวม</div>
+      <div class="iv-tab" data-tab="move">รับ-จ่าย-จอง-ยืม</div>
+      <div class="iv-tab" data-tab="pending">จอง/ยืมค้าง</div>
+      <div class="iv-tab" data-tab="import">นำเข้า/เพิ่มสินค้า</div>
+      <div class="iv-tab" data-tab="history">ประวัติ</div>
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <div class="iv-panel" id="panel-dash">
+      <div class="iv-stats">
+        <div class="iv-stat">
+          <div class="iv-stat-label">รายการทั้งหมด</div>
+          <div class="iv-stat-value" id="statTotalItems">0</div>
+        </div>
+        <div class="iv-stat warn">
+          <div class="iv-stat-label">พร้อมใช้ต่ำ</div>
+          <div class="iv-stat-value" id="statLow">0</div>
+        </div>
+        <div class="iv-stat reserve">
+          <div class="iv-stat-label">จองอยู่ (รายการ)</div>
+          <div class="iv-stat-value" id="statReserved">0</div>
+        </div>
+        <div class="iv-stat borrow">
+          <div class="iv-stat-label">ยืมค้างคืน</div>
+          <div class="iv-stat-value" id="statBorrowed">0</div>
+        </div>
+      </div>
+
+      <div class="iv-card" id="lowStockCard">
+        <p class="iv-card-title"><span class="iv-dot" style="background:var(--warn)"></span>ต้องเติมสต๊อก</p>
+        <div id="lowStockList" class="iv-item-list"></div>
+      </div>
+
+      <div class="iv-card" id="overdueCard">
+        <p class="iv-card-title"><span class="iv-dot" style="background:var(--borrow)"></span>ยืมเกินกำหนดคืน</p>
+        <div id="overdueList" class="iv-item-list"></div>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title">เคลื่อนไหวล่าสุด</p>
+        <div id="recentTxList" class="iv-tx-list"></div>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title">สำรองข้อมูล</p>
+        <p class="iv-hint" style="margin-bottom:12px;">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
+        <button class="iv-btn neutral" onclick="exportToExcel()">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title">สิทธิ์การเข้าถึง</p>
+        <div id="accessBox"></div>
+      </div>
+    </div>
+
+    <!-- ============ STOCK IN/OUT/RESERVE/BORROW ============ -->
+    <div class="iv-panel" id="panel-move">
+      <div class="iv-card">
+        <p class="iv-card-title">บันทึกรายการ</p>
+
+        <div class="iv-toggle">
+          <div class="iv-toggle-btn sel-in" id="btnModeIn" onclick="setMode('IN')">▲ รับเข้า</div>
+          <div class="iv-toggle-btn" id="btnModeOut" onclick="setMode('OUT')">▼ จ่ายออก</div>
+          <div class="iv-toggle-btn" id="btnModeReserve" onclick="setMode('RESERVE')">⚑ จอง</div>
+          <div class="iv-toggle-btn" id="btnModeBorrow" onclick="setMode('BORROW')">↷ ยืม</div>
+        </div>
+        <div class="iv-hint" id="modeHint">รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที</div>
+
+        <div class="iv-form-row two iv-hide" id="inSubModeToggle">
+          <div class="iv-toggle-btn sel-in" id="btnInSingle" onclick="setInSubMode('single')">กรอกทีละรายการ</div>
+          <div class="iv-toggle-btn" id="btnInBulk" onclick="setInSubMode('bulk')">📄 รับเข้าจากไฟล์ (หลายรายการ)</div>
+        </div>
+
+        <div id="singleEntrySection">
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label">สินค้า</label>
+              <div class="iv-combo">
+                <input class="iv-input" type="text" id="txItemSearchInput" placeholder="พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา..." autocomplete="off"
+                       oninput="filterItemOptions()" onfocus="filterItemOptions()"
+                       onblur="setTimeout(()=>document.getElementById('txItemDropdown').classList.add('iv-hide'),150)">
+                <input type="hidden" id="txItemSelect">
+                <div id="txItemDropdown" class="iv-combo-dropdown iv-hide"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="iv-form-row two">
+            <div>
+              <label class="iv-label">จำนวน</label>
+              <input class="iv-input iv-qty-input" type="number" min="1" id="txQty" placeholder="0" oninput="validateTxForm()">
+            </div>
+            <div>
+              <label class="iv-label" id="txCurrentQtyLabel">พร้อมใช้งานตอนนี้</label>
+              <div style="padding-top:9px;"><span class="iv-odo" id="txCurrentQty">—</span></div>
+            </div>
+          </div>
+
+          <div class="iv-form-row two iv-hide" id="borrowFields">
+            <div>
+              <label class="iv-label">ผู้ยืม</label>
+              <input class="iv-input" type="text" id="txBorrower" placeholder="ชื่อผู้ยืม">
+            </div>
+            <div>
+              <label class="iv-label">กำหนดคืน (ไม่บังคับ)</label>
+              <input class="iv-input" type="date" id="txDueDate">
+            </div>
+          </div>
+
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label" id="txNoteLabel">หมายเหตุ (ไม่บังคับ)</label>
+              <input class="iv-input" type="text" id="txNote" placeholder="เช่น เบิกงาน SVSO-00123, รับจากซัพพลายเออร์">
+            </div>
+          </div>
+
+          <button class="iv-btn in" id="txSubmitBtn" onclick="submitTransaction()">บันทึกรับเข้า</button>
+        </div>
+
+        <!-- ===== BULK RECEIVE (IN mode only) ===== -->
+        <div id="bulkReceiveSection" class="iv-hide">
+          <p class="iv-hint">อัปโหลดไฟล์ใบรับของ / ใบนับสต๊อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)</p>
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
+              <input class="iv-input" type="file" id="bulkFile" accept=".xlsx,.xls,.csv" onchange="handleBulkFile(event)">
+            </div>
+          </div>
+          <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+          <div class="iv-form-row">
+            <textarea class="iv-input" id="bulkPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+          </div>
+          <button class="iv-btn neutral" onclick="parseBulkPaste()">อ่านข้อมูลที่วาง</button>
+
+          <div id="bulkPreviewWrap" class="iv-hide" style="margin-top:18px;">
+            <div class="iv-form-row two" style="align-items:end;">
+              <div>
+                <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+                <input class="iv-input" type="number" min="1" id="bulkHeaderRowInput" value="1">
+              </div>
+              <div>
+                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyBulkHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+              </div>
+            </div>
+            <p class="iv-hint" id="bulkRawPreviewHint"></p>
+            <div id="bulkRawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
+
+            <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+            <div class="iv-form-row two">
+              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="bulkMapItemNo"></select></div>
+              <div><label class="iv-label">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty"></select></div>
+            </div>
+            <div class="iv-form-row">
+              <div><label class="iv-label">หมายเหตุ (ไม่บังคับ)</label><select class="iv-input" id="bulkMapNote"></select></div>
+            </div>
+            <div id="bulkPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
+            <p class="iv-hint" id="bulkSummaryHint"></p>
+            <button class="iv-btn in" onclick="confirmBulkReceive()">รับเข้าทั้งหมด</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RESERVE / BORROW PENDING ============ -->
+    <div class="iv-panel" id="panel-pending">
+      <div class="iv-card">
+        <p class="iv-card-title"><span class="iv-dot reserve"></span>รายการจองที่ยังไม่ตัดจ่าย</p>
+        <div id="reserveList" class="iv-tx-list"></div>
+      </div>
+      <div class="iv-card">
+        <p class="iv-card-title"><span class="iv-dot borrow"></span>รายการยืมที่ยังไม่คืน</p>
+        <div id="borrowList" class="iv-tx-list"></div>
+      </div>
+    </div>
+
+    <!-- ============ ITEMS (list & detail) ============ -->
+    <div class="iv-panel active" id="panel-items">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input class="iv-input iv-search" style="margin-bottom:0;" type="text" id="itemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderItems()">
+        <button class="iv-btn-sm" style="white-space:nowrap;" onclick="goToTab('import')">+ เพิ่มสินค้า</button>
+      </div>
+      <div class="iv-table-wrap">
+        <table class="iv-item-table">
+          <thead>
+            <tr>
+              <th>Item No.</th>
+              <th>Description</th>
+              <th class="num">Q'ty</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="itemList"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ IMPORT / ADD ITEM ============ -->
+    <div class="iv-panel" id="panel-import">
+      <div class="iv-card">
+        <div class="iv-add-toggle" onclick="toggleImport()">
+          <p class="iv-card-title" style="margin:0;">นำเข้าอะไหล่จากไฟล์ (Excel/CSV)</p>
+          <div class="iv-plus" id="importPlus">+</div>
+        </div>
+        <div id="importPanel" class="iv-hide" style="margin-top:14px;">
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
+              <input class="iv-input" type="file" id="importFile" accept=".xlsx,.xls,.csv" onchange="handleImportFile(event)">
+            </div>
+          </div>
+          <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+          <div class="iv-form-row">
+            <textarea class="iv-input" id="importPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+          </div>
+          <button class="iv-btn neutral" onclick="parsePastedData()">อ่านข้อมูลที่วาง</button>
+
+          <div id="importPreviewWrap" class="iv-hide" style="margin-top:18px;">
+            <div class="iv-form-row two" style="align-items:end;">
+              <div>
+                <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+                <input class="iv-input" type="number" min="1" id="headerRowInput" value="1" oninput="">
+              </div>
+              <div>
+                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+              </div>
+            </div>
+            <p class="iv-hint" id="rawPreviewHint"></p>
+            <div id="rawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
+
+            <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+            <div class="iv-form-row two">
+              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="mapItemNo"></select></div>
+              <div><label class="iv-label">ชื่อสินค้า *</label><select class="iv-input" id="mapName"></select></div>
+            </div>
+            <div class="iv-form-row two">
+              <div><label class="iv-label">หน่วยนับ</label><select class="iv-input" id="mapUnit"></select></div>
+              <div><label class="iv-label">จำนวนเริ่มต้น</label><select class="iv-input" id="mapQty"></select></div>
+            </div>
+            <div class="iv-form-row">
+              <div><label class="iv-label">จุดสั่งซื้อ (ไม่บังคับ)</label><select class="iv-input" id="mapReorder"></select></div>
+            </div>
+            <div id="importPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
+            <p class="iv-hint" id="importSummaryHint"></p>
+            <button class="iv-btn in" onclick="confirmImport()">นำเข้าข้อมูล</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="iv-card">
+        <div class="iv-add-toggle" onclick="toggleAddItem()">
+          <p class="iv-card-title" style="margin:0;">เพิ่มสินค้าใหม่ (ทีละรายการ)</p>
+          <div class="iv-plus" id="addItemPlus">+</div>
+        </div>
+        <div id="addItemForm" class="iv-hide" style="margin-top:14px;">
+          <div class="iv-form-row two">
+            <div>
+              <label class="iv-label">รหัสสินค้า (Item No.)</label>
+              <input class="iv-input" type="text" id="newItemNo" placeholder="เช่น 5090086">
+            </div>
+            <div>
+              <label class="iv-label">หน่วยนับ</label>
+              <input class="iv-input" type="text" id="newItemUnit" placeholder="เช่น PC, BOX">
+            </div>
+          </div>
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label">ชื่อสินค้า</label>
+              <input class="iv-input" type="text" id="newItemName" placeholder="ชื่อ / รายละเอียดสินค้า">
+            </div>
+          </div>
+          <div class="iv-form-row two">
+            <div>
+              <label class="iv-label">จำนวนเริ่มต้น</label>
+              <input class="iv-input" type="number" min="0" id="newItemQty" placeholder="0">
+            </div>
+            <div>
+              <label class="iv-label">จุดสั่งซื้อ (แจ้งเตือนเมื่อต่ำกว่านี้)</label>
+              <input class="iv-input" type="number" min="0" id="newItemReorder" placeholder="0">
+            </div>
+          </div>
+          <button class="iv-btn neutral" onclick="addItem()">เพิ่มสินค้า</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ HISTORY ============ -->
+    <div class="iv-panel" id="panel-history">
+      <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="renderHistory()">
+      <div class="iv-tx-list" id="fullTxList"></div>
+    </div>
+
+    <div class="iv-footnote">ข้อมูลบันทึกอัตโนมัติและใช้ร่วมกันได้ทุกคนที่เปิดแอปนี้</div>
+  </div>
+</div>
+
+<div class="iv-toast" id="ivToast"></div>
+
+<script>
+// ===== Storage backend: Google Sheets via Apps Script (standalone version) =====
+// This replaces Claude.ai's built-in window.storage with calls to your deployed
+// Google Apps Script Web App, so this file works as a normal standalone webpage.
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbziuwBHhb0exMCxdL3Q0EAw3qzM1yLlRGIByRcUgElUrvoGrxa-1mkSoGz6fZfiPqnf8w/exec';
+
+window.storage = {
+  async get(key, shared){
+    if(!shared){
+      try{
+        const v = localStorage.getItem(key);
+        return v!==null ? {key, value:v, shared:false} : null;
+      }catch(e){ return null; }
+    }
+    try{
+      const res = await fetch(`${GAS_API_URL}?key=${encodeURIComponent(key)}`);
+      const data = await res.json();
+      if(!data || data.value===undefined || data.value===null || data.value==='') return null;
+      return {key: data.key, value: data.value, shared:true};
+    }catch(e){
+      console.error('storage.get failed', e);
+      window.__gasOffline = true;
+      return null;
+    }
+  },
+  async set(key, value, shared){
+    if(!shared){
+      try{ localStorage.setItem(key, value); return {key, value, shared:false}; }
+      catch(e){ return null; }
+    }
+    try{
+      await fetch(GAS_API_URL, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({key, value})
+      });
+      return {key, value, shared:true};
+    }catch(e){
+      console.error('storage.set failed', e);
+      window.__gasOffline = true;
+      return null;
+    }
+  },
+  async delete(key, shared){ return null; },
+  async list(prefix, shared){ return null; }
+};
+
+let items = [];
+let ledger = [];        // physical + informational history: IN, OUT, RESERVE, RELEASE, BORROW, RETURN
+let reservations = [];  // {id, itemId, qty, note, ts, status: 'active'|'fulfilled'|'released'}
+let borrows = [];       // {id, itemId, qty, borrower, note, dueDate, ts, status:'out'|'returned', returnedTs}
+let currentMode = 'IN';
+let inSubMode = 'single';
+let settings = {editPin:''};
+let editUnlocked = true;
+
+const KEY_ITEMS = 'inv:items';
+const KEY_LEDGER = 'inv:ledger';
+const KEY_RESERVATIONS = 'inv:reservations';
+const KEY_BORROWS = 'inv:borrows';
+const KEY_SETTINGS = 'inv:settings';
+const KEY_UNLOCK = 'inv:unlocked';
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString('th-TH', {day:'2-digit',month:'short',year:'2-digit'}) + ' ' + d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDay(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr+'T00:00:00');
+  return d.toLocaleDateString('th-TH', {day:'2-digit',month:'short',year:'2-digit'});
+}
+
+// ---- stock math ----
+function onHand(itemId){
+  return ledger.reduce((sum,t)=>{
+    if(t.itemId!==itemId) return sum;
+    if(t.type==='IN' || t.type==='RETURN') return sum + t.qty;
+    if(t.type==='OUT' || t.type==='BORROW') return sum - t.qty;
+    return sum;
+  }, 0);
+}
+function reservedQty(itemId){
+  return reservations.filter(r=>r.itemId===itemId && r.status==='active').reduce((s,r)=>s+r.qty,0);
+}
+function borrowedOutQty(itemId){
+  return borrows.filter(b=>b.itemId===itemId && b.status==='out').reduce((s,b)=>s+b.qty,0);
+}
+function availableQty(itemId){
+  return onHand(itemId) - reservedQty(itemId);
+}
+function totalStock(it){ return (it.baseQty||0) + onHand(it.id); }
+// baseQty is folded into ledger IN at creation time (see addItem) — kept simple: onHand already includes base via seed IN entry.
+
+async function loadData(){
+  try{ const r = await window.storage.get(KEY_ITEMS, true); items = r ? JSON.parse(r.value) : []; }catch(e){ items = []; }
+  try{ const r = await window.storage.get(KEY_LEDGER, true); ledger = r ? JSON.parse(r.value) : []; }catch(e){ ledger = []; }
+  try{ const r = await window.storage.get(KEY_RESERVATIONS, true); reservations = r ? JSON.parse(r.value) : []; }catch(e){ reservations = []; }
+  try{ const r = await window.storage.get(KEY_BORROWS, true); borrows = r ? JSON.parse(r.value) : []; }catch(e){ borrows = []; }
+
+  if(items.length===0 && ledger.length===0){
+    const seedId = uid();
+    items = [{id:seedId, itemNo:'DEMO-001', name:'ตัวอย่างสินค้า (ลบได้)', unit:'PC', reorder:5, baseQty:0}];
+    ledger = [{id:uid(), itemId:seedId, type:'IN', qty:20, note:'ยอดเริ่มต้น', ts:Date.now()}];
+  } else if(ledger.length===0 && items.some(it=>it.baseQty)){
+    // migrating from the earlier version (pre reserve/borrow): pull baseQty into ledger, and old transactions if present
+    items.forEach(it=>{
+      if(it.baseQty){ ledger.push({id:uid(), itemId:it.id, type:'IN', qty:it.baseQty, note:'ยอดเริ่มต้น (ย้ายจากเวอร์ชันก่อนหน้า)', ts:Date.now()}); }
+      it.baseQty = 0;
+    });
+    try{
+      const old = await window.storage.get('inv:transactions', true);
+      if(old){
+        const oldTx = JSON.parse(old.value);
+        oldTx.forEach(t=> ledger.push({id:t.id||uid(), itemId:t.itemId, type:t.type, qty:t.qty, note:t.note, ts:t.ts}));
+      }
+    }catch(e){}
+    await saveItems();
+    await saveLedger();
+  }
+  renderAll();
+}
+
+async function loadSettings(){
+  try{ const r = await window.storage.get(KEY_SETTINGS, true); settings = r ? JSON.parse(r.value) : {editPin:''}; }catch(e){ settings = {editPin:''}; }
+  try{ const r = await window.storage.get(KEY_UNLOCK, false); editUnlocked = r ? JSON.parse(r.value)===true : false; }catch(e){ editUnlocked = false; }
+  if(!settings.editPin) editUnlocked = true;
+  renderAccessUI();
+}
+
+function requireEdit(){
+  if(editUnlocked) return true;
+  showToast('โหมดดูอย่างเดียว — ปลดล็อกที่แท็บ "ภาพรวม" ก่อน');
+  return false;
+}
+
+async function setEditPin(){
+  const val = document.getElementById('newPinInput').value.trim();
+  if(!val){ showToast('กรุณาใส่รหัสผ่าน'); return; }
+  settings.editPin = val;
+  await window.storage.set(KEY_SETTINGS, JSON.stringify(settings), true);
+  editUnlocked = true;
+  await window.storage.set(KEY_UNLOCK, JSON.stringify(true), false);
+  showToast('ตั้งรหัสผ่านแล้ว คนอื่นที่เปิดแอปนี้ต้องกรอกรหัสก่อนแก้ไขข้อมูล');
+  renderAccessUI();
+}
+
+async function removeEditPin(){
+  settings.editPin = '';
+  await window.storage.set(KEY_SETTINGS, JSON.stringify(settings), true);
+  editUnlocked = true;
+  showToast('ยกเลิกรหัสผ่านแล้ว ทุกคนแก้ไขข้อมูลได้');
+  renderAccessUI();
+}
+
+async function tryUnlock(){
+  const val = document.getElementById('unlockPinInput').value.trim();
+  if(val && val === settings.editPin){
+    editUnlocked = true;
+    await window.storage.set(KEY_UNLOCK, JSON.stringify(true), false);
+    showToast('ปลดล็อกโหมดแก้ไขแล้ว');
+    renderAccessUI();
+  }else{
+    showToast('รหัสผ่านไม่ถูกต้อง');
+  }
+}
+
+async function lockAgain(){
+  editUnlocked = false;
+  await window.storage.set(KEY_UNLOCK, JSON.stringify(false), false);
+  showToast('เปลี่ยนเป็นโหมดดูอย่างเดียวแล้ว (สำหรับเบราว์เซอร์นี้)');
+  renderAccessUI();
+}
+
+function renderAccessUI(){
+  const box = document.getElementById('accessBox');
+  if(!box) return;
+  if(!settings.editPin){
+    box.innerHTML = `
+      <p class="iv-hint" style="margin-bottom:10px;">ตอนนี้ทุกคนที่เปิดลิงก์นี้แก้ไขข้อมูลได้ ถ้าอยากให้บางคนดูได้อย่างเดียว ตั้งรหัสผ่านสำหรับแก้ไขข้อมูลไว้ได้ที่นี่</p>
+      <div class="iv-form-row two" style="align-items:end;">
+        <div><label class="iv-label">ตั้งรหัสผ่านแก้ไขข้อมูล</label><input class="iv-input" type="text" id="newPinInput" placeholder="เช่น 1234"></div>
+        <div><button class="iv-btn neutral" onclick="setEditPin()">ตั้งรหัสผ่าน</button></div>
+      </div>`;
+  }else if(editUnlocked){
+    box.innerHTML = `
+      <p class="iv-hint" style="margin-bottom:10px;">สถานะ: ✅ แก้ไขข้อมูลได้ (เบราว์เซอร์นี้ปลดล็อกอยู่)</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="iv-btn-sm" onclick="lockAgain()">เปลี่ยนเป็นดูอย่างเดียว</button>
+        <button class="iv-btn-sm neg" onclick="removeEditPin()">ยกเลิกรหัสผ่าน (ให้ทุกคนแก้ไขได้)</button>
+      </div>`;
+  }else{
+    box.innerHTML = `
+      <p class="iv-hint" style="margin-bottom:10px;">สถานะ: 🔒 ดูอย่างเดียว — กรอกรหัสผ่านเพื่อแก้ไขข้อมูล</p>
+      <div class="iv-form-row two" style="align-items:end;">
+        <div><input class="iv-input" type="text" id="unlockPinInput" placeholder="รหัสผ่าน"></div>
+        <div><button class="iv-btn neutral" onclick="tryUnlock()">ปลดล็อก</button></div>
+      </div>`;
+  }
+}
+
+async function saveItems(){ await window.storage.set(KEY_ITEMS, JSON.stringify(items), true); }
+async function saveLedger(){ await window.storage.set(KEY_LEDGER, JSON.stringify(ledger), true); }
+async function saveReservations(){ await window.storage.set(KEY_RESERVATIONS, JSON.stringify(reservations), true); }
+async function saveBorrows(){ await window.storage.set(KEY_BORROWS, JSON.stringify(borrows), true); }
+
+function showToast(msg){
+  const t = document.getElementById('ivToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 1800);
+}
+
+const MODE_META = {
+  IN:      {btn:'btnModeIn',      cls:'in',      submitText:'บันทึกรับเข้า',   hint:'รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที'},
+  OUT:     {btn:'btnModeOut',     cls:'out',     submitText:'บันทึกจ่ายออก',  hint:'จ่ายสินค้าออกแบบถาวร (เบิกใช้งาน) จะตัดจากยอดพร้อมใช้งานทันที'},
+  RESERVE: {btn:'btnModeReserve', cls:'reserve', submitText:'บันทึกการจอง',   hint:'กันสต๊อกไว้ล่วงหน้า ยังไม่ตัดของออกจากคลัง แต่จะไม่นับรวมในยอด "พร้อมใช้งาน" ของคนอื่น'},
+  BORROW:  {btn:'btnModeBorrow',  cls:'borrow',  submitText:'บันทึกการยืม',   hint:'ของออกจากคลังชั่วคราว ต้องนำมาคืน — ระบบจะติดตามจนกว่าจะคืน'}
+};
+
+function setMode(mode){
+  currentMode = mode;
+  Object.values(MODE_META).forEach(m=> document.getElementById(m.btn).classList.remove('sel-in','sel-out','sel-reserve','sel-borrow'));
+  const meta = MODE_META[mode];
+  document.getElementById(meta.btn).classList.add('sel-'+mode.toLowerCase());
+  const submit = document.getElementById('txSubmitBtn');
+  submit.className = 'iv-btn ' + meta.cls;
+  submit.textContent = meta.submitText;
+  document.getElementById('modeHint').textContent = meta.hint;
+  document.getElementById('borrowFields').classList.toggle('iv-hide', mode!=='BORROW');
+  document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'จองไว้สำหรับ (เช่น SVSO / ชื่องาน)' : 'หมายเหตุ (ไม่บังคับ)';
+  document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
+  if(mode!=='IN') setInSubMode('single');
+  updateTxCurrentQty();
+  validateTxForm();
+}
+
+function setInSubMode(sub){
+  inSubMode = sub;
+  document.getElementById('btnInSingle').classList.toggle('sel-in', sub==='single');
+  document.getElementById('btnInBulk').classList.toggle('sel-in', sub==='bulk');
+  document.getElementById('singleEntrySection').classList.toggle('iv-hide', sub!=='single');
+  document.getElementById('bulkReceiveSection').classList.toggle('iv-hide', sub!=='bulk');
+}
+
+function populateItemSelect(){
+  const hidden = document.getElementById('txItemSelect');
+  if(!hidden.value || !items.find(i=>i.id===hidden.value)){
+    hidden.value = items.length ? items[0].id : '';
+  }
+  syncItemSearchDisplay();
+  updateTxCurrentQty();
+}
+
+function syncItemSearchDisplay(){
+  const hidden = document.getElementById('txItemSelect');
+  const item = items.find(i=>i.id===hidden.value);
+  const input = document.getElementById('txItemSearchInput');
+  input.value = item ? `${item.itemNo} — ${item.name}` : '';
+}
+
+function filterItemOptions(){
+  const raw = document.getElementById('txItemSearchInput').value;
+  const hidden = document.getElementById('txItemSelect');
+  const selectedItem = items.find(i=>i.id===hidden.value);
+  // if the box still shows the exact "code — name" of the currently selected item, treat as empty query (show all)
+  const q = (selectedItem && raw === `${selectedItem.itemNo} — ${selectedItem.name}`) ? '' : raw.toLowerCase();
+  const dropdown = document.getElementById('txItemDropdown');
+  const filtered = items.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
+
+  if(filtered.length===0){
+    dropdown.innerHTML = `<div class="iv-combo-empty">ไม่พบสินค้าที่ตรงกับ "${raw}"</div>`;
+  }else{
+    dropdown.innerHTML = filtered.map(it=>`<div class="iv-combo-item" onmousedown="selectItemOption('${it.id}')">
+      <span class="iv-combo-item-no">${it.itemNo}</span>
+      <span class="iv-combo-item-name">${it.name}</span>
+    </div>`).join('');
+  }
+  dropdown.classList.remove('iv-hide');
+}
+
+function selectItemOption(id){
+  document.getElementById('txItemSelect').value = id;
+  syncItemSearchDisplay();
+  document.getElementById('txItemDropdown').classList.add('iv-hide');
+  updateTxCurrentQty();
+}
+
+function updateTxCurrentQty(){
+  const sel = document.getElementById('txItemSelect');
+  const id = sel.value;
+  const item = items.find(i=>i.id===id);
+  const qtyEl = document.getElementById('txCurrentQty');
+  const labelEl = document.getElementById('txCurrentQtyLabel');
+  if(!item){ qtyEl.textContent = '—'; return; }
+  if(currentMode==='IN'){
+    labelEl.textContent = 'คงเหลือทั้งหมดตอนนี้';
+    qtyEl.className = 'iv-odo';
+    qtyEl.textContent = onHand(item.id) + ' ' + item.unit;
+  }else{
+    labelEl.textContent = 'พร้อมใช้งานตอนนี้';
+    qtyEl.className = 'iv-odo';
+    qtyEl.textContent = availableQty(item.id) + ' ' + item.unit;
+  }
+  validateTxForm();
+}
+
+function validateTxForm(){
+  const qty = parseFloat(document.getElementById('txQty').value);
+  const btn = document.getElementById('txSubmitBtn');
+  let ok = qty > 0;
+  if(currentMode==='BORROW' && !document.getElementById('txBorrower').value.trim()) ok = false;
+  btn.disabled = !ok;
+}
+
+async function submitTransaction(){
+  if(!requireEdit()) return;
+  const sel = document.getElementById('txItemSelect');
+  const itemId = sel.value;
+  const item = items.find(i=>i.id===itemId);
+  if(!item) return;
+  const qty = parseFloat(document.getElementById('txQty').value);
+  if(!(qty>0)) return;
+  const note = document.getElementById('txNote').value.trim();
+
+  if(currentMode==='OUT' || currentMode==='RESERVE' || currentMode==='BORROW'){
+    const avail = availableQty(item.id);
+    if(qty > avail){
+      showToast(`พร้อมใช้งานแค่ ${avail} ${item.unit} — ทำรายการนี้ไม่ได้`);
+      return;
+    }
+  }
+
+  if(currentMode==='IN'){
+    ledger.push({id:uid(), itemId, type:'IN', qty, note, ts:Date.now()});
+    await saveLedger();
+    showToast(`รับเข้า ${qty} ${item.unit} แล้ว`);
+  }
+  else if(currentMode==='OUT'){
+    ledger.push({id:uid(), itemId, type:'OUT', qty, note, ts:Date.now()});
+    await saveLedger();
+    showToast(`จ่ายออก ${qty} ${item.unit} แล้ว`);
+  }
+  else if(currentMode==='RESERVE'){
+    reservations.push({id:uid(), itemId, qty, note, ts:Date.now(), status:'active'});
+    await saveReservations();
+    ledger.push({id:uid(), itemId, type:'RESERVE', qty, note, ts:Date.now()});
+    await saveLedger();
+    showToast(`จอง ${qty} ${item.unit} แล้ว`);
+  }
+  else if(currentMode==='BORROW'){
+    const borrower = document.getElementById('txBorrower').value.trim();
+    const dueDate = document.getElementById('txDueDate').value;
+    borrows.push({id:uid(), itemId, qty, borrower, note, dueDate, ts:Date.now(), status:'out'});
+    await saveBorrows();
+    ledger.push({id:uid(), itemId, type:'BORROW', qty, note:borrower + (note?(' · '+note):''), ts:Date.now()});
+    await saveLedger();
+    showToast(`บันทึกยืม ${qty} ${item.unit} ให้ ${borrower} แล้ว`);
+    document.getElementById('txBorrower').value='';
+    document.getElementById('txDueDate').value='';
+  }
+
+  document.getElementById('txQty').value='';
+  document.getElementById('txNote').value='';
+  validateTxForm();
+  updateTxCurrentQty();
+  renderAll();
+}
+
+async function fulfillReservation(id){
+  if(!requireEdit()) return;
+  const r = reservations.find(x=>x.id===id);
+  if(!r || r.status!=='active') return;
+  const item = items.find(i=>i.id===r.itemId);
+  if(onHand(r.itemId) < r.qty){
+    showToast('ของจริงในคลังไม่พอ ตรวจสอบยอดก่อนตัดจ่าย');
+    return;
+  }
+  r.status = 'fulfilled';
+  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดจ่ายจากรายการจอง'+(r.note?': '+r.note:''), ts:Date.now()});
+  await saveReservations();
+  await saveLedger();
+  showToast(`ตัดจ่าย ${r.qty} ${item?item.unit:''} จากรายการจองแล้ว`);
+  renderAll();
+}
+
+async function releaseReservation(id){
+  if(!requireEdit()) return;
+  const r = reservations.find(x=>x.id===id);
+  if(!r || r.status!=='active') return;
+  r.status = 'released';
+  ledger.push({id:uid(), itemId:r.itemId, type:'RELEASE', qty:r.qty, note:'ยกเลิกการจอง'+(r.note?': '+r.note:''), ts:Date.now()});
+  await saveReservations();
+  await saveLedger();
+  showToast('ยกเลิกรายการจองแล้ว');
+  renderAll();
+}
+
+async function returnBorrow(id){
+  if(!requireEdit()) return;
+  const b = borrows.find(x=>x.id===id);
+  if(!b || b.status!=='out') return;
+  b.status = 'returned';
+  b.returnedTs = Date.now();
+  const item = items.find(i=>i.id===b.itemId);
+  ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:'รับคืนจาก '+b.borrower, ts:Date.now()});
+  await saveBorrows();
+  await saveLedger();
+  showToast(`รับคืน ${b.qty} ${item?item.unit:''} จาก ${b.borrower} แล้ว`);
+  renderAll();
+}
+
+function toggleAddItem(){
+  const f = document.getElementById('addItemForm');
+  const plus = document.getElementById('addItemPlus');
+  f.classList.toggle('iv-hide');
+  plus.classList.toggle('open');
+}
+
+// ---- bulk import ----
+let importRows = [];
+let importHeaderRowIndex = 0;
+
+function toggleImport(){
+  document.getElementById('importPanel').classList.toggle('iv-hide');
+  document.getElementById('importPlus').classList.toggle('open');
+}
+
+function handleImportFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      if(isCsv){
+        importRows = parseCsvText(evt.target.result);
+      }else{
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        importRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+      }
+      importHeaderRowIndex = guessHeaderRowIndex();
+      afterParseImport();
+    }catch(err){
+      showToast('อ่านไฟล์ไม่สำเร็จ: ' + err.message);
+    }
+  };
+  if(isCsv) reader.readAsText(file); else reader.readAsArrayBuffer(file);
+}
+
+function parseCsvText(text){
+  return text.split(/\r?\n/).filter(l=>l.length>0).map(line=>
+    line.split(',').map(c=>c.trim().replace(/^"|"$/g,''))
+  );
+}
+
+function parsePastedData(){
+  const text = document.getElementById('importPaste').value;
+  if(!text.trim()){ showToast('ยังไม่มีข้อมูลที่วาง'); return; }
+  importRows = text.split(/\r?\n/).filter(l=>l.length>0).map(line=> line.split('\t').map(c=>c.trim()));
+  importHeaderRowIndex = guessHeaderRowIndex();
+  afterParseImport();
+}
+
+// Heuristic: the header row usually has the most non-empty cells out of the first several rows
+function guessHeaderRowIndexFor(rows){
+  const scanLimit = Math.min(rows.length, 8);
+  let bestIdx = 0, bestScore = -1;
+  for(let i=0;i<scanLimit;i++){
+    const row = rows[i] || [];
+    const nonEmpty = row.filter(c=> c!==undefined && c!==null && String(c).trim()!=='').length;
+    if(nonEmpty > bestScore){ bestScore = nonEmpty; bestIdx = i; }
+  }
+  return bestIdx;
+}
+function guessHeaderRowIndex(){ return guessHeaderRowIndexFor(importRows); }
+
+function applyHeaderRow(){
+  const rowNum = parseInt(document.getElementById('headerRowInput').value);
+  if(!rowNum || rowNum<1 || rowNum>importRows.length){ showToast('ระบุเลขแถวไม่ถูกต้อง'); return; }
+  importHeaderRowIndex = rowNum - 1;
+  afterParseImport();
+}
+
+function renderRawPreview(){
+  const limit = Math.min(importRows.length, 8);
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:10.5px;font-family:\'JetBrains Mono\',monospace;">';
+  for(let i=0;i<limit;i++){
+    const row = importRows[i] || [];
+    const isHeader = i===importHeaderRowIndex;
+    html += `<tr style="${isHeader?'background:var(--reserve-soft);':''}">`;
+    html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += '</tr>';
+  }
+  html += '</table>';
+  document.getElementById('rawPreviewTable').innerHTML = html;
+  document.getElementById('rawPreviewHint').textContent = 'แถวที่ไฮไลต์ (★) คือแถวที่ระบบจะใช้เป็นหัวตาราง — ถ้าไม่ตรง ให้แก้เลขแถวด้านบนแล้วกด "ใช้แถวนี้เป็นหัวตาราง"';
+  document.getElementById('headerRowInput').value = importHeaderRowIndex + 1;
+}
+
+function afterParseImport(){
+  if(importRows.length<2){ showToast('ไม่พบข้อมูล (ต้องมีหัวตาราง และอย่างน้อย 1 แถวข้อมูล)'); return; }
+  if(importHeaderRowIndex >= importRows.length-1) importHeaderRowIndex = 0;
+  renderRawPreview();
+
+  const headers = (importRows[importHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
+  ['mapItemNo','mapName','mapUnit','mapQty','mapReorder'].forEach(id=>{
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="-1">— ไม่ระบุ —</option>' + headers.map((h,i)=>`<option value="${i}">${h || '(คอลัมน์ '+(i+1)+')'}</option>`).join('');
+  });
+  autoGuessColumn('mapItemNo', headers, ['item no','itemno','item.no','รหัส','part no','sku','code']);
+  autoGuessColumn('mapName', headers, ['description','name','ชื่อ','รายละเอียด']);
+  autoGuessColumn('mapUnit', headers, ['unit','หน่วย']);
+  autoGuessColumn('mapQty', headers, ["q'ty",'qty','จำนวน','remain','stock','คงเหลือ']);
+  autoGuessColumn('mapReorder', headers, ['reorder','จุดสั่งซื้อ','min','safety']);
+
+  renderImportPreview(headers);
+  document.getElementById('importPreviewWrap').classList.remove('iv-hide');
+  document.getElementById('importSummaryHint').textContent = `พบข้อมูล ${importRows.length - importHeaderRowIndex - 1} แถว (นับจากหลังหัวตาราง) — ตรวจสอบการจับคู่คอลัมน์ด้านบนก่อนกดนำเข้า`;
+}
+
+function autoGuessColumn(selectId, headers, keywords){
+  const idx = headers.findIndex(h=> keywords.some(k=> String(h).toLowerCase().includes(k)));
+  if(idx>=0) document.getElementById(selectId).value = idx;
+}
+
+function renderImportPreview(headers){
+  const rows = importRows.slice(importHeaderRowIndex+1, importHeaderRowIndex+6);
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:\'JetBrains Mono\',monospace;">';
+  html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('') + '</tr>';
+  rows.forEach(r=>{
+    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('') + '</tr>';
+  });
+  html += '</table>';
+  document.getElementById('importPreviewTable').innerHTML = html;
+}
+
+// ---- bulk receive (IN mode, matches existing items only) ----
+let bulkRows = [];
+let bulkHeaderRowIndex = 0;
+
+function handleBulkFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      if(isCsv){
+        bulkRows = parseCsvText(evt.target.result);
+      }else{
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        bulkRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+      }
+      bulkHeaderRowIndex = guessHeaderRowIndexFor(bulkRows);
+      afterParseBulk();
+    }catch(err){
+      showToast('อ่านไฟล์ไม่สำเร็จ: ' + err.message);
+    }
+  };
+  if(isCsv) reader.readAsText(file); else reader.readAsArrayBuffer(file);
+}
+
+function parseBulkPaste(){
+  const text = document.getElementById('bulkPaste').value;
+  if(!text.trim()){ showToast('ยังไม่มีข้อมูลที่วาง'); return; }
+  bulkRows = text.split(/\r?\n/).filter(l=>l.length>0).map(line=> line.split('\t').map(c=>c.trim()));
+  bulkHeaderRowIndex = guessHeaderRowIndexFor(bulkRows);
+  afterParseBulk();
+}
+
+function applyBulkHeaderRow(){
+  const rowNum = parseInt(document.getElementById('bulkHeaderRowInput').value);
+  if(!rowNum || rowNum<1 || rowNum>bulkRows.length){ showToast('ระบุเลขแถวไม่ถูกต้อง'); return; }
+  bulkHeaderRowIndex = rowNum - 1;
+  afterParseBulk();
+}
+
+function renderBulkRawPreview(){
+  const limit = Math.min(bulkRows.length, 8);
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:10.5px;font-family:\'JetBrains Mono\',monospace;">';
+  for(let i=0;i<limit;i++){
+    const row = bulkRows[i] || [];
+    const isHeader = i===bulkHeaderRowIndex;
+    html += `<tr style="${isHeader?'background:var(--in-soft);':''}">`;
+    html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += '</tr>';
+  }
+  html += '</table>';
+  document.getElementById('bulkRawPreviewTable').innerHTML = html;
+  document.getElementById('bulkRawPreviewHint').textContent = 'แถวที่ไฮไลต์ (★) คือแถวที่ระบบจะใช้เป็นหัวตาราง — ถ้าไม่ตรง ให้แก้เลขแถวด้านบนแล้วกด "ใช้แถวนี้เป็นหัวตาราง"';
+  document.getElementById('bulkHeaderRowInput').value = bulkHeaderRowIndex + 1;
+}
+
+function afterParseBulk(){
+  if(bulkRows.length<2){ showToast('ไม่พบข้อมูล (ต้องมีหัวตาราง และอย่างน้อย 1 แถวข้อมูล)'); return; }
+  if(bulkHeaderRowIndex >= bulkRows.length-1) bulkHeaderRowIndex = 0;
+  renderBulkRawPreview();
+
+  const headers = (bulkRows[bulkHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
+  ['bulkMapItemNo','bulkMapQty','bulkMapNote'].forEach(id=>{
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="-1">— ไม่ระบุ —</option>' + headers.map((h,i)=>`<option value="${i}">${h || '(คอลัมน์ '+(i+1)+')'}</option>`).join('');
+  });
+  autoGuessColumn('bulkMapItemNo', headers, ['item no','itemno','item.no','รหัส','part no','sku','code']);
+  autoGuessColumn('bulkMapQty', headers, ["q'ty",'qty','จำนวน','remain','stock','คงเหลือ','received','รับ']);
+  autoGuessColumn('bulkMapNote', headers, ['note','remark','หมายเหตุ','description']);
+
+  renderBulkPreview(headers);
+  document.getElementById('bulkPreviewWrap').classList.remove('iv-hide');
+  document.getElementById('bulkSummaryHint').textContent = `พบข้อมูล ${bulkRows.length - bulkHeaderRowIndex - 1} แถว (นับจากหลังหัวตาราง) — ตรวจสอบการจับคู่คอลัมน์ด้านบนก่อนกด "รับเข้าทั้งหมด"`;
+}
+
+function renderBulkPreview(headers){
+  const rows = bulkRows.slice(bulkHeaderRowIndex+1, bulkHeaderRowIndex+6);
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:\'JetBrains Mono\',monospace;">';
+  html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('') + '</tr>';
+  rows.forEach(r=>{
+    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('') + '</tr>';
+  });
+  html += '</table>';
+  document.getElementById('bulkPreviewTable').innerHTML = html;
+}
+
+async function confirmBulkReceive(){
+  if(!requireEdit()) return;
+  const idxItemNo = parseInt(document.getElementById('bulkMapItemNo').value);
+  const idxQty = parseInt(document.getElementById('bulkMapQty').value);
+  const idxNote = parseInt(document.getElementById('bulkMapNote').value);
+
+  if(idxItemNo<0 || idxQty<0){ showToast('กรุณาเลือกคอลัมน์รหัสสินค้าและจำนวนอย่างน้อย'); return; }
+
+  const dataRows = bulkRows.slice(bulkHeaderRowIndex+1);
+  const byCode = new Map(items.map(it=>[it.itemNo.toLowerCase(), it]));
+  let received=0, totalQty=0, notFound=[], invalidQty=0;
+
+  for(const row of dataRows){
+    const itemNoRaw = row[idxItemNo];
+    if(itemNoRaw===undefined || itemNoRaw===null || String(itemNoRaw).trim()===''){ continue; }
+    const itemNo = String(itemNoRaw).trim();
+    const item = byCode.get(itemNo.toLowerCase());
+    const qtyRaw = row[idxQty];
+    const qty = (qtyRaw!==undefined && qtyRaw!=='' && !isNaN(parseFloat(qtyRaw))) ? parseFloat(qtyRaw) : 0;
+    const note = idxNote>=0 && row[idxNote] ? String(row[idxNote]).trim() : 'รับเข้าจากไฟล์';
+
+    if(!item){ notFound.push(itemNo); continue; }
+    if(!(qty>0)){ invalidQty++; continue; }
+
+    ledger.push({id:uid(), itemId:item.id, type:'IN', qty, note, ts:Date.now()});
+    received++;
+    totalQty += qty;
+  }
+
+  await saveLedger();
+
+  let msg = `รับเข้าสำเร็จ ${received} รายการ (รวม ${totalQty} หน่วย)`;
+  if(notFound.length) msg += ` — ไม่พบรหัสสินค้า ${notFound.length} รายการในระบบ`;
+  showToast(msg);
+  if(notFound.length){
+    document.getElementById('bulkSummaryHint').textContent = `⚠️ ไม่พบสินค้ารหัส: ${notFound.slice(0,15).join(', ')}${notFound.length>15?` และอีก ${notFound.length-15} รายการ`:''} — เพิ่มสินค้าเหล่านี้ในระบบก่อน แล้วอัปโหลดไฟล์นี้ซ้ำอีกครั้ง`;
+  }
+  document.getElementById('bulkPaste').value='';
+  document.getElementById('bulkFile').value='';
+  renderAll();
+}
+
+async function confirmImport(){
+  if(!requireEdit()) return;
+  const idxItemNo = parseInt(document.getElementById('mapItemNo').value);
+  const idxName = parseInt(document.getElementById('mapName').value);
+  const idxUnit = parseInt(document.getElementById('mapUnit').value);
+  const idxQty = parseInt(document.getElementById('mapQty').value);
+  const idxReorder = parseInt(document.getElementById('mapReorder').value);
+
+  if(idxItemNo<0 || idxName<0){ showToast('กรุณาเลือกคอลัมน์รหัสสินค้าและชื่อสินค้าอย่างน้อย'); return; }
+
+  const dataRows = importRows.slice(importHeaderRowIndex+1);
+  let added=0, skipped=0, errored=0;
+  const existingCodes = new Set(items.map(i=>i.itemNo.toLowerCase()));
+
+  for(const row of dataRows){
+    const itemNoRaw = row[idxItemNo];
+    if(itemNoRaw===undefined || itemNoRaw===null || String(itemNoRaw).trim()===''){ continue; }
+    const itemNo = String(itemNoRaw).trim();
+    const nameRaw = row[idxName];
+    const name = nameRaw!==undefined && nameRaw!==null ? String(nameRaw).trim() : '';
+    if(!name){ errored++; continue; }
+    if(existingCodes.has(itemNo.toLowerCase())){ skipped++; continue; }
+
+    const unit = idxUnit>=0 && row[idxUnit] ? String(row[idxUnit]).trim() : 'PC';
+    const qtyRaw = idxQty>=0 ? row[idxQty] : '';
+    const qty = (qtyRaw!==undefined && qtyRaw!=='' && !isNaN(parseFloat(qtyRaw))) ? parseFloat(qtyRaw) : 0;
+    const reorderRaw = idxReorder>=0 ? row[idxReorder] : '';
+    const reorder = (reorderRaw!==undefined && reorderRaw!=='' && !isNaN(parseFloat(reorderRaw))) ? parseFloat(reorderRaw) : 0;
+
+    const id = uid();
+    items.push({id, itemNo, name, unit, reorder, baseQty:0});
+    existingCodes.add(itemNo.toLowerCase());
+    if(qty>0){
+      ledger.push({id:uid(), itemId:id, type:'IN', qty, note:'นำเข้าจากไฟล์', ts:Date.now()});
+    }
+    added++;
+  }
+
+  await saveItems();
+  await saveLedger();
+  showToast(`นำเข้าสำเร็จ ${added} รายการ${skipped?` (ข้าม ${skipped} รายการซ้ำ)`:''}${errored?` (ข้าม ${errored} แถวไม่มีชื่อสินค้า)`:''}`);
+  document.getElementById('importPreviewWrap').classList.add('iv-hide');
+  document.getElementById('importPaste').value='';
+  document.getElementById('importFile').value='';
+  renderAll();
+}
+
+async function addItem(){
+  if(!requireEdit()) return;
+  const itemNo = document.getElementById('newItemNo').value.trim();
+  const name = document.getElementById('newItemName').value.trim();
+  const unit = document.getElementById('newItemUnit').value.trim() || 'PC';
+  const qty = parseFloat(document.getElementById('newItemQty').value) || 0;
+  const reorder = parseFloat(document.getElementById('newItemReorder').value) || 0;
+
+  if(!itemNo || !name){ showToast('กรุณากรอกรหัสและชื่อสินค้า'); return; }
+  if(items.find(i=>i.itemNo.toLowerCase()===itemNo.toLowerCase())){ showToast('รหัสสินค้านี้มีอยู่แล้ว'); return; }
+
+  const id = uid();
+  items.push({id, itemNo, name, unit, reorder, baseQty:0});
+  await saveItems();
+  if(qty>0){
+    ledger.push({id:uid(), itemId:id, type:'IN', qty, note:'ยอดเริ่มต้น', ts:Date.now()});
+    await saveLedger();
+  }
+
+  ['newItemNo','newItemName','newItemUnit','newItemQty','newItemReorder'].forEach(id=>document.getElementById(id).value='');
+  toggleAddItem();
+  showToast('เพิ่มสินค้าแล้ว');
+  renderAll();
+}
+
+async function deleteItem(id){
+  if(!requireEdit()) return;
+  items = items.filter(i=>i.id!==id);
+  ledger = ledger.filter(t=>t.itemId!==id);
+  reservations = reservations.filter(r=>r.itemId!==id);
+  borrows = borrows.filter(b=>b.itemId!==id);
+  await saveItems();
+  await saveLedger();
+  await saveReservations();
+  await saveBorrows();
+  showToast('ลบสินค้าแล้ว');
+  renderAll();
+}
+
+function isOverdue(b){
+  if(b.status!=='out' || !b.dueDate) return false;
+  return new Date(b.dueDate+'T23:59:59') < new Date();
+}
+
+function renderStats(){
+  document.getElementById('statTotalItems').textContent = items.length;
+  let low=0;
+  items.forEach(it=>{
+    const q = availableQty(it.id);
+    if(q<=0 || (it.reorder>0 && q<=it.reorder)) low++;
+  });
+  document.getElementById('statLow').textContent = low;
+  document.getElementById('statReserved').textContent = reservations.filter(r=>r.status==='active').length;
+  document.getElementById('statBorrowed').textContent = borrows.filter(b=>b.status==='out').length;
+}
+
+function renderLowStock(){
+  const list = document.getElementById('lowStockList');
+  const card = document.getElementById('lowStockCard');
+  const low = items.filter(it=>{
+    const q = availableQty(it.id);
+    return q<=0 || (it.reorder>0 && q<=it.reorder);
+  }).sort((a,b)=> availableQty(a.id) - availableQty(b.id) );
+
+  if(low.length===0){ card.classList.add('iv-hide'); return; }
+  card.classList.remove('iv-hide');
+  list.innerHTML = low.map(it=>{
+    const q = availableQty(it.id);
+    const cls = q<=0 ? 'zero' : 'low';
+    return `<div class="iv-item ${cls}">
+      <div class="iv-item-main">
+        <div class="iv-item-name">${it.name}</div>
+        <div class="iv-item-meta">${it.itemNo}</div>
+      </div>
+      <div class="iv-item-right">
+        <span class="iv-tag ${cls}">${q<=0?'หมด':'ใกล้หมด'}</span>
+        <span class="iv-odo">${q} ${it.unit}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderOverdue(){
+  const list = document.getElementById('overdueList');
+  const card = document.getElementById('overdueCard');
+  const overdue = borrows.filter(isOverdue);
+  if(overdue.length===0){ card.classList.add('iv-hide'); return; }
+  card.classList.remove('iv-hide');
+  list.innerHTML = overdue.map(b=>{
+    const item = items.find(i=>i.id===b.itemId);
+    return `<div class="iv-item overdue">
+      <div class="iv-item-main">
+        <div class="iv-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
+        <div class="iv-item-meta">ยืมโดย ${b.borrower} · กำหนดคืน ${fmtDay(b.dueDate)}</div>
+      </div>
+      <div class="iv-item-right">
+        <span class="iv-tag overdue">เกินกำหนด</span>
+        <span class="iv-odo borrow">${b.qty} ${item?item.unit:''}</span>
+        <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">คืนของ</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecentTx(){
+  const list = document.getElementById('recentTxList');
+  const recent = [...ledger].sort((a,b)=>b.ts-a.ts).slice(0,6);
+  if(recent.length===0){
+    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ยังไม่มีรายการ</div><div class="iv-empty-sub">เริ่มบันทึกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
+    return;
+  }
+  list.innerHTML = recent.map(txHtml).join('');
+}
+
+const TX_ICON = {IN:'▲', OUT:'▼', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
+const TX_SIGN = {IN:'+', OUT:'−', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
+const TX_CLASS = {IN:'in', OUT:'out', RESERVE:'reserve', RELEASE:'release', BORROW:'borrow', RETURN:'return'};
+
+function txHtml(t){
+  const item = items.find(i=>i.id===t.itemId);
+  const name = item ? item.name : '(สินค้าถูกลบแล้ว)';
+  const itemNo = item ? item.itemNo : '';
+  const cls = TX_CLASS[t.type] || 'in';
+  return `<div class="iv-tx">
+    <div class="iv-tx-icon ${cls}">${TX_ICON[t.type]||'•'}</div>
+    <div class="iv-tx-main">
+      <div class="iv-tx-name">${name}</div>
+      <div class="iv-tx-meta">${itemNo}${t.note? ' · '+t.note:''} · ${fmtDate(t.ts)}</div>
+    </div>
+    <div class="iv-tx-qty ${cls}">${TX_SIGN[t.type]||''}${t.qty}</div>
+  </div>`;
+}
+
+function renderPending(){
+  const rList = document.getElementById('reserveList');
+  const activeRes = reservations.filter(r=>r.status==='active').sort((a,b)=>b.ts-a.ts);
+  if(activeRes.length===0){
+    rList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีรายการจอง</div><div class="iv-empty-sub">จองสต๊อกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
+  }else{
+    rList.innerHTML = activeRes.map(r=>{
+      const item = items.find(i=>i.id===r.itemId);
+      return `<div class="iv-tx">
+        <div class="iv-tx-icon reserve">⚑</div>
+        <div class="iv-tx-main">
+          <div class="iv-tx-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
+          <div class="iv-tx-meta">${item?item.itemNo:''}${r.note? ' · '+r.note:''} · จองเมื่อ ${fmtDate(r.ts)}</div>
+        </div>
+        <div class="iv-tx-qty reserve">${r.qty}</div>
+        <div class="iv-tx-actions">
+          <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">ตัดจ่าย</button>
+          <button class="iv-btn-sm neg" onclick="releaseReservation('${r.id}')">ยกเลิกจอง</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const bList = document.getElementById('borrowList');
+  const activeBorrow = borrows.filter(b=>b.status==='out').sort((a,b)=>b.ts-a.ts);
+  if(activeBorrow.length===0){
+    bList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีของค้างยืม</div><div class="iv-empty-sub">บันทึกการยืมได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
+  }else{
+    bList.innerHTML = activeBorrow.map(b=>{
+      const item = items.find(i=>i.id===b.itemId);
+      const overdue = isOverdue(b);
+      return `<div class="iv-tx">
+        <div class="iv-tx-icon borrow">↷</div>
+        <div class="iv-tx-main">
+          <div class="iv-tx-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
+          <div class="iv-tx-meta">ยืมโดย ${b.borrower}${b.note? ' · '+b.note:''} · ${fmtDate(b.ts)}${b.dueDate? (' · กำหนดคืน '+fmtDay(b.dueDate)) : ''}${overdue? ' · เกินกำหนด!':''}</div>
+        </div>
+        <div class="iv-tx-qty borrow">${b.qty}</div>
+        <div class="iv-tx-actions">
+          <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">คืนของ</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function renderItems(){
+  const q = (document.getElementById('itemSearch').value||'').toLowerCase();
+  const list = document.getElementById('itemList');
+  const filtered = items.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q));
+
+  if(filtered.length===0){
+    list.innerHTML = `<tr><td colspan="4"><div class="iv-empty"><div class="iv-empty-title">ไม่พบสินค้า</div><div class="iv-empty-sub">ลองเพิ่มสินค้าใหม่จากแท็บ "นำเข้า/เพิ่มสินค้า"</div></div></td></tr>`;
+    return;
+  }
+  list.innerHTML = filtered.map(it=>{
+    const hand = onHand(it.id);
+    const res = reservedQty(it.id);
+    const bor = borrowedOutQty(it.id);
+    const avail = hand - res;
+    const cls = avail<=0 ? 'zero' : (it.reorder>0 && avail<=it.reorder ? 'low' : '');
+    const subBits = [];
+    if(res>0) subBits.push(`จอง ${res}`);
+    if(bor>0) subBits.push(`ยืมออก ${bor}`);
+    if(cls) subBits.push(cls==='zero' ? 'หมด' : 'ใกล้หมด');
+    return `<tr class="${cls}">
+      <td class="iv-td-itemno">${it.itemNo}</td>
+      <td class="iv-td-desc">${it.name}${subBits.length ? `<div class="iv-td-desc-sub">${subBits.join(' · ')}</div>` : ''}</td>
+      <td class="iv-td-qty">${avail}<span class="unit">${it.unit}</span></td>
+      <td class="iv-td-actions"><button class="iv-del" onclick="deleteItem('${it.id}')" title="ลบสินค้า">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHistory(){
+  const q = (document.getElementById('txSearch').value||'').toLowerCase();
+  const list = document.getElementById('fullTxList');
+  const sorted = [...ledger].sort((a,b)=>b.ts-a.ts).filter(t=>{
+    const item = items.find(i=>i.id===t.itemId);
+    const hay = ((item?item.name:'')+' '+(item?item.itemNo:'')+' '+(t.note||'')).toLowerCase();
+    return hay.includes(q);
+  });
+  if(sorted.length===0){
+    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีประวัติ</div><div class="iv-empty-sub">รายการทั้งหมดจะแสดงที่นี่</div></div>`;
+    return;
+  }
+  list.innerHTML = sorted.map(txHtml).join('');
+}
+
+function renderAll(){
+  renderStats();
+  renderLowStock();
+  renderOverdue();
+  renderRecentTx();
+  populateItemSelect();
+  renderPending();
+  renderItems();
+  renderHistory();
+}
+
+function exportToExcel(){
+  if(items.length===0){ showToast('ยังไม่มีข้อมูลให้สำรอง'); return; }
+
+  const itemRows = items.map(it=>{
+    const hand = onHand(it.id);
+    const res = reservedQty(it.id);
+    const bor = borrowedOutQty(it.id);
+    return {
+      'Item No.': it.itemNo,
+      'Description': it.name,
+      'Unit': it.unit,
+      'On Hand': hand,
+      'Reserved': res,
+      'Borrowed Out': bor,
+      'Available': hand - res,
+      'Reorder Point': it.reorder || 0
+    };
+  });
+
+  const historyRows = [...ledger].sort((a,b)=>a.ts-b.ts).map(t=>{
+    const item = items.find(i=>i.id===t.itemId);
+    return {
+      'Date': fmtDate(t.ts),
+      'Item No.': item ? item.itemNo : '',
+      'Description': item ? item.name : '(deleted item)',
+      'Type': t.type,
+      'Qty': t.qty,
+      'Note': t.note || ''
+    };
+  });
+
+  const reserveRows = reservations.map(r=>{
+    const item = items.find(i=>i.id===r.itemId);
+    return {
+      'Item No.': item ? item.itemNo : '',
+      'Description': item ? item.name : '(deleted item)',
+      'Qty': r.qty,
+      'Note': r.note || '',
+      'Status': r.status,
+      'Reserved On': fmtDate(r.ts)
+    };
+  });
+
+  const borrowRows = borrows.map(b=>{
+    const item = items.find(i=>i.id===b.itemId);
+    return {
+      'Item No.': item ? item.itemNo : '',
+      'Description': item ? item.name : '(deleted item)',
+      'Qty': b.qty,
+      'Borrower': b.borrower,
+      'Note': b.note || '',
+      'Due Date': b.dueDate || '',
+      'Status': b.status,
+      'Borrowed On': fmtDate(b.ts),
+      'Returned On': b.returnedTs ? fmtDate(b.returnedTs) : ''
+    };
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(itemRows), 'Items');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(historyRows), 'History');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reserveRows), 'Reservations');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(borrowRows), 'Borrows');
+
+  const dateStr = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Esco_Inventory_Backup_${dateStr}.xlsx`);
+  showToast('ดาวน์โหลดไฟล์สำรองข้อมูลแล้ว');
+}
+
+// tabs
+function goToTab(tabName){
+  document.querySelectorAll('.iv-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tabName));
+  document.querySelectorAll('.iv-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tabName));
+}
+
+document.querySelectorAll('.iv-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=> goToTab(tab.dataset.tab));
+});
+
+document.getElementById('txBorrower').addEventListener('input', validateTxForm);
+
+loadData();
+loadSettings();
+</script>
+</body>
+</html>
