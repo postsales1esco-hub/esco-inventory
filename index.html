@@ -525,7 +525,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 // ===== Storage backend: Google Sheets via Apps Script (standalone version) =====
 // This replaces Claude.ai's built-in window.storage with calls to your deployed
 // Google Apps Script Web App, so this file works as a normal standalone webpage.
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbziuwBHhb0exMCxdL3Q0EAw3qzM1yLlRGIByRcUgElUrvoGrxa-1mkSoGz6fZfiPqnf8w/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyaLDjQfBG_IoAq-zdyfhz8laIFIrdtBFRRU-aoq6Hhx6brA0t8Uexcd3FBZ_NV2du1Uw/exec';
 
 window.storage = {
   async get(key, shared){
@@ -535,15 +535,18 @@ window.storage = {
         return v!==null ? {key, value:v, shared:false} : null;
       }catch(e){ return null; }
     }
-    try{
-      const res = await fetch(`${GAS_API_URL}?key=${encodeURIComponent(key)}`);
-      const data = await res.json();
-      if(!data || data.value===undefined || data.value===null || data.value==='') return null;
-      return {key: data.key, value: data.value, shared:true};
-    }catch(e){
-      console.error('storage.get failed', e);
-      window.__gasOffline = true;
-      return null;
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        const bust = Date.now() + '_' + Math.random().toString(36).slice(2);
+        const res = await fetch(`${GAS_API_URL}?key=${encodeURIComponent(key)}&_=${bust}`, { cache: 'no-store' });
+        const text = await res.text();
+        const data = JSON.parse(text);
+        if(!data || data.value===undefined || data.value===null || data.value==='') return null;
+        return {key: data.key, value: data.value, shared:true};
+      }catch(e){
+        console.error('storage.get failed (attempt '+(attempt+1)+')', e);
+        if(attempt===1){ window.__gasOffline = true; return null; }
+      }
     }
   },
   async set(key, value, shared){
@@ -551,17 +554,19 @@ window.storage = {
       try{ localStorage.setItem(key, value); return {key, value, shared:false}; }
       catch(e){ return null; }
     }
-    try{
-      await fetch(GAS_API_URL, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({key, value})
-      });
-      return {key, value, shared:true};
-    }catch(e){
-      console.error('storage.set failed', e);
-      window.__gasOffline = true;
-      return null;
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        await fetch(GAS_API_URL, {
+          method:'POST',
+          cache: 'no-store',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({key, value})
+        });
+        return {key, value, shared:true};
+      }catch(e){
+        console.error('storage.set failed (attempt '+(attempt+1)+')', e);
+        if(attempt===1){ window.__gasOffline = true; return null; }
+      }
     }
   },
   async delete(key, shared){ return null; },
