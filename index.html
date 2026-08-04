@@ -226,9 +226,10 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <div class="iv-tab active" data-tab="items">รายการสินค้า</div>
       <div class="iv-tab" data-tab="dash">ภาพรวม</div>
       <div class="iv-tab" data-tab="move">รับ-จ่าย-จอง-ยืม</div>
-      <div class="iv-tab" data-tab="pending">จอง/ยืมค้าง</div>
+      <div class="iv-tab" data-tab="pending">จอง/ยืม</div>
       <div class="iv-tab" data-tab="import">นำเข้า/เพิ่มสินค้า</div>
       <div class="iv-tab" data-tab="history">ประวัติ</div>
+      <div class="iv-tab" data-tab="settings">ตั้งค่า</div>
     </div>
 
     <!-- ============ DASHBOARD ============ -->
@@ -247,9 +248,18 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-stat-value" id="statReserved">0</div>
         </div>
         <div class="iv-stat borrow">
-          <div class="iv-stat-label">ยืมค้างคืน</div>
+          <div class="iv-stat-label">ยืม</div>
           <div class="iv-stat-value" id="statBorrowed">0</div>
         </div>
+      </div>
+
+      <div class="iv-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+          <p class="iv-card-title" style="margin:0;">สินค้าขายดี</p>
+          <select class="iv-input" id="topMoversYear" style="width:auto;padding:6px 10px;font-size:12.5px;" onchange="renderTopMovers()"></select>
+        </div>
+        <p class="iv-hint" id="topMoversSummary" style="margin-bottom:10px;"></p>
+        <div id="topMoversList" class="iv-item-list"></div>
       </div>
 
       <div class="iv-card" id="lowStockCard">
@@ -263,28 +273,11 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
 
       <div class="iv-card">
-        <p class="iv-card-title">เคลื่อนไหวล่าสุด</p>
-        <div id="recentTxList" class="iv-tx-list"></div>
-      </div>
-
-      <div class="iv-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
-          <p class="iv-card-title" style="margin:0;">สินค้าขายดี</p>
-          <select class="iv-input" id="topMoversYear" style="width:auto;padding:6px 10px;font-size:12.5px;" onchange="renderTopMovers()"></select>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+          <p class="iv-card-title" style="margin:0;">เคลื่อนไหวล่าสุด</p>
+          <span onclick="goToTab('history')" style="cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);text-decoration:underline;">ดูทั้งหมด →</span>
         </div>
-        <p class="iv-hint" id="topMoversSummary" style="margin-bottom:10px;"></p>
-        <div id="topMoversList" class="iv-item-list"></div>
-      </div>
-
-      <div class="iv-card">
-        <p class="iv-card-title">สำรองข้อมูล</p>
-        <p class="iv-hint" style="margin-bottom:12px;">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
-        <button class="iv-btn neutral" onclick="exportToExcel()">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
-      </div>
-
-      <div class="iv-card">
-        <p class="iv-card-title">สิทธิ์การเข้าถึง</p>
-        <div id="accessBox"></div>
+        <div id="recentTxList" class="iv-tx-list"></div>
       </div>
     </div>
 
@@ -295,7 +288,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
         <div class="iv-toggle">
           <div class="iv-toggle-btn sel-in" id="btnModeIn" onclick="setMode('IN')">▲ รับเข้า</div>
-          <div class="iv-toggle-btn" id="btnModeOut" onclick="setMode('OUT')">▼ จ่ายออก</div>
+          <div class="iv-toggle-btn" id="btnModeOut" onclick="setMode('OUT')">▼ นำออก</div>
           <div class="iv-toggle-btn" id="btnModeReserve" onclick="setMode('RESERVE')">⚑ จอง</div>
           <div class="iv-toggle-btn" id="btnModeBorrow" onclick="setMode('BORROW')">↷ ยืม</div>
         </div>
@@ -331,10 +324,16 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             </div>
           </div>
 
-          <div class="iv-form-row two iv-hide" id="borrowFields">
+          <div class="iv-form-row iv-hide" id="borrowFields">
             <div>
               <label class="iv-label">ผู้ยืม</label>
               <input class="iv-input" type="text" id="txBorrower" placeholder="ชื่อผู้ยืม">
+            </div>
+          </div>
+          <div class="iv-form-row two iv-hide" id="borrowDueField">
+            <div>
+              <label class="iv-label">วันที่ยืม</label>
+              <input class="iv-input" type="date" id="txBorrowDate">
             </div>
             <div>
               <label class="iv-label">กำหนดคืน (ไม่บังคับ)</label>
@@ -422,7 +421,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ RESERVE / BORROW PENDING ============ -->
     <div class="iv-panel" id="panel-pending">
       <div class="iv-card">
-        <p class="iv-card-title"><span class="iv-dot reserve"></span>รายการจองที่ยังไม่ตัดจ่าย</p>
+        <p class="iv-card-title"><span class="iv-dot reserve"></span>รายการจองที่ยังไม่ตัดนำออก</p>
         <div id="reserveList" class="iv-tx-list"></div>
       </div>
       <div class="iv-card">
@@ -545,6 +544,20 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <div class="iv-panel" id="panel-history">
       <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="renderHistory()">
       <div class="iv-tx-list" id="fullTxList"></div>
+    </div>
+
+    <!-- ============ SETTINGS ============ -->
+    <div class="iv-panel" id="panel-settings">
+      <div class="iv-card">
+        <p class="iv-card-title">สำรองข้อมูล</p>
+        <p class="iv-hint" style="margin-bottom:12px;">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
+        <button class="iv-btn neutral" onclick="exportToExcel()">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title">สิทธิ์การเข้าถึง</p>
+        <div id="accessBox"></div>
+      </div>
     </div>
 
     <div class="iv-footnote">ข้อมูลบันทึกอัตโนมัติและใช้ร่วมกันได้ทุกคนที่เปิดแอปนี้</div>
@@ -775,7 +788,7 @@ function showToast(msg){
 
 const MODE_META = {
   IN:      {btn:'btnModeIn',      cls:'in',      submitText:'บันทึกรับเข้า',   hint:'รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที'},
-  OUT:     {btn:'btnModeOut',     cls:'out',     submitText:'บันทึกจ่ายออก',  hint:'จ่ายสินค้าออกแบบถาวร (เบิกใช้งาน) จะตัดจากยอดพร้อมใช้งานทันที'},
+  OUT:     {btn:'btnModeOut',     cls:'out',     submitText:'บันทึกนำออก',  hint:'นำสินค้าออกแบบถาวร (เบิกใช้งาน) จะตัดจากยอดพร้อมใช้งานทันที'},
   RESERVE: {btn:'btnModeReserve', cls:'reserve', submitText:'บันทึกการจอง',   hint:'กันสต๊อกไว้ล่วงหน้า ยังไม่ตัดของออกจากคลัง แต่จะไม่นับรวมในยอด "พร้อมใช้งาน" ของคนอื่น'},
   BORROW:  {btn:'btnModeBorrow',  cls:'borrow',  submitText:'บันทึกการยืม',   hint:'ของออกจากคลังชั่วคราว ต้องนำมาคืน — ระบบจะติดตามจนกว่าจะคืน'}
 };
@@ -790,7 +803,11 @@ function setMode(mode){
   submit.textContent = meta.submitText;
   document.getElementById('modeHint').textContent = meta.hint;
   document.getElementById('borrowFields').classList.toggle('iv-hide', mode!=='BORROW');
+  document.getElementById('borrowDueField').classList.toggle('iv-hide', mode!=='BORROW');
   document.getElementById('reserveFields').classList.toggle('iv-hide', mode!=='RESERVE');
+  if(mode==='BORROW' && !document.getElementById('txBorrowDate').value){
+    document.getElementById('txBorrowDate').value = new Date().toISOString().slice(0,10);
+  }
   document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'หมายเหตุเพิ่มเติม (ไม่บังคับ)' : 'หมายเหตุ (ไม่บังคับ)';
   document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
   if(mode!=='IN') setInSubMode('single');
@@ -902,7 +919,7 @@ async function submitTransaction(){
   else if(currentMode==='OUT'){
     ledger.push({id:uid(), itemId, type:'OUT', qty, note, ts:Date.now()});
     await saveLedger();
-    showToast(`จ่ายออก ${qty} ${item.unit} แล้ว`);
+    showToast(`นำออก ${qty} ${item.unit} แล้ว`);
   }
   else if(currentMode==='RESERVE'){
     const svso = document.getElementById('txSvso').value.trim();
@@ -929,13 +946,17 @@ async function submitTransaction(){
   else if(currentMode==='BORROW'){
     const borrower = document.getElementById('txBorrower').value.trim();
     const dueDate = document.getElementById('txDueDate').value;
-    borrows.push({id:uid(), itemId, qty, borrower, note, dueDate, ts:Date.now(), status:'out'});
+    const borrowDateInput = document.getElementById('txBorrowDate').value;
+    const borrowDate = borrowDateInput || new Date().toISOString().slice(0,10);
+    const borrowTs = new Date(borrowDate+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now();
+    borrows.push({id:uid(), itemId, qty, borrower, note, dueDate, borrowDate, ts:borrowTs, status:'out'});
     await saveBorrows();
-    ledger.push({id:uid(), itemId, type:'BORROW', qty, note:borrower + (note?(' · '+note):''), ts:Date.now()});
+    ledger.push({id:uid(), itemId, type:'BORROW', qty, note:borrower + (note?(' · '+note):''), ts:borrowTs});
     await saveLedger();
     showToast(`บันทึกยืม ${qty} ${item.unit} ให้ ${borrower} แล้ว`);
     document.getElementById('txBorrower').value='';
     document.getElementById('txDueDate').value='';
+    document.getElementById('txBorrowDate').value = new Date().toISOString().slice(0,10);
   }
 
   document.getElementById('txQty').value='';
@@ -951,14 +972,14 @@ async function fulfillReservation(id){
   if(!r || r.status!=='active') return;
   const item = items.find(i=>i.id===r.itemId);
   if(onHand(r.itemId) < r.qty){
-    showToast('ของจริงในคลังไม่พอ ตรวจสอบยอดก่อนตัดจ่าย');
+    showToast('ของจริงในคลังไม่พอ ตรวจสอบยอดก่อนตัดนำออก');
     return;
   }
   r.status = 'fulfilled';
-  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดจ่ายจากรายการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now()});
+  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดนำออกจากรายการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now()});
   await saveReservations();
   await saveLedger();
-  showToast(`ตัดจ่าย ${r.qty} ${item?item.unit:''} จากรายการจองแล้ว`);
+  showToast(`ตัดนำออก ${r.qty} ${item?item.unit:''} จากรายการจองแล้ว`);
   renderAll();
 }
 
@@ -1376,8 +1397,8 @@ function renderLowStock(){
     const cls = q<=0 ? 'zero' : 'low';
     return `<div class="iv-item ${cls}">
       <div class="iv-item-main">
-        <div class="iv-item-name">${it.name}</div>
         <div class="iv-item-meta">${it.itemNo}</div>
+        <div class="iv-item-name">${it.name}</div>
       </div>
       <div class="iv-item-right">
         <span class="iv-tag ${cls}">${q<=0?'หมด':'ใกล้หมด'}</span>
@@ -1397,8 +1418,9 @@ function renderOverdue(){
     const item = items.find(i=>i.id===b.itemId);
     return `<div class="iv-item overdue">
       <div class="iv-item-main">
+        <div class="iv-item-meta">${item?item.itemNo:''}</div>
         <div class="iv-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-        <div class="iv-item-meta">ยืมโดย ${b.borrower} · กำหนดคืน ${fmtDay(b.dueDate)}</div>
+        <div class="iv-item-meta">ยืมโดย ${b.borrower} · ยืมเมื่อ ${b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)} · กำหนดคืน ${fmtDay(b.dueDate)}</div>
       </div>
       <div class="iv-item-right">
         <span class="iv-tag overdue">เกินกำหนด</span>
@@ -1448,12 +1470,12 @@ function renderTopMovers(){
   const listEl = document.getElementById('topMoversList');
 
   if(ranked.length===0){
-    summaryEl.textContent = `ยังไม่มีข้อมูลจ่ายออกในปี ${selectedYear}`;
-    listEl.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีข้อมูล</div><div class="iv-empty-sub">จะแสดงเมื่อมีการจ่ายออกในปีนี้</div></div>`;
+    summaryEl.textContent = `ยังไม่มีข้อมูลนำออกในปี ${selectedYear}`;
+    listEl.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีข้อมูล</div><div class="iv-empty-sub">จะแสดงเมื่อมีการนำออกในปีนี้</div></div>`;
     return;
   }
 
-  summaryEl.textContent = `จ่ายออกรวมทั้งปี ${selectedYear}: ${grandTotal} ชิ้น จาก ${Object.keys(totals).length} รายการสินค้า — แสดง Top ${ranked.length}`;
+  summaryEl.textContent = `นำออกรวมทั้งปี ${selectedYear}: ${grandTotal} ชิ้น จาก ${Object.keys(totals).length} รายการสินค้า — แสดง Top ${ranked.length}`;
   listEl.innerHTML = ranked.map((r, idx)=> `<div class="iv-item">
       <div class="iv-item-main">
         <div class="iv-item-name">#${idx+1}  ${r.item.name}</div>
@@ -1507,7 +1529,7 @@ function renderPending(){
         </div>
         <div class="iv-tx-qty reserve">${r.qty}</div>
         <div class="iv-tx-actions">
-          <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">ตัดจ่าย</button>
+          <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">ตัดนำออก</button>
           <button class="iv-btn-sm neg" onclick="releaseReservation('${r.id}')">ยกเลิกจอง</button>
         </div>
       </div>`;
@@ -1526,7 +1548,7 @@ function renderPending(){
         <div class="iv-tx-icon borrow">↷</div>
         <div class="iv-tx-main">
           <div class="iv-tx-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-          <div class="iv-tx-meta">ยืมโดย ${b.borrower}${b.note? ' · '+b.note:''} · ${fmtDate(b.ts)}${b.dueDate? (' · กำหนดคืน '+fmtDay(b.dueDate)) : ''}${overdue? ' · เกินกำหนด!':''}</div>
+          <div class="iv-tx-meta">ยืมโดย ${b.borrower}${b.note? ' · '+b.note:''} · ยืมเมื่อ ${b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)}${b.dueDate? (' · กำหนดคืน '+fmtDay(b.dueDate)) : ''}${overdue? ' · เกินกำหนด!':''}</div>
         </div>
         <div class="iv-tx-qty borrow">${b.qty}</div>
         <div class="iv-tx-actions">
