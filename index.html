@@ -119,6 +119,21 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 
 /* ---- item cards ---- */
 .iv-item-list{display:flex;flex-direction:column;gap:8px;}
+.iv-scroll-list{max-height:420px;overflow-y:auto;padding-right:4px;}
+.iv-item-no-lg{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:var(--ink);letter-spacing:.01em;}
+.iv-item-name-sm{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.4;}
+
+.iv-carousel{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;}
+.iv-carousel::-webkit-scrollbar{height:6px;}
+.iv-carousel::-webkit-scrollbar-track{background:transparent;}
+.iv-carousel::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.iv-carousel-card{flex:0 0 190px;scroll-snap-align:start;background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:9px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;justify-content:space-between;min-height:104px;}
+.iv-carousel-card.low{border-left-color:var(--warn);}
+.iv-carousel-card.zero{border-left-color:var(--out);}
+.iv-carousel-card.overdue{border-left-color:var(--borrow);}
+.iv-carousel-meta{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);letter-spacing:.01em;}
+.iv-carousel-name{font-weight:500;font-size:12px;line-height:1.35;color:var(--ink-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px;}
+.iv-carousel-bottom{display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .iv-item{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:9px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .iv-item.low{border-left-color:var(--warn);}
 .iv-item.zero{border-left-color:var(--out);}
@@ -126,6 +141,8 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-item-main{min-width:0;flex:1;}
 .iv-item-name{font-weight:600;font-size:14px;}
 .iv-item-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:2px;}
+.iv-item-code{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.02em;}
+.iv-scroll-list{max-height:360px;overflow-y:auto;padding-right:6px;margin-right:-6px;}
 .iv-item-badges{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
 .iv-item-right{display:flex;align-items:center;gap:10px;}
 .iv-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;}
@@ -259,17 +276,17 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <select class="iv-input" id="topMoversYear" style="width:auto;padding:6px 10px;font-size:12.5px;" onchange="renderTopMovers()"></select>
         </div>
         <p class="iv-hint" id="topMoversSummary" style="margin-bottom:10px;"></p>
-        <div id="topMoversList" class="iv-item-list"></div>
+        <div id="topMoversList" class="iv-item-list iv-scroll-list"></div>
       </div>
 
       <div class="iv-card" id="lowStockCard">
         <p class="iv-card-title"><span class="iv-dot" style="background:var(--warn)"></span>ต้องเติมสต๊อก</p>
-        <div id="lowStockList" class="iv-item-list"></div>
+        <div id="lowStockList" class="iv-carousel"></div>
       </div>
 
       <div class="iv-card" id="overdueCard">
         <p class="iv-card-title"><span class="iv-dot" style="background:var(--borrow)"></span>ยืมเกินกำหนดคืน</p>
-        <div id="overdueList" class="iv-item-list"></div>
+        <div id="overdueList" class="iv-item-list iv-scroll-list"></div>
       </div>
 
       <div class="iv-card">
@@ -1395,12 +1412,12 @@ function renderLowStock(){
   list.innerHTML = low.map(it=>{
     const q = availableQty(it.id);
     const cls = q<=0 ? 'zero' : 'low';
-    return `<div class="iv-item ${cls}">
-      <div class="iv-item-main">
-        <div class="iv-item-meta">${it.itemNo}</div>
-        <div class="iv-item-name">${it.name}</div>
+    return `<div class="iv-carousel-card ${cls}">
+      <div>
+        <div class="iv-carousel-meta">${it.itemNo}</div>
+        <div class="iv-carousel-name">${it.name}</div>
       </div>
-      <div class="iv-item-right">
+      <div class="iv-carousel-bottom">
         <span class="iv-tag ${cls}">${q<=0?'หมด':'ใกล้หมด'}</span>
         <span class="iv-odo">${q} ${it.unit}</span>
       </div>
@@ -1418,7 +1435,7 @@ function renderOverdue(){
     const item = items.find(i=>i.id===b.itemId);
     return `<div class="iv-item overdue">
       <div class="iv-item-main">
-        <div class="iv-item-meta">${item?item.itemNo:''}</div>
+        <div class="iv-item-code">${item?item.itemNo:''}</div>
         <div class="iv-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
         <div class="iv-item-meta">ยืมโดย ${b.borrower} · ยืมเมื่อ ${b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)} · กำหนดคืน ${fmtDay(b.dueDate)}</div>
       </div>
