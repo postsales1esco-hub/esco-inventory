@@ -164,6 +164,7 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-tag.reserve{background:var(--reserve-soft);color:var(--reserve);}
 .iv-tag.borrow{background:var(--borrow-soft);color:var(--borrow);}
 .iv-tag.overdue{background:var(--out-soft);color:var(--out);}
+.iv-tag.warn{background:var(--warn-soft);color:var(--warn);}
 .iv-del{background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:5px;}
 .iv-del:hover{background:var(--out-soft);color:var(--out);}
 
@@ -258,6 +259,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <div class="iv-tab" data-tab="move">รับ-จ่าย-จอง-ยืม</div>
       <div class="iv-tab" data-tab="pending">จอง/ยืม</div>
       <div class="iv-tab" data-tab="import">นำเข้า/เพิ่มสินค้า</div>
+      <div class="iv-tab" data-tab="external">นอก Stock</div>
       <div class="iv-tab" data-tab="history">ประวัติ</div>
       <div class="iv-tab" data-tab="settings">ตั้งค่า</div>
     </div>
@@ -329,6 +331,11 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-toggle-btn" id="btnInBulk" onclick="setInSubMode('bulk')">📄 รับเข้าจากไฟล์ (หลายรายการ)</div>
         </div>
 
+        <div class="iv-form-row two iv-hide" id="sourceModeToggle" style="margin-top:6px;">
+          <div class="iv-toggle-btn sel-in" id="btnSrcStock" onclick="setSourceMode('stock')">📦 จากสต็อกในระบบ</div>
+          <div class="iv-toggle-btn" id="btnSrcExternal" onclick="setSourceMode('external')">🏷️ นอกสต็อก (นอกระบบ)</div>
+        </div>
+
         <div id="singleEntrySection">
           <div class="iv-form-row">
             <div>
@@ -351,6 +358,42 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             <div>
               <label class="iv-label" id="txCurrentQtyLabel">พร้อมใช้งานตอนนี้</label>
               <div style="padding-top:9px;"><span class="iv-odo" id="txCurrentQty">—</span></div>
+            </div>
+          </div>
+
+          <div id="inFields" class="iv-hide">
+            <div class="iv-form-row two">
+              <div>
+                <label class="iv-label">วันที่รับเข้า</label>
+                <input class="iv-input" type="date" id="txInDate">
+              </div>
+              <div>
+                <label class="iv-label">Customer / อ้างอิง (ไม่บังคับ)</label>
+                <input class="iv-input" type="text" id="txInCustomer" placeholder="ชื่อลูกค้า / ที่มาของสินค้า">
+              </div>
+            </div>
+          </div>
+
+          <div id="outFields" class="iv-hide">
+            <div class="iv-form-row two">
+              <div>
+                <label class="iv-label">SVSO No.</label>
+                <input class="iv-input" type="text" id="txOutSvso" placeholder="เช่น SVSO-00123">
+              </div>
+              <div>
+                <label class="iv-label">Quotation No.</label>
+                <input class="iv-input" type="text" id="txOutQuotation" placeholder="เช่น QT-00456">
+              </div>
+            </div>
+            <div class="iv-form-row two">
+              <div>
+                <label class="iv-label">Customer Name</label>
+                <input class="iv-input" type="text" id="txOutCustomer" placeholder="ชื่อลูกค้า">
+              </div>
+              <div>
+                <label class="iv-label">ผู้เบิก</label>
+                <input class="iv-input" type="text" id="txOutRequestedBy" placeholder="ชื่อผู้เบิก">
+              </div>
             </div>
           </div>
 
@@ -437,6 +480,10 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
               <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="bulkMapItemNo"></select></div>
               <div><label class="iv-label">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty"></select></div>
             </div>
+            <div class="iv-form-row two">
+              <div><label class="iv-label">วันที่รับเข้า (ไม่บังคับ)</label><select class="iv-input" id="bulkMapDate"></select></div>
+              <div><label class="iv-label">Customer / อ้างอิง (ไม่บังคับ)</label><select class="iv-input" id="bulkMapCustomer"></select></div>
+            </div>
             <div class="iv-form-row">
               <div><label class="iv-label">หมายเหตุ (ไม่บังคับ)</label><select class="iv-input" id="bulkMapNote"></select></div>
             </div>
@@ -453,6 +500,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <input class="iv-input iv-search" type="text" id="pendingSearch" placeholder="ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม..." oninput="renderPending()">
       <div class="iv-card">
         <p class="iv-card-title"><span class="iv-dot reserve"></span>รายการจองที่ยังไม่ตัดนำออก</p>
+      <p class="iv-hint" style="margin-top:-6px;margin-bottom:10px;">รายการที่มี ⚠ สต๊อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต๊อกไว้ให้อยู่</p>
         <div id="reserveList"></div>
       </div>
       <div class="iv-card">
@@ -571,6 +619,92 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
     </div>
 
+    <!-- ============ EXTERNAL / OFF-STOCK ITEMS ============ -->
+    <div class="iv-panel" id="panel-external">
+      <p class="iv-hint" style="margin-bottom:12px;">รายการสินค้าที่ยังไม่มีในระบบสต็อก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่ออ้างอิงตอน "จอง" หรือ "ยืม" ล่วงหน้าได้ — ไม่มีการนับจำนวนคงเหลือ</p>
+
+      <div class="iv-card">
+        <p class="iv-card-title">เพิ่มสินค้านอกสต็อก</p>
+
+        <div class="iv-form-row two" style="margin-top:10px;">
+          <div class="iv-toggle-btn sel-in" id="btnExtSingle" onclick="setExtSubMode('single')">กรอกทีละรายการ</div>
+          <div class="iv-toggle-btn" id="btnExtBulk" onclick="setExtSubMode('bulk')">📄 อัปโหลดจากไฟล์ (หลายรายการ)</div>
+        </div>
+
+        <div id="extSingleSection" style="margin-top:14px;">
+          <div class="iv-form-row two">
+            <div>
+              <label class="iv-label">รหัสสินค้า (Item No.)</label>
+              <input class="iv-input" type="text" id="newExtItemNo" placeholder="เช่น EXT-00123">
+            </div>
+            <div>
+              <label class="iv-label">หน่วยนับ</label>
+              <input class="iv-input" type="text" id="newExtItemUnit" placeholder="เช่น PC, BOX">
+            </div>
+          </div>
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label">ชื่อสินค้า</label>
+              <input class="iv-input" type="text" id="newExtItemName" placeholder="ชื่อ / รายละเอียดสินค้า">
+            </div>
+          </div>
+          <button class="iv-btn neutral" onclick="addExternalItem()">เพิ่มสินค้านอกสต็อก</button>
+        </div>
+
+        <div id="extBulkSection" class="iv-hide" style="margin-top:14px;">
+          <p class="iv-hint">อัปโหลดไฟล์รายการสินค้านอกสต็อก แล้วระบบจะเพิ่มให้ทุกรายการในไฟล์ทีเดียว (ข้ามรหัสสินค้าที่มีอยู่แล้ว)</p>
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
+              <input class="iv-input" type="file" id="extImportFile" accept=".xlsx,.xls,.csv" onchange="handleExtImportFile(event)">
+            </div>
+          </div>
+          <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+          <div class="iv-form-row">
+            <textarea class="iv-input" id="extImportPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+          </div>
+          <button class="iv-btn neutral" onclick="parseExtImportPaste()">อ่านข้อมูลที่วาง</button>
+
+          <div id="extImportPreviewWrap" class="iv-hide" style="margin-top:18px;">
+            <div class="iv-form-row two" style="align-items:end;">
+              <div>
+                <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+                <input class="iv-input" type="number" min="1" id="extHeaderRowInput" value="1">
+              </div>
+              <div>
+                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyExtHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+              </div>
+            </div>
+            <p class="iv-hint" id="extRawPreviewHint"></p>
+            <div id="extRawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
+
+            <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+            <div class="iv-form-row two">
+              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="extMapItemNo"></select></div>
+              <div><label class="iv-label">ชื่อสินค้า *</label><select class="iv-input" id="extMapName"></select></div>
+            </div>
+            <div class="iv-form-row">
+              <div><label class="iv-label">หน่วยนับ</label><select class="iv-input" id="extMapUnit"></select></div>
+            </div>
+            <div id="extImportPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
+            <p class="iv-hint" id="extImportSummaryHint"></p>
+            <button class="iv-btn neutral" onclick="confirmExtImport()">เพิ่มสินค้าทั้งหมด</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title">รายการสินค้านอกสต็อกทั้งหมด</p>
+        <input class="iv-input iv-search" type="text" id="extItemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderExternalItems()">
+        <div class="iv-table-wrap">
+          <table class="iv-item-table">
+            <thead><tr><th>Item No.</th><th>Description</th><th>หน่วย</th><th></th></tr></thead>
+            <tbody id="extItemList"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ============ HISTORY ============ -->
     <div class="iv-panel" id="panel-history">
       <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="renderHistory()">
@@ -650,20 +784,32 @@ window.storage = {
 };
 
 let items = [];
+let externalItems = []; // off-stock catalog: {id, itemNo, name, unit} — no quantity tracking
 let ledger = [];        // physical + informational history: IN, OUT, RESERVE, RELEASE, BORROW, RETURN
-let reservations = [];  // {id, itemId, qty, note, ts, status: 'active'|'fulfilled'|'released'}
-let borrows = [];       // {id, itemId, qty, borrower, note, dueDate, ts, status:'out'|'returned', returnedTs}
+let reservations = [];  // {id, itemId, qty, note, ts, status: 'active'|'fulfilled'|'released', source:'stock'|'external'}
+let borrows = [];       // {id, itemId, qty, borrower, note, dueDate, ts, status:'out'|'returned', returnedTs, source:'stock'|'external'}
 let currentMode = 'IN';
 let inSubMode = 'single';
+let txSourceMode = 'stock'; // 'stock' or 'external' — only relevant for RESERVE / BORROW modes
 let settings = {editPin:''};
 let editUnlocked = true;
 
 const KEY_ITEMS = 'inv:items';
+const KEY_EXTERNAL_ITEMS = 'inv:externalItems';
 const KEY_LEDGER = 'inv:ledger';
 const KEY_RESERVATIONS = 'inv:reservations';
 const KEY_BORROWS = 'inv:borrows';
 const KEY_SETTINGS = 'inv:settings';
 const KEY_UNLOCK = 'inv:unlocked';
+
+// returns the item (or external item) referenced by a ledger/reservation/borrow record
+function findItemRef(itemId, source){
+  return source==='external' ? externalItems.find(i=>i.id===itemId) : items.find(i=>i.id===itemId);
+}
+// which item pool the transaction form is currently working against
+function activePool(){
+  return (['RESERVE','BORROW'].includes(currentMode) && txSourceMode==='external') ? externalItems : items;
+}
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
@@ -700,6 +846,7 @@ function totalStock(it){ return (it.baseQty||0) + onHand(it.id); }
 
 async function loadData(){
   try{ const r = await window.storage.get(KEY_ITEMS, true); items = r ? JSON.parse(r.value) : []; }catch(e){ items = []; }
+  try{ const r = await window.storage.get(KEY_EXTERNAL_ITEMS, true); externalItems = r ? JSON.parse(r.value) : []; }catch(e){ externalItems = []; }
   try{ const r = await window.storage.get(KEY_LEDGER, true); ledger = r ? JSON.parse(r.value) : []; }catch(e){ ledger = []; }
   try{ const r = await window.storage.get(KEY_RESERVATIONS, true); reservations = r ? JSON.parse(r.value) : []; }catch(e){ reservations = []; }
   try{ const r = await window.storage.get(KEY_BORROWS, true); borrows = r ? JSON.parse(r.value) : []; }catch(e){ borrows = []; }
@@ -806,6 +953,7 @@ function renderAccessUI(){
 }
 
 async function saveItems(){ await window.storage.set(KEY_ITEMS, JSON.stringify(items), true); }
+async function saveExternalItems(){ await window.storage.set(KEY_EXTERNAL_ITEMS, JSON.stringify(externalItems), true); }
 async function saveLedger(){ await window.storage.set(KEY_LEDGER, JSON.stringify(ledger), true); }
 async function saveReservations(){ await window.storage.set(KEY_RESERVATIONS, JSON.stringify(reservations), true); }
 async function saveBorrows(){ await window.storage.set(KEY_BORROWS, JSON.stringify(borrows), true); }
@@ -836,14 +984,33 @@ function setMode(mode){
   document.getElementById('borrowFields').classList.toggle('iv-hide', mode!=='BORROW');
   document.getElementById('borrowDueField').classList.toggle('iv-hide', mode!=='BORROW');
   document.getElementById('reserveFields').classList.toggle('iv-hide', mode!=='RESERVE');
+  document.getElementById('inFields').classList.toggle('iv-hide', mode!=='IN');
+  document.getElementById('outFields').classList.toggle('iv-hide', mode!=='OUT');
+  document.getElementById('sourceModeToggle').classList.toggle('iv-hide', !['RESERVE','BORROW'].includes(mode));
   if(mode==='BORROW' && !document.getElementById('txBorrowDate').value){
     document.getElementById('txBorrowDate').value = new Date().toISOString().slice(0,10);
+  }
+  if(mode==='IN' && !document.getElementById('txInDate').value){
+    document.getElementById('txInDate').value = new Date().toISOString().slice(0,10);
   }
   document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'หมายเหตุเพิ่มเติม (ไม่บังคับ)' : 'หมายเหตุ (ไม่บังคับ)';
   document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
   if(mode!=='IN') setInSubMode('single');
+  if(!['RESERVE','BORROW'].includes(mode)) txSourceMode = 'stock';
+  document.getElementById('btnSrcStock').classList.toggle('sel-in', txSourceMode==='stock');
+  document.getElementById('btnSrcExternal').classList.toggle('sel-in', txSourceMode==='external');
+  populateItemSelect();
   updateTxCurrentQty();
   validateTxForm();
+}
+
+function setSourceMode(mode){
+  txSourceMode = mode;
+  document.getElementById('btnSrcStock').classList.toggle('sel-in', mode==='stock');
+  document.getElementById('btnSrcExternal').classList.toggle('sel-in', mode==='external');
+  document.getElementById('txItemSelect').value = '';
+  populateItemSelect();
+  updateTxCurrentQty();
 }
 
 function setInSubMode(sub){
@@ -856,8 +1023,9 @@ function setInSubMode(sub){
 
 function populateItemSelect(){
   const hidden = document.getElementById('txItemSelect');
-  if(!hidden.value || !items.find(i=>i.id===hidden.value)){
-    hidden.value = items.length ? items[0].id : '';
+  const pool = activePool();
+  if(!hidden.value || !pool.find(i=>i.id===hidden.value)){
+    hidden.value = pool.length ? pool[0].id : '';
   }
   syncItemSearchDisplay();
   updateTxCurrentQty();
@@ -865,19 +1033,21 @@ function populateItemSelect(){
 
 function syncItemSearchDisplay(){
   const hidden = document.getElementById('txItemSelect');
-  const item = items.find(i=>i.id===hidden.value);
+  const item = activePool().find(i=>i.id===hidden.value);
   const input = document.getElementById('txItemSearchInput');
   input.value = item ? `${item.itemNo} — ${item.name}` : '';
+  input.placeholder = activePool()===externalItems ? 'พิมพ์รหัสหรือชื่อสินค้านอกสต็อกเพื่อค้นหา...' : 'พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา...';
 }
 
 function filterItemOptions(){
   const raw = document.getElementById('txItemSearchInput').value;
   const hidden = document.getElementById('txItemSelect');
-  const selectedItem = items.find(i=>i.id===hidden.value);
+  const pool = activePool();
+  const selectedItem = pool.find(i=>i.id===hidden.value);
   // if the box still shows the exact "code — name" of the currently selected item, treat as empty query (show all)
   const q = (selectedItem && raw === `${selectedItem.itemNo} — ${selectedItem.name}`) ? '' : raw.toLowerCase();
   const dropdown = document.getElementById('txItemDropdown');
-  const filtered = items.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
+  const filtered = pool.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
 
   if(filtered.length===0){
     dropdown.innerHTML = `<div class="iv-combo-empty">ไม่พบสินค้าที่ตรงกับ "${raw}"</div>`;
@@ -900,11 +1070,15 @@ function selectItemOption(id){
 function updateTxCurrentQty(){
   const sel = document.getElementById('txItemSelect');
   const id = sel.value;
-  const item = items.find(i=>i.id===id);
+  const item = activePool().find(i=>i.id===id);
   const qtyEl = document.getElementById('txCurrentQty');
   const labelEl = document.getElementById('txCurrentQtyLabel');
   if(!item){ qtyEl.textContent = '—'; return; }
-  if(currentMode==='IN'){
+  if(['RESERVE','BORROW'].includes(currentMode) && txSourceMode==='external'){
+    labelEl.textContent = 'สินค้านอกสต็อก';
+    qtyEl.className = 'iv-odo';
+    qtyEl.textContent = 'ไม่มีข้อมูลคงเหลือ (' + item.unit + ')';
+  }else if(currentMode==='IN'){
     labelEl.textContent = 'คงเหลือทั้งหมดตอนนี้';
     qtyEl.className = 'iv-odo';
     qtyEl.textContent = onHand(item.id) + ' ' + item.unit;
@@ -928,29 +1102,57 @@ async function submitTransaction(){
   if(!requireEdit()) return;
   const sel = document.getElementById('txItemSelect');
   const itemId = sel.value;
-  const item = items.find(i=>i.id===itemId);
+  const isExternalSrc = ['RESERVE','BORROW'].includes(currentMode) && txSourceMode==='external';
+  const item = isExternalSrc ? externalItems.find(i=>i.id===itemId) : items.find(i=>i.id===itemId);
   if(!item) return;
   const qty = parseFloat(document.getElementById('txQty').value);
   if(!(qty>0)) return;
   const note = document.getElementById('txNote').value.trim();
 
-  if(currentMode==='OUT' || currentMode==='RESERVE' || currentMode==='BORROW'){
+  // Stock validation only applies to real stock items. OUT and BORROW must have real stock on hand.
+  // RESERVE is allowed to exceed available stock (pre-reserve / backorder, waiting for stock to arrive).
+  if(!isExternalSrc && (currentMode==='OUT' || currentMode==='BORROW')){
     const avail = availableQty(item.id);
     if(qty > avail){
       showToast(`พร้อมใช้งานแค่ ${avail} ${item.unit} — ทำรายการนี้ไม่ได้`);
       return;
     }
   }
+  let backorder = false;
+  if(!isExternalSrc && currentMode==='RESERVE'){
+    const avail = availableQty(item.id);
+    if(qty > avail) backorder = true;
+  }
 
   if(currentMode==='IN'){
-    ledger.push({id:uid(), itemId, type:'IN', qty, note, ts:Date.now()});
+    const dateInput = document.getElementById('txInDate').value;
+    const customer = document.getElementById('txInCustomer').value.trim();
+    const ts = dateInput ? (new Date(dateInput+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now()) : Date.now();
+    const composedNote = [customer ? 'Customer/อ้างอิง: '+customer : '', note].filter(Boolean).join(' · ');
+    ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts});
     await saveLedger();
     showToast(`รับเข้า ${qty} ${item.unit} แล้ว`);
+    document.getElementById('txInCustomer').value='';
   }
   else if(currentMode==='OUT'){
-    ledger.push({id:uid(), itemId, type:'OUT', qty, note, ts:Date.now()});
+    const svso = document.getElementById('txOutSvso').value.trim();
+    const quotation = document.getElementById('txOutQuotation').value.trim();
+    const customer = document.getElementById('txOutCustomer').value.trim();
+    const requestedBy = document.getElementById('txOutRequestedBy').value.trim();
+    const composedNote = [
+      svso ? 'SVSO: '+svso : '',
+      quotation ? 'ใบเสนอราคา: '+quotation : '',
+      customer ? 'ลูกค้า: '+customer : '',
+      requestedBy ? 'ผู้เบิก: '+requestedBy : '',
+      note
+    ].filter(Boolean).join(' · ');
+    ledger.push({id:uid(), itemId, type:'OUT', qty, note: composedNote, svso, quotation, customer, requestedBy, ts:Date.now()});
     await saveLedger();
     showToast(`นำออก ${qty} ${item.unit} แล้ว`);
+    document.getElementById('txOutSvso').value='';
+    document.getElementById('txOutQuotation').value='';
+    document.getElementById('txOutCustomer').value='';
+    document.getElementById('txOutRequestedBy').value='';
   }
   else if(currentMode==='RESERVE'){
     const svso = document.getElementById('txSvso').value.trim();
@@ -962,13 +1164,14 @@ async function submitTransaction(){
       quotation ? 'ใบเสนอราคา: '+quotation : '',
       customer ? 'ลูกค้า: '+customer : '',
       requestedBy ? 'ผู้จอง: '+requestedBy : '',
+      isExternalSrc ? 'สินค้านอกสต็อก' : '',
       note
     ].filter(Boolean).join(' · ');
-    reservations.push({id:uid(), itemId, qty, svso, quotation, customer, requestedBy, note, ts:Date.now(), status:'active'});
+    reservations.push({id:uid(), itemId, qty, svso, quotation, customer, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
     await saveReservations();
-    ledger.push({id:uid(), itemId, type:'RESERVE', qty, note: composedNote, ts:Date.now()});
+    ledger.push({id:uid(), itemId, type:'RESERVE', qty, note: composedNote, ts:Date.now(), source: isExternalSrc?'external':'stock'});
     await saveLedger();
-    showToast(`จอง ${qty} ${item.unit} แล้ว`);
+    showToast(isExternalSrc ? `จองสินค้านอกสต็อก ${qty} ${item.unit} แล้ว` : (backorder ? `จองล่วงหน้า ${qty} ${item.unit} แล้ว (สต๊อกไม่พอตอนนี้ รอสินค้าเข้า)` : `จอง ${qty} ${item.unit} แล้ว`));
     document.getElementById('txSvso').value='';
     document.getElementById('txQuotation').value='';
     document.getElementById('txCustomer').value='';
@@ -980,9 +1183,9 @@ async function submitTransaction(){
     const borrowDateInput = document.getElementById('txBorrowDate').value;
     const borrowDate = borrowDateInput || new Date().toISOString().slice(0,10);
     const borrowTs = new Date(borrowDate+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now();
-    borrows.push({id:uid(), itemId, qty, borrower, note, dueDate, borrowDate, ts:borrowTs, status:'out'});
+    borrows.push({id:uid(), itemId, qty, borrower, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
     await saveBorrows();
-    ledger.push({id:uid(), itemId, type:'BORROW', qty, note:borrower + (note?(' · '+note):''), ts:borrowTs});
+    ledger.push({id:uid(), itemId, type:'BORROW', qty, note:borrower + (note?(' · '+note):'') + (isExternalSrc?' · สินค้านอกสต็อก':''), ts:borrowTs, source: isExternalSrc?'external':'stock'});
     await saveLedger();
     showToast(`บันทึกยืม ${qty} ${item.unit} ให้ ${borrower} แล้ว`);
     document.getElementById('txBorrower').value='';
@@ -1001,13 +1204,13 @@ async function fulfillReservation(id){
   if(!requireEdit()) return;
   const r = reservations.find(x=>x.id===id);
   if(!r || r.status!=='active') return;
-  const item = items.find(i=>i.id===r.itemId);
-  if(onHand(r.itemId) < r.qty){
+  const item = findItemRef(r.itemId, r.source);
+  if(r.source!=='external' && onHand(r.itemId) < r.qty){
     showToast('ของจริงในคลังไม่พอ ตรวจสอบยอดก่อนตัดนำออก');
     return;
   }
   r.status = 'fulfilled';
-  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดนำออกจากรายการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now()});
+  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดนำออกจากรายการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
   await saveReservations();
   await saveLedger();
   showToast(`ตัดนำออก ${r.qty} ${item?item.unit:''} จากรายการจองแล้ว`);
@@ -1029,7 +1232,7 @@ async function releaseReservation(id){
   const r = reservations.find(x=>x.id===id);
   if(!r || r.status!=='active') return;
   r.status = 'released';
-  ledger.push({id:uid(), itemId:r.itemId, type:'RELEASE', qty:r.qty, note:'ยกเลิกการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now()});
+  ledger.push({id:uid(), itemId:r.itemId, type:'RELEASE', qty:r.qty, note:'ยกเลิกการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
   await saveReservations();
   await saveLedger();
   showToast('ยกเลิกรายการจองแล้ว');
@@ -1042,8 +1245,8 @@ async function returnBorrow(id){
   if(!b || b.status!=='out') return;
   b.status = 'returned';
   b.returnedTs = Date.now();
-  const item = items.find(i=>i.id===b.itemId);
-  ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:'รับคืนจาก '+b.borrower, ts:Date.now()});
+  const item = findItemRef(b.itemId, b.source);
+  ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:'รับคืนจาก '+b.borrower, ts:Date.now(), source:b.source});
   await saveBorrows();
   await saveLedger();
   showToast(`รับคืน ${b.qty} ${item?item.unit:''} จาก ${b.borrower} แล้ว`);
@@ -1244,13 +1447,15 @@ function afterParseBulk(){
   renderBulkRawPreview();
 
   const headers = (bulkRows[bulkHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
-  ['bulkMapItemNo','bulkMapQty','bulkMapNote'].forEach(id=>{
+  ['bulkMapItemNo','bulkMapQty','bulkMapNote','bulkMapDate','bulkMapCustomer'].forEach(id=>{
     const sel = document.getElementById(id);
     sel.innerHTML = '<option value="-1">— ไม่ระบุ —</option>' + headers.map((h,i)=>`<option value="${i}">${h || '(คอลัมน์ '+(i+1)+')'}</option>`).join('');
   });
   autoGuessColumn('bulkMapItemNo', headers, ['item no','itemno','item.no','รหัส','part no','sku','code']);
   autoGuessColumn('bulkMapQty', headers, ["q'ty",'qty','จำนวน','remain','stock','คงเหลือ','received','รับ']);
   autoGuessColumn('bulkMapNote', headers, ['note','remark','หมายเหตุ','description']);
+  autoGuessColumn('bulkMapDate', headers, ['date','วันที่','received date','วันรับ']);
+  autoGuessColumn('bulkMapCustomer', headers, ['customer','ลูกค้า','อ้างอิง','supplier','ผู้ส่ง']);
 
   renderBulkPreview(headers);
   document.getElementById('bulkPreviewWrap').classList.remove('iv-hide');
@@ -1268,11 +1473,25 @@ function renderBulkPreview(headers){
   document.getElementById('bulkPreviewTable').innerHTML = html;
 }
 
+function parseExcelDateValue(raw){
+  if(raw===undefined || raw===null || raw==='') return null;
+  if(typeof raw === 'number'){
+    // Excel serial date
+    const ms = Math.round((raw - 25569) * 86400 * 1000);
+    const d = new Date(ms);
+    return isNaN(d.getTime()) ? null : d.getTime();
+  }
+  const d = new Date(String(raw).trim());
+  return isNaN(d.getTime()) ? null : d.getTime();
+}
+
 async function confirmBulkReceive(){
   if(!requireEdit()) return;
   const idxItemNo = parseInt(document.getElementById('bulkMapItemNo').value);
   const idxQty = parseInt(document.getElementById('bulkMapQty').value);
   const idxNote = parseInt(document.getElementById('bulkMapNote').value);
+  const idxDate = parseInt(document.getElementById('bulkMapDate').value);
+  const idxCustomer = parseInt(document.getElementById('bulkMapCustomer').value);
 
   if(idxItemNo<0 || idxQty<0){ showToast('กรุณาเลือกคอลัมน์รหัสสินค้าและจำนวนอย่างน้อย'); return; }
 
@@ -1287,12 +1506,15 @@ async function confirmBulkReceive(){
     const item = byCode.get(itemNo.toLowerCase());
     const qtyRaw = row[idxQty];
     const qty = (qtyRaw!==undefined && qtyRaw!=='' && !isNaN(parseFloat(qtyRaw))) ? parseFloat(qtyRaw) : 0;
-    const note = idxNote>=0 && row[idxNote] ? String(row[idxNote]).trim() : 'รับเข้าจากไฟล์';
+    const customer = idxCustomer>=0 && row[idxCustomer] ? String(row[idxCustomer]).trim() : '';
+    const baseNote = idxNote>=0 && row[idxNote] ? String(row[idxNote]).trim() : 'รับเข้าจากไฟล์';
+    const note = [customer ? 'Customer/อ้างอิง: '+customer : '', baseNote].filter(Boolean).join(' · ');
+    const ts = (idxDate>=0 ? parseExcelDateValue(row[idxDate]) : null) || Date.now();
 
     if(!item){ notFound.push(itemNo); continue; }
     if(!(qty>0)){ invalidQty++; continue; }
 
-    ledger.push({id:uid(), itemId:item.id, type:'IN', qty, note, ts:Date.now()});
+    ledger.push({id:uid(), itemId:item.id, type:'IN', qty, note, customer, ts});
     received++;
     totalQty += qty;
   }
@@ -1382,475 +1604,147 @@ async function addItem(){
   renderAll();
 }
 
-async function deleteItem(id){
+let extSubMode = 'single';
+function setExtSubMode(sub){
+  extSubMode = sub;
+  document.getElementById('btnExtSingle').classList.toggle('sel-in', sub==='single');
+  document.getElementById('btnExtBulk').classList.toggle('sel-in', sub==='bulk');
+  document.getElementById('extSingleSection').classList.toggle('iv-hide', sub!=='single');
+  document.getElementById('extBulkSection').classList.toggle('iv-hide', sub!=='bulk');
+}
+
+async function addExternalItem(){
   if(!requireEdit()) return;
-  items = items.filter(i=>i.id!==id);
-  ledger = ledger.filter(t=>t.itemId!==id);
-  reservations = reservations.filter(r=>r.itemId!==id);
-  borrows = borrows.filter(b=>b.itemId!==id);
-  await saveItems();
-  await saveLedger();
-  await saveReservations();
-  await saveBorrows();
-  showToast('ลบสินค้าแล้ว');
+  const itemNo = document.getElementById('newExtItemNo').value.trim();
+  const name = document.getElementById('newExtItemName').value.trim();
+  const unit = document.getElementById('newExtItemUnit').value.trim() || 'PC';
+
+  if(!itemNo || !name){ showToast('กรุณากรอกรหัสและชื่อสินค้า'); return; }
+  if(externalItems.find(i=>i.itemNo.toLowerCase()===itemNo.toLowerCase())){ showToast('รหัสสินค้านี้มีอยู่แล้วในรายการนอกสต็อก'); return; }
+
+  externalItems.push({id:uid(), itemNo, name, unit});
+  await saveExternalItems();
+  ['newExtItemNo','newExtItemName','newExtItemUnit'].forEach(id=>document.getElementById(id).value='');
+  showToast('เพิ่มสินค้านอกสต็อกแล้ว');
   renderAll();
 }
 
-function isOverdue(b){
-  if(b.status!=='out' || !b.dueDate) return false;
-  return new Date(b.dueDate+'T23:59:59') < new Date();
-}
-
-function renderStats(){
-  document.getElementById('statTotalItems').textContent = items.length;
-  let low=0;
-  items.forEach(it=>{
-    const q = availableQty(it.id);
-    if(q<=0 || (it.reorder>0 && q<=it.reorder)) low++;
-  });
-  document.getElementById('statLow').textContent = low;
-  document.getElementById('statReserved').textContent = reservations.filter(r=>r.status==='active').length;
-  document.getElementById('statBorrowed').textContent = borrows.filter(b=>b.status==='out').length;
-}
-
-function renderLowStock(){
-  const list = document.getElementById('lowStockList');
-  const card = document.getElementById('lowStockCard');
-  const low = items.filter(it=>{
-    const q = availableQty(it.id);
-    return q<=0 || (it.reorder>0 && q<=it.reorder);
-  }).sort((a,b)=> availableQty(a.id) - availableQty(b.id) );
-
-  if(low.length===0){ card.classList.add('iv-hide'); return; }
-  card.classList.remove('iv-hide');
-  list.innerHTML = low.map(it=>{
-    const q = availableQty(it.id);
-    const cls = q<=0 ? 'zero' : 'low';
-    return `<div class="iv-carousel-card ${cls}">
-      <div>
-        <div class="iv-carousel-meta">${it.itemNo}</div>
-        <div class="iv-carousel-name">${it.name}</div>
-      </div>
-      <div class="iv-carousel-bottom">
-        <span class="iv-tag ${cls}">${q<=0?'หมด':'ใกล้หมด'}</span>
-        <span class="iv-odo">${q} ${it.unit}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderOverdue(){
-  const list = document.getElementById('overdueList');
-  const card = document.getElementById('overdueCard');
-  const overdue = borrows.filter(isOverdue);
-  if(overdue.length===0){ card.classList.add('iv-hide'); return; }
-  card.classList.remove('iv-hide');
-  list.innerHTML = overdue.map(b=>{
-    const item = items.find(i=>i.id===b.itemId);
-    return `<div class="iv-item overdue">
-      <div class="iv-item-main">
-        <div class="iv-item-code">${item?item.itemNo:''}</div>
-        <div class="iv-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-        <div class="iv-item-meta">ยืมโดย ${b.borrower} · ยืมเมื่อ ${b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)} · กำหนดคืน ${fmtDay(b.dueDate)}</div>
-      </div>
-      <div class="iv-item-right">
-        <span class="iv-tag overdue">เกินกำหนด</span>
-        <span class="iv-odo borrow">${b.qty} ${item?item.unit:''}</span>
-        <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">คืนของ</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderRecentTx(){
-  const list = document.getElementById('recentTxList');
-  const recent = [...ledger].sort((a,b)=>b.ts-a.ts).slice(0,6);
-  if(recent.length===0){
-    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ยังไม่มีรายการ</div><div class="iv-empty-sub">เริ่มบันทึกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
-    return;
-  }
-  list.innerHTML = recent.map(txHtml).join('');
-}
-
-function renderTopMovers(){
-  const yearSel = document.getElementById('topMoversYear');
-  const outEntries = ledger.filter(t=>t.type==='OUT');
-  const years = Array.from(new Set(outEntries.map(t=> new Date(t.ts).getFullYear()))).sort((a,b)=>b-a);
-  const currentYear = new Date().getFullYear();
-  if(!years.includes(currentYear)) years.unshift(currentYear);
-
-  const prevSelected = yearSel.value;
-  yearSel.innerHTML = years.map(y=>`<option value="${y}">ปี ${y}</option>`).join('');
-  if(prevSelected && years.includes(parseInt(prevSelected))) yearSel.value = prevSelected;
-  const selectedYear = parseInt(yearSel.value) || currentYear;
-
-  const totals = {};
-  let grandTotal = 0;
-  outEntries.filter(t=> new Date(t.ts).getFullYear()===selectedYear).forEach(t=>{
-    totals[t.itemId] = (totals[t.itemId]||0) + t.qty;
-    grandTotal += t.qty;
-  });
-
-  const ranked = Object.entries(totals)
-    .map(([itemId, qty])=> ({item: items.find(i=>i.id===itemId), qty}))
-    .filter(r=> r.item)
-    .sort((a,b)=> b.qty - a.qty)
-    .slice(0, 10);
-
-  const summaryEl = document.getElementById('topMoversSummary');
-  const listEl = document.getElementById('topMoversList');
-
-  if(ranked.length===0){
-    summaryEl.textContent = `ยังไม่มีข้อมูลนำออกในปี ${selectedYear}`;
-    listEl.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีข้อมูล</div><div class="iv-empty-sub">จะแสดงเมื่อมีการนำออกในปีนี้</div></div>`;
-    return;
-  }
-
-  summaryEl.textContent = `นำออกรวมทั้งปี ${selectedYear}: ${grandTotal} ชิ้น จาก ${Object.keys(totals).length} รายการสินค้า — แสดง Top ${ranked.length}`;
-  listEl.innerHTML = ranked.map((r, idx)=> `<div class="iv-item">
-      <div class="iv-item-main">
-        <div class="iv-item-name">#${idx+1}  ${r.item.name}</div>
-        <div class="iv-item-meta">${r.item.itemNo}</div>
-      </div>
-      <div class="iv-item-right">
-        <span class="iv-odo out" style="background:var(--out);">${r.qty} ${r.item.unit}</span>
-      </div>
-    </div>`).join('');
-}
-
-const TX_ICON = {IN:'▲', OUT:'▼', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
-const TX_SIGN = {IN:'+', OUT:'−', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
-const TX_CLASS = {IN:'in', OUT:'out', RESERVE:'reserve', RELEASE:'release', BORROW:'borrow', RETURN:'return'};
-
-function txHtml(t){
-  const item = items.find(i=>i.id===t.itemId);
-  const name = item ? item.name : '(สินค้าถูกลบแล้ว)';
-  const itemNo = item ? item.itemNo : '';
-  const cls = TX_CLASS[t.type] || 'in';
-  return `<div class="iv-tx">
-    <div class="iv-tx-icon ${cls}">${TX_ICON[t.type]||'•'}</div>
-    <div class="iv-tx-main">
-      <div class="iv-tx-name">${name}</div>
-      <div class="iv-tx-meta">${itemNo}${t.note? ' · '+t.note:''} · ${fmtDate(t.ts)}</div>
-    </div>
-    <div class="iv-tx-qty ${cls}">${TX_SIGN[t.type]||''}${t.qty}</div>
-  </div>`;
-}
-
-let editingReservationId = null;
-let editingBorrowId = null;
-
-function toggleEditReservation(id){
-  editingReservationId = (editingReservationId===id) ? null : id;
-  renderPending();
-}
-function toggleEditBorrow(id){
-  editingBorrowId = (editingBorrowId===id) ? null : id;
-  renderPending();
-}
-
-async function saveReservationEdit(id){
+async function deleteExternalItem(id){
   if(!requireEdit()) return;
-  const r = reservations.find(x=>x.id===id);
-  if(!r) return;
-  const qty = parseFloat(document.getElementById('editResQty_'+id).value);
-  if(!(qty>0)){ showToast('จำนวนต้องมากกว่า 0'); return; }
-  r.qty = qty;
-  r.svso = document.getElementById('editResSvso_'+id).value.trim();
-  r.quotation = document.getElementById('editResQuotation_'+id).value.trim();
-  r.customer = document.getElementById('editResCustomer_'+id).value.trim();
-  r.requestedBy = document.getElementById('editResRequestedBy_'+id).value.trim();
-  r.note = document.getElementById('editResNote_'+id).value.trim();
-  await saveReservations();
-  editingReservationId = null;
-  showToast('แก้ไขรายการจองแล้ว');
+  const it = externalItems.find(i=>i.id===id);
+  if(!confirm(`ลบสินค้านอกสต็อก "${it?it.name:''}" ออกจากรายการ?\nการลบไม่สามารถย้อนกลับได้`)) return;
+  externalItems = externalItems.filter(i=>i.id!==id);
+  await saveExternalItems();
+  showToast('ลบสินค้านอกสต็อกแล้ว');
   renderAll();
 }
 
-async function saveBorrowEdit(id){
+// ---- bulk import: off-stock items ----
+let extImportRows = [];
+let extImportHeaderRowIndex = 0;
+
+function handleExtImportFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      if(isCsv){
+        extImportRows = parseCsvText(evt.target.result);
+      }else{
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        extImportRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+      }
+      extImportHeaderRowIndex = guessHeaderRowIndexFor(extImportRows);
+      afterParseExtImport();
+    }catch(err){
+      showToast('อ่านไฟล์ไม่สำเร็จ: ' + err.message);
+    }
+  };
+  if(isCsv) reader.readAsText(file); else reader.readAsArrayBuffer(file);
+}
+
+function parseExtImportPaste(){
+  const text = document.getElementById('extImportPaste').value;
+  if(!text.trim()){ showToast('ยังไม่มีข้อมูลที่วาง'); return; }
+  extImportRows = text.split(/\r?\n/).filter(l=>l.length>0).map(line=> line.split('\t').map(c=>c.trim()));
+  extImportHeaderRowIndex = guessHeaderRowIndexFor(extImportRows);
+  afterParseExtImport();
+}
+
+function applyExtHeaderRow(){
+  const rowNum = parseInt(document.getElementById('extHeaderRowInput').value);
+  if(!rowNum || rowNum<1 || rowNum>extImportRows.length){ showToast('ระบุเลขแถวไม่ถูกต้อง'); return; }
+  extImportHeaderRowIndex = rowNum - 1;
+  afterParseExtImport();
+}
+
+function renderExtRawPreview(){
+  const limit = Math.min(extImportRows.length, 8);
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:10.5px;font-family:\'JetBrains Mono\',monospace;">';
+  for(let i=0;i<limit;i++){
+    const row = extImportRows[i] || [];
+    const isHeader = i===extImportHeaderRowIndex;
+    html += `<tr style="${isHeader?'background:var(--reserve-soft);':''}">`;
+    html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += '</tr>';
+  }
+  html += '</table>';
+  document.getElementById('extRawPreviewTable').innerHTML = html;
+  document.getElementById('extRawPreviewHint').textContent = 'แถวที่ไฮไลต์ (★) คือแถวที่ระบบจะใช้เป็นหัวตาราง — ถ้าไม่ตรง ให้แก้เลขแถวด้านบนแล้วกด "ใช้แถวนี้เป็นหัวตาราง"';
+  document.getElementById('extHeaderRowInput').value = extImportHeaderRowIndex + 1;
+}
+
+function afterParseExtImport(){
+  if(extImportRows.length<2){ showToast('ไม่พบข้อมูล (ต้องมีหัวตาราง และอย่างน้อย 1 แถวข้อมูล)'); return; }
+  if(extImportHeaderRowIndex >= extImportRows.length-1) extImportHeaderRowIndex = 0;
+  renderExtRawPreview();
+
+  const headers = (extImportRows[extImportHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
+  ['extMapItemNo','extMapName','extMapUnit'].forEach(id=>{
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="-1">— ไม่ระบุ —</option>' + headers.map((h,i)=>`<option value="${i}">${h || '(คอลัมน์ '+(i+1)+')'}</option>`).join('');
+  });
+  autoGuessColumn('extMapItemNo', headers, ['item no','itemno','item.no','รหัส','part no','sku','code']);
+  autoGuessColumn('extMapName', headers, ['description','name','ชื่อ','รายละเอียด']);
+  autoGuessColumn('extMapUnit', headers, ['unit','หน่วย']);
+
+  renderExtImportPreview(headers);
+  document.getElementById('extImportPreviewWrap').classList.remove('iv-hide');
+  document.getElementById('extImportSummaryHint').textContent = `พบข้อมูล ${extImportRows.length - extImportHeaderRowIndex - 1} แถว (นับจากหลังหัวตาราง) — ตรวจสอบการจับคู่คอลัมน์ด้านบนก่อนกดเพิ่มสินค้า`;
+}
+
+function renderExtImportPreview(headers){
+  const rows = extImportRows.slice(extImportHeaderRowIndex+1, extImportHeaderRowIndex+6);
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:\'JetBrains Mono\',monospace;">';
+  html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('') + '</tr>';
+  rows.forEach(r=>{
+    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('') + '</tr>';
+  });
+  html += '</table>';
+  document.getElementById('extImportPreviewTable').innerHTML = html;
+}
+
+async function confirmExtImport(){
   if(!requireEdit()) return;
-  const b = borrows.find(x=>x.id===id);
-  if(!b) return;
-  const qty = parseFloat(document.getElementById('editBorQty_'+id).value);
-  if(!(qty>0)){ showToast('จำนวนต้องมากกว่า 0'); return; }
-  b.qty = qty;
-  b.borrower = document.getElementById('editBorBorrower_'+id).value.trim();
-  b.borrowDate = document.getElementById('editBorBorrowDate_'+id).value;
-  b.dueDate = document.getElementById('editBorDueDate_'+id).value;
-  b.note = document.getElementById('editBorNote_'+id).value.trim();
-  if(b.borrowDate){ b.ts = new Date(b.borrowDate+'T'+new Date(b.ts).toTimeString().slice(0,8)).getTime() || b.ts; }
-  await saveBorrows();
-  editingBorrowId = null;
-  showToast('แก้ไขรายการยืมแล้ว');
-  renderAll();
-}
+  const idxItemNo = parseInt(document.getElementById('extMapItemNo').value);
+  const idxName = parseInt(document.getElementById('extMapName').value);
+  const idxUnit = parseInt(document.getElementById('extMapUnit').value);
 
-function renderPending(){
-  const q = (document.getElementById('pendingSearch').value||'').toLowerCase();
-  const rList = document.getElementById('reserveList');
-  const activeRes = reservations.filter(r=>r.status==='active').sort((a,b)=>b.ts-a.ts).filter(r=>{
-    if(!q) return true;
-    const item = items.find(i=>i.id===r.itemId);
-    const hay = [item?item.itemNo:'', item?item.name:'', r.svso, r.quotation, r.customer, r.requestedBy, r.note].join(' ').toLowerCase();
-    return hay.includes(q);
-  });
-  if(activeRes.length===0){
-    rList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีรายการจอง</div><div class="iv-empty-sub">จองสต๊อกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
-  }else{
-    rList.innerHTML = activeRes.map(r=>{
-      const item = items.find(i=>i.id===r.itemId);
-      const fields = [
-        ['SVSO No.', r.svso], ['Quotation No.', r.quotation],
-        ['Customer', r.customer], ['ผู้จอง', r.requestedBy],
-      ].filter(([k,v])=>v);
-      if(r.note) fields.push(['หมายเหตุ', r.note]);
-      fields.push(['จองเมื่อ', fmtDate(r.ts)]);
+  if(idxItemNo<0 || idxName<0){ showToast('กรุณาเลือกคอลัมน์รหัสสินค้าและชื่อสินค้าอย่างน้อย'); return; }
 
-      const isEditing = editingReservationId===r.id;
-      const editForm = !isEditing ? '' : `
-        <div class="iv-detail-edit-form">
-          <div class="iv-form-row two">
-            <div><label class="iv-label">จำนวน</label><input class="iv-input" type="number" min="1" id="editResQty_${r.id}" value="${r.qty}"></div>
-            <div><label class="iv-label">SVSO No.</label><input class="iv-input" type="text" id="editResSvso_${r.id}" value="${r.svso||''}"></div>
-          </div>
-          <div class="iv-form-row two">
-            <div><label class="iv-label">Quotation No.</label><input class="iv-input" type="text" id="editResQuotation_${r.id}" value="${r.quotation||''}"></div>
-            <div><label class="iv-label">Customer Name</label><input class="iv-input" type="text" id="editResCustomer_${r.id}" value="${r.customer||''}"></div>
-          </div>
-          <div class="iv-form-row two">
-            <div><label class="iv-label">ผู้จอง</label><input class="iv-input" type="text" id="editResRequestedBy_${r.id}" value="${r.requestedBy||''}"></div>
-            <div><label class="iv-label">หมายเหตุ</label><input class="iv-input" type="text" id="editResNote_${r.id}" value="${r.note||''}"></div>
-          </div>
-          <div class="iv-detail-actions">
-            <button class="iv-btn-sm pos" onclick="saveReservationEdit('${r.id}')">บันทึกการแก้ไข</button>
-            <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">ยกเลิก</button>
-          </div>
-        </div>`;
+  const dataRows = extImportRows.slice(extImportHeaderRowIndex+1);
+  let added=0, skipped=0, errored=0;
+  const existingCodes = new Set(externalItems.map(i=>i.itemNo.toLowerCase()));
 
-      return `<div class="iv-detail-card reserve">
-        <div class="iv-detail-head">
-          <div>
-            <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
-            <div class="iv-detail-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-          </div>
-          <span class="iv-odo reserve">${r.qty} ${item?item.unit:''}</span>
-        </div>
-        <div class="iv-detail-grid">
-          ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-        </div>
-        <div class="iv-detail-actions">
-          <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">ตัดนำออก</button>
-          <button class="iv-btn-sm neg" onclick="releaseReservation('${r.id}')">ยกเลิกจอง</button>
-          <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">${isEditing?'ปิดฟอร์มแก้ไข':'แก้ไข'}</button>
-        </div>
-        ${editForm}
-      </div>`;
-    }).join('');
-  }
-
-  const bList = document.getElementById('borrowList');
-  const activeBorrow = borrows.filter(b=>b.status==='out').sort((a,b)=>b.ts-a.ts).filter(b=>{
-    if(!q) return true;
-    const item = items.find(i=>i.id===b.itemId);
-    const hay = [item?item.itemNo:'', item?item.name:'', b.borrower, b.note].join(' ').toLowerCase();
-    return hay.includes(q);
-  });
-  if(activeBorrow.length===0){
-    bList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีของค้างยืม</div><div class="iv-empty-sub">บันทึกการยืมได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
-  }else{
-    bList.innerHTML = activeBorrow.map(b=>{
-      const item = items.find(i=>i.id===b.itemId);
-      const overdue = isOverdue(b);
-      const fields = [
-        ['ผู้ยืม', b.borrower],
-        ['วันที่ยืม', b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)],
-        ['กำหนดคืน', b.dueDate?fmtDay(b.dueDate)+(overdue?' (เกินกำหนด!)':''):'—'],
-      ];
-      if(b.note) fields.push(['หมายเหตุ', b.note]);
-
-      const isEditing = editingBorrowId===b.id;
-      const editForm = !isEditing ? '' : `
-        <div class="iv-detail-edit-form">
-          <div class="iv-form-row two">
-            <div><label class="iv-label">จำนวน</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
-            <div><label class="iv-label">ผู้ยืม</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
-          </div>
-          <div class="iv-form-row two">
-            <div><label class="iv-label">วันที่ยืม</label><input class="iv-input" type="date" id="editBorBorrowDate_${b.id}" value="${b.borrowDate||''}"></div>
-            <div><label class="iv-label">กำหนดคืน</label><input class="iv-input" type="date" id="editBorDueDate_${b.id}" value="${b.dueDate||''}"></div>
-          </div>
-          <div class="iv-form-row">
-            <div><label class="iv-label">หมายเหตุ</label><input class="iv-input" type="text" id="editBorNote_${b.id}" value="${b.note||''}"></div>
-          </div>
-          <div class="iv-detail-actions">
-            <button class="iv-btn-sm pos" onclick="saveBorrowEdit('${b.id}')">บันทึกการแก้ไข</button>
-            <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">ยกเลิก</button>
-          </div>
-        </div>`;
-
-      return `<div class="iv-detail-card borrow">
-        <div class="iv-detail-head">
-          <div>
-            <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
-            <div class="iv-detail-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-          </div>
-          <span class="iv-odo borrow">${b.qty} ${item?item.unit:''}</span>
-        </div>
-        <div class="iv-detail-grid">
-          ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-        </div>
-        <div class="iv-detail-actions">
-          <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">คืนของ</button>
-          <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">${isEditing?'ปิดฟอร์มแก้ไข':'แก้ไข'}</button>
-        </div>
-        ${editForm}
-      </div>`;
-    }).join('');
-  }
-}
-
-function renderItems(){
-  const q = (document.getElementById('itemSearch').value||'').toLowerCase();
-  const list = document.getElementById('itemList');
-  const filtered = items.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q));
-
-  if(filtered.length===0){
-    list.innerHTML = `<tr><td colspan="4"><div class="iv-empty"><div class="iv-empty-title">ไม่พบสินค้า</div><div class="iv-empty-sub">ลองเพิ่มสินค้าใหม่จากแท็บ "นำเข้า/เพิ่มสินค้า"</div></div></td></tr>`;
-    return;
-  }
-  list.innerHTML = filtered.map(it=>{
-    const hand = onHand(it.id);
-    const res = reservedQty(it.id);
-    const bor = borrowedOutQty(it.id);
-    const avail = hand - res;
-    const cls = avail<=0 ? 'zero' : (it.reorder>0 && avail<=it.reorder ? 'low' : '');
-    const subBits = [];
-    if(res>0) subBits.push(`จอง ${res}`);
-    if(bor>0) subBits.push(`ยืมออก ${bor}`);
-    if(cls) subBits.push(cls==='zero' ? 'หมด' : 'ใกล้หมด');
-    return `<tr class="${cls}">
-      <td class="iv-td-itemno">${it.itemNo}</td>
-      <td class="iv-td-desc">${it.name}${subBits.length ? `<div class="iv-td-desc-sub">${subBits.join(' · ')}</div>` : ''}</td>
-      <td class="iv-td-qty">${avail}<span class="unit">${it.unit}</span></td>
-      <td class="iv-td-actions"><button class="iv-del" onclick="deleteItem('${it.id}')" title="ลบสินค้า">✕</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function renderHistory(){
-  const q = (document.getElementById('txSearch').value||'').toLowerCase();
-  const list = document.getElementById('fullTxList');
-  const sorted = [...ledger].sort((a,b)=>b.ts-a.ts).filter(t=>{
-    const item = items.find(i=>i.id===t.itemId);
-    const hay = ((item?item.name:'')+' '+(item?item.itemNo:'')+' '+(t.note||'')).toLowerCase();
-    return hay.includes(q);
-  });
-  if(sorted.length===0){
-    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีประวัติ</div><div class="iv-empty-sub">รายการทั้งหมดจะแสดงที่นี่</div></div>`;
-    return;
-  }
-  list.innerHTML = sorted.map(txHtml).join('');
-}
-
-function renderAll(){
-  renderStats();
-  renderLowStock();
-  renderOverdue();
-  renderRecentTx();
-  renderTopMovers();
-  populateItemSelect();
-  renderPending();
-  renderItems();
-  renderHistory();
-}
-
-function exportToExcel(){
-  if(items.length===0){ showToast('ยังไม่มีข้อมูลให้สำรอง'); return; }
-
-  const itemRows = items.map(it=>{
-    const hand = onHand(it.id);
-    const res = reservedQty(it.id);
-    const bor = borrowedOutQty(it.id);
-    return {
-      'Item No.': it.itemNo,
-      'Description': it.name,
-      'Unit': it.unit,
-      'On Hand': hand,
-      'Reserved': res,
-      'Borrowed Out': bor,
-      'Available': hand - res,
-      'Reorder Point': it.reorder || 0
-    };
-  });
-
-  const historyRows = [...ledger].sort((a,b)=>a.ts-b.ts).map(t=>{
-    const item = items.find(i=>i.id===t.itemId);
-    return {
-      'Date': fmtDate(t.ts),
-      'Item No.': item ? item.itemNo : '',
-      'Description': item ? item.name : '(deleted item)',
-      'Type': t.type,
-      'Qty': t.qty,
-      'Note': t.note || ''
-    };
-  });
-
-  const reserveRows = reservations.map(r=>{
-    const item = items.find(i=>i.id===r.itemId);
-    return {
-      'Item No.': item ? item.itemNo : '',
-      'Description': item ? item.name : '(deleted item)',
-      'Qty': r.qty,
-      'SVSO No.': r.svso || '',
-      'Quotation No.': r.quotation || '',
-      'Customer Name': r.customer || '',
-      'Requested By': r.requestedBy || '',
-      'Note': r.note || '',
-      'Status': r.status,
-      'Reserved On': fmtDate(r.ts)
-    };
-  });
-
-  const borrowRows = borrows.map(b=>{
-    const item = items.find(i=>i.id===b.itemId);
-    return {
-      'Item No.': item ? item.itemNo : '',
-      'Description': item ? item.name : '(deleted item)',
-      'Qty': b.qty,
-      'Borrower': b.borrower,
-      'Note': b.note || '',
-      'Due Date': b.dueDate || '',
-      'Status': b.status,
-      'Borrowed On': fmtDate(b.ts),
-      'Returned On': b.returnedTs ? fmtDate(b.returnedTs) : ''
-    };
-  });
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(itemRows), 'Items');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(historyRows), 'History');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reserveRows), 'Reservations');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(borrowRows), 'Borrows');
-
-  const dateStr = new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb, `Esco_Inventory_Backup_${dateStr}.xlsx`);
-  showToast('ดาวน์โหลดไฟล์สำรองข้อมูลแล้ว');
-}
-
-// tabs
-function goToTab(tabName){
-  document.querySelectorAll('.iv-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tabName));
-  document.querySelectorAll('.iv-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tabName));
-}
-
-document.querySelectorAll('.iv-tab').forEach(tab=>{
-  tab.addEventListener('click', ()=> goToTab(tab.dataset.tab));
-});
-
-document.getElementById('txBorrower').addEventListener('input', validateTxForm);
-
-loadData();
-loadSettings();
-</script>
-</body>
-</html>
+  for(const row of dataRows){
+    const itemNoRaw = row[idxItemNo];
+    if(itemNoRaw===undefined || itemNoRaw===null || String(itemNoRaw).trim()===''){ continue; }
+    const itemNo = String(itemNoRaw).trim();
+    const nameRaw = row[idxName];
+    const name = nameRaw!==undefined && nameRaw!==null ? String(nameRaw).trim() : '';
+    if(!name){ errored++; 
