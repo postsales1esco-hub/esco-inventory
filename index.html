@@ -143,6 +143,19 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-item-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:2px;}
 .iv-item-code{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.02em;}
 .iv-scroll-list{max-height:360px;overflow-y:auto;padding-right:6px;margin-right:-6px;}
+
+.iv-detail-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.iv-detail-card.reserve{border-left-color:var(--reserve);}
+.iv-detail-card.borrow{border-left-color:var(--borrow);}
+.iv-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.iv-detail-item-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14.5px;color:var(--ink);}
+.iv-detail-item-name{font-size:13.5px;color:var(--ink-soft);margin-top:2px;}
+.iv-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-bottom:12px;}
+.iv-detail-field .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);display:block;margin-bottom:2px;}
+.iv-detail-field .v{color:var(--ink);font-size:13px;line-height:1.4;}
+.iv-detail-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.iv-detail-edit-form{border-top:1px solid var(--border);margin-top:12px;padding-top:12px;}
+@media (max-width:520px){ .iv-detail-grid{grid-template-columns:1fr;} }
 .iv-item-badges{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
 .iv-item-right{display:flex;align-items:center;gap:10px;}
 .iv-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;}
@@ -437,13 +450,14 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <!-- ============ RESERVE / BORROW PENDING ============ -->
     <div class="iv-panel" id="panel-pending">
+      <input class="iv-input iv-search" type="text" id="pendingSearch" placeholder="ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม..." oninput="renderPending()">
       <div class="iv-card">
         <p class="iv-card-title"><span class="iv-dot reserve"></span>รายการจองที่ยังไม่ตัดนำออก</p>
-        <div id="reserveList" class="iv-tx-list"></div>
+        <div id="reserveList"></div>
       </div>
       <div class="iv-card">
         <p class="iv-card-title"><span class="iv-dot borrow"></span>รายการยืมที่ยังไม่คืน</p>
-        <div id="borrowList" class="iv-tx-list"></div>
+        <div id="borrowList"></div>
       </div>
     </div>
 
@@ -1523,54 +1537,173 @@ function txHtml(t){
   </div>`;
 }
 
+let editingReservationId = null;
+let editingBorrowId = null;
+
+function toggleEditReservation(id){
+  editingReservationId = (editingReservationId===id) ? null : id;
+  renderPending();
+}
+function toggleEditBorrow(id){
+  editingBorrowId = (editingBorrowId===id) ? null : id;
+  renderPending();
+}
+
+async function saveReservationEdit(id){
+  if(!requireEdit()) return;
+  const r = reservations.find(x=>x.id===id);
+  if(!r) return;
+  const qty = parseFloat(document.getElementById('editResQty_'+id).value);
+  if(!(qty>0)){ showToast('จำนวนต้องมากกว่า 0'); return; }
+  r.qty = qty;
+  r.svso = document.getElementById('editResSvso_'+id).value.trim();
+  r.quotation = document.getElementById('editResQuotation_'+id).value.trim();
+  r.customer = document.getElementById('editResCustomer_'+id).value.trim();
+  r.requestedBy = document.getElementById('editResRequestedBy_'+id).value.trim();
+  r.note = document.getElementById('editResNote_'+id).value.trim();
+  await saveReservations();
+  editingReservationId = null;
+  showToast('แก้ไขรายการจองแล้ว');
+  renderAll();
+}
+
+async function saveBorrowEdit(id){
+  if(!requireEdit()) return;
+  const b = borrows.find(x=>x.id===id);
+  if(!b) return;
+  const qty = parseFloat(document.getElementById('editBorQty_'+id).value);
+  if(!(qty>0)){ showToast('จำนวนต้องมากกว่า 0'); return; }
+  b.qty = qty;
+  b.borrower = document.getElementById('editBorBorrower_'+id).value.trim();
+  b.borrowDate = document.getElementById('editBorBorrowDate_'+id).value;
+  b.dueDate = document.getElementById('editBorDueDate_'+id).value;
+  b.note = document.getElementById('editBorNote_'+id).value.trim();
+  if(b.borrowDate){ b.ts = new Date(b.borrowDate+'T'+new Date(b.ts).toTimeString().slice(0,8)).getTime() || b.ts; }
+  await saveBorrows();
+  editingBorrowId = null;
+  showToast('แก้ไขรายการยืมแล้ว');
+  renderAll();
+}
+
 function renderPending(){
+  const q = (document.getElementById('pendingSearch').value||'').toLowerCase();
   const rList = document.getElementById('reserveList');
-  const activeRes = reservations.filter(r=>r.status==='active').sort((a,b)=>b.ts-a.ts);
+  const activeRes = reservations.filter(r=>r.status==='active').sort((a,b)=>b.ts-a.ts).filter(r=>{
+    if(!q) return true;
+    const item = items.find(i=>i.id===r.itemId);
+    const hay = [item?item.itemNo:'', item?item.name:'', r.svso, r.quotation, r.customer, r.requestedBy, r.note].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
   if(activeRes.length===0){
     rList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีรายการจอง</div><div class="iv-empty-sub">จองสต๊อกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
   }else{
     rList.innerHTML = activeRes.map(r=>{
       const item = items.find(i=>i.id===r.itemId);
-      const metaBits = [];
-      if(r.svso) metaBits.push('SVSO: '+r.svso);
-      if(r.quotation) metaBits.push('ใบเสนอราคา: '+r.quotation);
-      if(r.customer) metaBits.push('ลูกค้า: '+r.customer);
-      if(r.requestedBy) metaBits.push('ผู้จอง: '+r.requestedBy);
-      if(r.note) metaBits.push(r.note);
-      metaBits.push('จองเมื่อ '+fmtDate(r.ts));
-      return `<div class="iv-tx">
-        <div class="iv-tx-icon reserve">⚑</div>
-        <div class="iv-tx-main">
-          <div class="iv-tx-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-          <div class="iv-tx-meta">${item?item.itemNo:''}${item?' · ':''}${metaBits.join(' · ')}</div>
+      const fields = [
+        ['SVSO No.', r.svso], ['Quotation No.', r.quotation],
+        ['Customer', r.customer], ['ผู้จอง', r.requestedBy],
+      ].filter(([k,v])=>v);
+      if(r.note) fields.push(['หมายเหตุ', r.note]);
+      fields.push(['จองเมื่อ', fmtDate(r.ts)]);
+
+      const isEditing = editingReservationId===r.id;
+      const editForm = !isEditing ? '' : `
+        <div class="iv-detail-edit-form">
+          <div class="iv-form-row two">
+            <div><label class="iv-label">จำนวน</label><input class="iv-input" type="number" min="1" id="editResQty_${r.id}" value="${r.qty}"></div>
+            <div><label class="iv-label">SVSO No.</label><input class="iv-input" type="text" id="editResSvso_${r.id}" value="${r.svso||''}"></div>
+          </div>
+          <div class="iv-form-row two">
+            <div><label class="iv-label">Quotation No.</label><input class="iv-input" type="text" id="editResQuotation_${r.id}" value="${r.quotation||''}"></div>
+            <div><label class="iv-label">Customer Name</label><input class="iv-input" type="text" id="editResCustomer_${r.id}" value="${r.customer||''}"></div>
+          </div>
+          <div class="iv-form-row two">
+            <div><label class="iv-label">ผู้จอง</label><input class="iv-input" type="text" id="editResRequestedBy_${r.id}" value="${r.requestedBy||''}"></div>
+            <div><label class="iv-label">หมายเหตุ</label><input class="iv-input" type="text" id="editResNote_${r.id}" value="${r.note||''}"></div>
+          </div>
+          <div class="iv-detail-actions">
+            <button class="iv-btn-sm pos" onclick="saveReservationEdit('${r.id}')">บันทึกการแก้ไข</button>
+            <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">ยกเลิก</button>
+          </div>
+        </div>`;
+
+      return `<div class="iv-detail-card reserve">
+        <div class="iv-detail-head">
+          <div>
+            <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
+            <div class="iv-detail-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
+          </div>
+          <span class="iv-odo reserve">${r.qty} ${item?item.unit:''}</span>
         </div>
-        <div class="iv-tx-qty reserve">${r.qty}</div>
-        <div class="iv-tx-actions">
+        <div class="iv-detail-grid">
+          ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+        </div>
+        <div class="iv-detail-actions">
           <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">ตัดนำออก</button>
           <button class="iv-btn-sm neg" onclick="releaseReservation('${r.id}')">ยกเลิกจอง</button>
+          <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">${isEditing?'ปิดฟอร์มแก้ไข':'แก้ไข'}</button>
         </div>
+        ${editForm}
       </div>`;
     }).join('');
   }
 
   const bList = document.getElementById('borrowList');
-  const activeBorrow = borrows.filter(b=>b.status==='out').sort((a,b)=>b.ts-a.ts);
+  const activeBorrow = borrows.filter(b=>b.status==='out').sort((a,b)=>b.ts-a.ts).filter(b=>{
+    if(!q) return true;
+    const item = items.find(i=>i.id===b.itemId);
+    const hay = [item?item.itemNo:'', item?item.name:'', b.borrower, b.note].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
   if(activeBorrow.length===0){
     bList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีของค้างยืม</div><div class="iv-empty-sub">บันทึกการยืมได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
   }else{
     bList.innerHTML = activeBorrow.map(b=>{
       const item = items.find(i=>i.id===b.itemId);
       const overdue = isOverdue(b);
-      return `<div class="iv-tx">
-        <div class="iv-tx-icon borrow">↷</div>
-        <div class="iv-tx-main">
-          <div class="iv-tx-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-          <div class="iv-tx-meta">ยืมโดย ${b.borrower}${b.note? ' · '+b.note:''} · ยืมเมื่อ ${b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)}${b.dueDate? (' · กำหนดคืน '+fmtDay(b.dueDate)) : ''}${overdue? ' · เกินกำหนด!':''}</div>
+      const fields = [
+        ['ผู้ยืม', b.borrower],
+        ['วันที่ยืม', b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)],
+        ['กำหนดคืน', b.dueDate?fmtDay(b.dueDate)+(overdue?' (เกินกำหนด!)':''):'—'],
+      ];
+      if(b.note) fields.push(['หมายเหตุ', b.note]);
+
+      const isEditing = editingBorrowId===b.id;
+      const editForm = !isEditing ? '' : `
+        <div class="iv-detail-edit-form">
+          <div class="iv-form-row two">
+            <div><label class="iv-label">จำนวน</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
+            <div><label class="iv-label">ผู้ยืม</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
+          </div>
+          <div class="iv-form-row two">
+            <div><label class="iv-label">วันที่ยืม</label><input class="iv-input" type="date" id="editBorBorrowDate_${b.id}" value="${b.borrowDate||''}"></div>
+            <div><label class="iv-label">กำหนดคืน</label><input class="iv-input" type="date" id="editBorDueDate_${b.id}" value="${b.dueDate||''}"></div>
+          </div>
+          <div class="iv-form-row">
+            <div><label class="iv-label">หมายเหตุ</label><input class="iv-input" type="text" id="editBorNote_${b.id}" value="${b.note||''}"></div>
+          </div>
+          <div class="iv-detail-actions">
+            <button class="iv-btn-sm pos" onclick="saveBorrowEdit('${b.id}')">บันทึกการแก้ไข</button>
+            <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">ยกเลิก</button>
+          </div>
+        </div>`;
+
+      return `<div class="iv-detail-card borrow">
+        <div class="iv-detail-head">
+          <div>
+            <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
+            <div class="iv-detail-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
+          </div>
+          <span class="iv-odo borrow">${b.qty} ${item?item.unit:''}</span>
         </div>
-        <div class="iv-tx-qty borrow">${b.qty}</div>
-        <div class="iv-tx-actions">
+        <div class="iv-detail-grid">
+          ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+        </div>
+        <div class="iv-detail-actions">
           <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">คืนของ</button>
+          <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">${isEditing?'ปิดฟอร์มแก้ไข':'แก้ไข'}</button>
         </div>
+        ${editForm}
       </div>`;
     }).join('');
   }
