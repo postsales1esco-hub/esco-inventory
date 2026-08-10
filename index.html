@@ -201,6 +201,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 .iv-tx-icon.release{background:var(--reserve-soft);color:var(--reserve);}
 .iv-tx-icon.borrow{background:var(--borrow-soft);color:var(--borrow);}
 .iv-tx-icon.return{background:var(--borrow-soft);color:var(--borrow);}
+.iv-tx-icon.adjust{background:var(--warn-soft);color:var(--warn);}
 .iv-tx-main{flex:1;min-width:0;}
 .iv-tx-name{font-size:13px;font-weight:600;}
 .iv-tx-meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:1px;}
@@ -209,6 +210,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 .iv-tx-qty.out{color:var(--out);}
 .iv-tx-qty.reserve, .iv-tx-qty.release{color:var(--reserve);}
 .iv-tx-qty.borrow, .iv-tx-qty.return{color:var(--borrow);}
+.iv-tx-qty.adjust{color:var(--warn);}
 .iv-tx-actions{display:flex;gap:6px;width:100%;margin-top:2px;}
 
 .iv-empty{text-align:center;padding:40px 20px;color:var(--ink-soft);}
@@ -264,6 +266,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <div class="iv-tab" data-tab="pending">จอง/ยืม</div>
       <div class="iv-tab" data-tab="import">นำเข้า/เพิ่มสินค้า</div>
       <div class="iv-tab" data-tab="external">นอก Stock</div>
+      <div class="iv-tab" data-tab="recount">นับสต็อกรายเดือน</div>
       <div class="iv-tab" data-tab="history">ประวัติ</div>
       <div class="iv-tab" data-tab="settings">ตั้งค่า</div>
     </div>
@@ -717,6 +720,66 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
     </div>
 
+    <!-- ============ STOCK COUNT RECONCILIATION ============ -->
+    <div class="iv-panel" id="panel-recount">
+      <div class="iv-card">
+        <p class="iv-card-title">ปรับสต็อกจากการนับประจำเดือน</p>
+        <p class="iv-hint" style="margin-bottom:12px;">อัปโหลดไฟล์ผลนับสต็อกจริง (เช่น ไฟล์จากทางบัญชี) ระบบจะเทียบกับยอดในระบบตอนนี้ แล้วคำนวณส่วนต่างให้อัตโนมัติ — ถ้านับได้มากกว่าจะรับเข้าส่วนต่าง ถ้านับได้น้อยกว่าจะนำออกส่วนต่าง พร้อมบันทึกเป็นประวัติ "นับสต็อกรายเดือน" แยกจากรายการปกติให้ตรวจสอบย้อนหลังได้ง่าย</p>
+
+        <div class="iv-form-row">
+          <div>
+            <label class="iv-label">รอบการนับ (ไม่บังคับ — จะแนบไว้ในหมายเหตุ)</label>
+            <input class="iv-input" type="text" id="recountPeriod" placeholder="เช่น สิงหาคม 2569">
+          </div>
+        </div>
+
+        <div class="iv-form-row">
+          <div>
+            <label class="iv-label">อัปโหลดไฟล์ผลนับสต็อก (.xlsx / .xls / .csv)</label>
+            <input class="iv-input" type="file" id="recountFile" accept=".xlsx,.xls,.csv" onchange="handleRecountFile(event)">
+          </div>
+        </div>
+        <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+        <div class="iv-form-row">
+          <textarea class="iv-input" id="recountPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+        </div>
+        <button class="iv-btn neutral" onclick="parseRecountPaste()">อ่านข้อมูลที่วาง</button>
+
+        <div id="recountPreviewWrap" class="iv-hide" style="margin-top:18px;">
+          <div class="iv-form-row two" style="align-items:end;">
+            <div>
+              <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+              <input class="iv-input" type="number" min="1" id="recountHeaderRowInput" value="1">
+            </div>
+            <div>
+              <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyRecountHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+            </div>
+          </div>
+          <p class="iv-hint" id="recountRawPreviewHint"></p>
+          <div id="recountRawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
+
+          <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+          <div class="iv-form-row two">
+            <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="recountMapItemNo"></select></div>
+            <div><label class="iv-label">จำนวนที่นับได้จริง *</label><select class="iv-input" id="recountMapQty"></select></div>
+          </div>
+
+          <button class="iv-btn neutral" onclick="calcRecountDiff()" style="margin-top:6px;">คำนวณส่วนต่าง</button>
+
+          <div id="recountDiffWrap" class="iv-hide" style="margin-top:16px;">
+            <p class="iv-hint" id="recountDiffSummary" style="margin-bottom:10px;"></p>
+            <div class="iv-table-wrap">
+              <table class="iv-item-table">
+                <thead><tr><th>Item No.</th><th>Description</th><th class="num">ในระบบ</th><th class="num">นับได้จริง</th><th class="num">ส่วนต่าง</th></tr></thead>
+                <tbody id="recountDiffTable"></tbody>
+              </table>
+            </div>
+            <button class="iv-btn out" onclick="confirmRecount()" style="margin-top:14px;">ยืนยันปรับยอดตามผลนับ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ============ HISTORY ============ -->
     <div class="iv-panel" id="panel-history">
       <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="renderHistory()">
@@ -841,8 +904,8 @@ function onHand(itemId){
   if(ext) return ext.qty || 0;
   return ledger.reduce((sum,t)=>{
     if(t.itemId!==itemId) return sum;
-    if(t.type==='IN' || t.type==='RETURN') return sum + t.qty;
-    if(t.type==='OUT' || t.type==='BORROW') return sum - t.qty;
+    if(t.type==='IN' || t.type==='RETURN' || t.type==='ADJUST_IN') return sum + t.qty;
+    if(t.type==='OUT' || t.type==='BORROW' || t.type==='ADJUST_OUT') return sum - t.qty;
     return sum;
   }, 0);
 }
@@ -1567,6 +1630,165 @@ async function confirmBulkReceive(){
   renderAll();
 }
 
+// ---- stock count reconciliation (ปรับสต็อกจากการนับ) ----
+let recountRows = [];
+let recountHeaderRowIndex = 0;
+let recountDiffData = [];
+
+function handleRecountFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      if(isCsv){
+        recountRows = parseCsvText(evt.target.result);
+      }else{
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        recountRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+      }
+      recountHeaderRowIndex = guessHeaderRowIndexFor(recountRows);
+      afterParseRecount();
+    }catch(err){
+      showToast('อ่านไฟล์ไม่สำเร็จ: ' + err.message);
+    }
+  };
+  if(isCsv) reader.readAsText(file); else reader.readAsArrayBuffer(file);
+}
+
+function parseRecountPaste(){
+  const text = document.getElementById('recountPaste').value;
+  if(!text.trim()){ showToast('ยังไม่มีข้อมูลที่วาง'); return; }
+  recountRows = text.split(/\r?\n/).filter(l=>l.length>0).map(line=> line.split('\t').map(c=>c.trim()));
+  recountHeaderRowIndex = guessHeaderRowIndexFor(recountRows);
+  afterParseRecount();
+}
+
+function applyRecountHeaderRow(){
+  const rowNum = parseInt(document.getElementById('recountHeaderRowInput').value);
+  if(!rowNum || rowNum<1 || rowNum>recountRows.length){ showToast('ระบุเลขแถวไม่ถูกต้อง'); return; }
+  recountHeaderRowIndex = rowNum - 1;
+  afterParseRecount();
+}
+
+function renderRecountRawPreview(){
+  const limit = Math.min(recountRows.length, 8);
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:10.5px;font-family:\'JetBrains Mono\',monospace;">';
+  for(let i=0;i<limit;i++){
+    const row = recountRows[i] || [];
+    const isHeader = i===recountHeaderRowIndex;
+    html += `<tr style="${isHeader?'background:var(--warn-soft);':''}">`;
+    html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += '</tr>';
+  }
+  html += '</table>';
+  document.getElementById('recountRawPreviewTable').innerHTML = html;
+  document.getElementById('recountRawPreviewHint').textContent = 'แถวที่ไฮไลต์ (★) คือแถวที่ระบบจะใช้เป็นหัวตาราง — ถ้าไม่ตรง ให้แก้เลขแถวด้านบนแล้วกด "ใช้แถวนี้เป็นหัวตาราง"';
+  document.getElementById('recountHeaderRowInput').value = recountHeaderRowIndex + 1;
+}
+
+function afterParseRecount(){
+  if(recountRows.length<2){ showToast('ไม่พบข้อมูล (ต้องมีหัวตาราง และอย่างน้อย 1 แถวข้อมูล)'); return; }
+  if(recountHeaderRowIndex >= recountRows.length-1) recountHeaderRowIndex = 0;
+  renderRecountRawPreview();
+
+  const headers = (recountRows[recountHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
+  ['recountMapItemNo','recountMapQty'].forEach(id=>{
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="-1">— ไม่ระบุ —</option>' + headers.map((h,i)=>`<option value="${i}">${h || '(คอลัมน์ '+(i+1)+')'}</option>`).join('');
+  });
+  autoGuessColumn('recountMapItemNo', headers, ['item no','itemno','item.no','รหัส','part no','sku','code']);
+  autoGuessColumn('recountMapQty', headers, ["q'ty",'qty','จำนวน','remain','stock','คงเหลือ','นับ','count']);
+
+  document.getElementById('recountPreviewWrap').classList.remove('iv-hide');
+  document.getElementById('recountDiffWrap').classList.add('iv-hide');
+}
+
+function calcRecountDiff(){
+  const idxItemNo = parseInt(document.getElementById('recountMapItemNo').value);
+  const idxQty = parseInt(document.getElementById('recountMapQty').value);
+  if(idxItemNo<0 || idxQty<0){ showToast('กรุณาเลือกคอลัมน์รหัสสินค้าและจำนวนที่นับได้'); return; }
+
+  const dataRows = recountRows.slice(recountHeaderRowIndex+1);
+  const byCode = new Map(items.map(it=>[it.itemNo.toLowerCase(), it]));
+  const diffs = [];
+  let notFound = [];
+
+  for(const row of dataRows){
+    const itemNoRaw = row[idxItemNo];
+    if(itemNoRaw===undefined || itemNoRaw===null || String(itemNoRaw).trim()===''){ continue; }
+    const itemNo = String(itemNoRaw).trim();
+    const item = byCode.get(itemNo.toLowerCase());
+    const qtyRaw = row[idxQty];
+    const countedQty = (qtyRaw!==undefined && qtyRaw!=='' && !isNaN(parseFloat(qtyRaw))) ? parseFloat(qtyRaw) : null;
+    if(!item){ notFound.push(itemNo); continue; }
+    if(countedQty===null) continue;
+
+    const systemQty = onHand(item.id);
+    const diff = countedQty - systemQty;
+    diffs.push({item, systemQty, countedQty, diff});
+  }
+
+  recountDiffData = diffs;
+  const changed = diffs.filter(d=>d.diff!==0);
+  const up = changed.filter(d=>d.diff>0).length;
+  const down = changed.filter(d=>d.diff<0).length;
+  const same = diffs.length - changed.length;
+
+  let summary = `เทียบแล้ว ${diffs.length} รายการ — ตรงกับระบบอยู่แล้ว ${same} รายการ, ต้องปรับเพิ่ม ${up} รายการ, ต้องปรับลด ${down} รายการ`;
+  if(notFound.length) summary += ` (ไม่พบในระบบ ${notFound.length} รายการ: ${notFound.slice(0,10).join(', ')}${notFound.length>10?' ...':''})`;
+  document.getElementById('recountDiffSummary').textContent = summary;
+
+  const tbody = document.getElementById('recountDiffTable');
+  if(changed.length===0){
+    tbody.innerHTML = `<tr><td colspan="5"><div class="iv-empty"><div class="iv-empty-title">ไม่มีส่วนต่าง</div><div class="iv-empty-sub">ยอดในระบบตรงกับที่นับได้ทั้งหมดแล้ว</div></div></td></tr>`;
+  }else{
+    tbody.innerHTML = changed.sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff)).map(d=>{
+      const diffColor = d.diff>0 ? 'var(--in)' : 'var(--out)';
+      const diffText = d.diff>0 ? `+${d.diff}` : `${d.diff}`;
+      return `<tr>
+        <td class="iv-td-itemno">${d.item.itemNo}</td>
+        <td class="iv-td-desc">${d.item.name}</td>
+        <td class="iv-td-qty">${d.systemQty}</td>
+        <td class="iv-td-qty">${d.countedQty}</td>
+        <td class="iv-td-qty" style="color:${diffColor};font-weight:700;">${diffText}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('recountDiffWrap').classList.remove('iv-hide');
+}
+
+async function confirmRecount(){
+  if(!requireEdit()) return;
+  const changed = recountDiffData.filter(d=>d.diff!==0);
+  if(changed.length===0){ showToast('ไม่มีส่วนต่างที่ต้องปรับ'); return; }
+
+  const period = document.getElementById('recountPeriod').value.trim();
+  const noteSuffix = period ? `รอบนับ: ${period}` : '';
+  const ts = Date.now();
+
+  changed.forEach(d=>{
+    const type = d.diff>0 ? 'ADJUST_IN' : 'ADJUST_OUT';
+    const note = ['นับสต็อกรายเดือน', noteSuffix, `(ระบบ ${d.systemQty} → นับได้ ${d.countedQty})`].filter(Boolean).join(' · ');
+    ledger.push({id:uid(), itemId:d.item.id, type, qty:Math.abs(d.diff), note, ts});
+  });
+
+  await saveLedger();
+  showToast(`ปรับยอดสำเร็จ ${changed.length} รายการ`);
+
+  document.getElementById('recountPreviewWrap').classList.add('iv-hide');
+  document.getElementById('recountDiffWrap').classList.add('iv-hide');
+  document.getElementById('recountPaste').value='';
+  document.getElementById('recountFile').value='';
+  recountRows = [];
+  recountDiffData = [];
+  renderAll();
+}
+
 async function confirmImport(){
   if(!requireEdit()) return;
   const idxItemNo = parseInt(document.getElementById('mapItemNo').value);
@@ -1976,9 +2198,9 @@ function renderTopMovers(){
     </div>`).join('');
 }
 
-const TX_ICON = {IN:'▲', OUT:'▼', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
-const TX_SIGN = {IN:'+', OUT:'−', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶'};
-const TX_CLASS = {IN:'in', OUT:'out', RESERVE:'reserve', RELEASE:'release', BORROW:'borrow', RETURN:'return'};
+const TX_ICON = {IN:'▲', OUT:'▼', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶', ADJUST_IN:'⟳', ADJUST_OUT:'⟳'};
+const TX_SIGN = {IN:'+', OUT:'−', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶', ADJUST_IN:'+', ADJUST_OUT:'−'};
+const TX_CLASS = {IN:'in', OUT:'out', RESERVE:'reserve', RELEASE:'release', BORROW:'borrow', RETURN:'return', ADJUST_IN:'adjust', ADJUST_OUT:'adjust'};
 
 function txHtml(t){
   const item = findItemRef(t.itemId, t.source);
