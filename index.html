@@ -728,8 +728,8 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
         <div class="iv-form-row">
           <div>
-            <label class="iv-label">รอบการนับ (ไม่บังคับ — จะแนบไว้ในหมายเหตุ)</label>
-            <input class="iv-input" type="text" id="recountPeriod" placeholder="เช่น สิงหาคม 2569">
+            <label class="iv-label">วันที่นับ (ไม่บังคับ — จะแนบไว้ในหมายเหตุ)</label>
+            <input class="iv-input" type="date" id="recountPeriod">
           </div>
         </div>
 
@@ -1767,8 +1767,8 @@ async function confirmRecount(){
   const changed = recountDiffData.filter(d=>d.diff!==0);
   if(changed.length===0){ showToast('ไม่มีส่วนต่างที่ต้องปรับ'); return; }
 
-  const period = document.getElementById('recountPeriod').value.trim();
-  const noteSuffix = period ? `รอบนับ: ${period}` : '';
+  const periodRaw = document.getElementById('recountPeriod').value;
+  const noteSuffix = periodRaw ? `วันที่นับ: ${fmtDay(periodRaw)}` : '';
   const ts = Date.now();
 
   changed.forEach(d=>{
