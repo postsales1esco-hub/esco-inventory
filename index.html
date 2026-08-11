@@ -364,7 +364,10 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             </div>
             <div>
               <label class="iv-label" id="txCurrentQtyLabel">พร้อมใช้งานตอนนี้</label>
-              <div style="padding-top:9px;"><span class="iv-odo" id="txCurrentQty">—</span></div>
+              <div style="padding-top:9px;">
+                <span class="iv-odo" id="txCurrentQty">—</span>
+                <div id="txQtyBreakdown" class="iv-hint" style="margin:4px 0 0;"></div>
+              </div>
             </div>
           </div>
 
@@ -1166,19 +1169,32 @@ function updateTxCurrentQty(){
   const item = activePool().find(i=>i.id===id);
   const qtyEl = document.getElementById('txCurrentQty');
   const labelEl = document.getElementById('txCurrentQtyLabel');
-  if(!item){ qtyEl.textContent = '—'; return; }
+  const breakdownEl = document.getElementById('txQtyBreakdown');
+  if(!item){ qtyEl.textContent = '—'; breakdownEl.textContent=''; return; }
+
+  const total = onHand(item.id);
+  const reserved = reservedQty(item.id);
+  const avail = availableQty(item.id);
+  const breakdownParts = [];
+  if(reserved>0) breakdownParts.push(`จอง ${reserved}`);
+  breakdownParts.push(`พร้อมใช้ ${avail}`);
+  const breakdownText = `ทั้งหมด ${total} ${item.unit} (${breakdownParts.join(' · ')})`;
+
   if(['RESERVE','BORROW'].includes(currentMode) && txSourceMode==='external'){
     labelEl.textContent = 'พร้อมใช้งานตอนนี้ (นอกสต็อก)';
     qtyEl.className = 'iv-odo';
-    qtyEl.textContent = availableQty(item.id) + ' ' + item.unit;
+    qtyEl.textContent = avail + ' ' + item.unit;
+    breakdownEl.textContent = breakdownText;
   }else if(currentMode==='IN'){
     labelEl.textContent = 'คงเหลือทั้งหมดตอนนี้';
     qtyEl.className = 'iv-odo';
-    qtyEl.textContent = onHand(item.id) + ' ' + item.unit;
+    qtyEl.textContent = total + ' ' + item.unit;
+    breakdownEl.textContent = reserved>0 ? breakdownText : '';
   }else{
     labelEl.textContent = 'พร้อมใช้งานตอนนี้';
     qtyEl.className = 'iv-odo';
-    qtyEl.textContent = availableQty(item.id) + ' ' + item.unit;
+    qtyEl.textContent = avail + ' ' + item.unit;
+    breakdownEl.textContent = breakdownText;
   }
   validateTxForm();
 }
