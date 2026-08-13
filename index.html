@@ -487,14 +487,15 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
             <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
             <div class="iv-form-row two">
-              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="bulkMapItemNo"></select></div>
-              <div><label class="iv-label">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty"></select></div>
+              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="bulkMapItemNo" onchange="refreshBulkPreview()"></select></div>
+              <div><label class="iv-label">ชื่อสินค้า (ไม่บังคับ — ไว้ตรวจสอบ)</label><select class="iv-input" id="bulkMapName" onchange="refreshBulkPreview()"></select></div>
             </div>
             <div class="iv-form-row two">
+              <div><label class="iv-label">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty"></select></div>
               <div><label class="iv-label">วันที่รับเข้า (ไม่บังคับ)</label><select class="iv-input" id="bulkMapDate"></select></div>
-              <div><label class="iv-label">Customer / อ้างอิง (ไม่บังคับ)</label><select class="iv-input" id="bulkMapCustomer"></select></div>
             </div>
-            <div class="iv-form-row">
+            <div class="iv-form-row two">
+              <div><label class="iv-label">Customer / อ้างอิง (ไม่บังคับ)</label><select class="iv-input" id="bulkMapCustomer"></select></div>
               <div><label class="iv-label">หมายเหตุ (ไม่บังคับ)</label><select class="iv-input" id="bulkMapNote"></select></div>
             </div>
             <div id="bulkPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
@@ -1561,13 +1562,14 @@ function afterParseBulk(){
   renderBulkRawPreview();
 
   const headers = (bulkRows[bulkHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
-  ['bulkMapItemNo','bulkMapQty','bulkMapNote','bulkMapDate','bulkMapCustomer'].forEach(id=>{
+  ['bulkMapItemNo','bulkMapName','bulkMapQty','bulkMapNote','bulkMapDate','bulkMapCustomer'].forEach(id=>{
     const sel = document.getElementById(id);
     sel.innerHTML = '<option value="-1">— ไม่ระบุ —</option>' + headers.map((h,i)=>`<option value="${i}">${h || '(คอลัมน์ '+(i+1)+')'}</option>`).join('');
   });
   autoGuessColumn('bulkMapItemNo', headers, ['item no','itemno','item.no','รหัส','part no','sku','code']);
+  autoGuessColumn('bulkMapName', headers, ['description','name','ชื่อ','รายละเอียด']);
   autoGuessColumn('bulkMapQty', headers, ["q'ty",'qty','จำนวน','remain','stock','คงเหลือ','received','รับ']);
-  autoGuessColumn('bulkMapNote', headers, ['note','remark','หมายเหตุ','description']);
+  autoGuessColumn('bulkMapNote', headers, ['note','remark','หมายเหตุ']);
   autoGuessColumn('bulkMapDate', headers, ['date','วันที่','received date','วันรับ']);
   autoGuessColumn('bulkMapCustomer', headers, ['customer','ลูกค้า','อ้างอิง','supplier','ผู้ส่ง']);
 
@@ -1576,12 +1578,37 @@ function afterParseBulk(){
   document.getElementById('bulkSummaryHint').textContent = `พบข้อมูล ${bulkRows.length - bulkHeaderRowIndex - 1} แถว (นับจากหลังหัวตาราง) — ตรวจสอบการจับคู่คอลัมน์ด้านบนก่อนกด "รับเข้าทั้งหมด"`;
 }
 
+function refreshBulkPreview(){
+  const headers = (bulkRows[bulkHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
+  renderBulkPreview(headers);
+}
+
 function renderBulkPreview(headers){
   const rows = bulkRows.slice(bulkHeaderRowIndex+1, bulkHeaderRowIndex+6);
+  const idxItemNo = parseInt(document.getElementById('bulkMapItemNo').value);
+  const idxName = parseInt(document.getElementById('bulkMapName').value);
+  const byCode = new Map(items.map(it=>[it.itemNo.toLowerCase(), it]));
+
   let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:\'JetBrains Mono\',monospace;">';
-  html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('') + '</tr>';
+  html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('');
+  if(idxItemNo>=0) html += `<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">ชื่อในระบบ</th>`;
+  html += '</tr>';
   rows.forEach(r=>{
-    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('') + '</tr>';
+    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('');
+    if(idxItemNo>=0){
+      const code = r[idxItemNo]!==undefined ? String(r[idxItemNo]).trim() : '';
+      const sysItem = code ? byCode.get(code.toLowerCase()) : null;
+      const fileName = idxName>=0 && r[idxName]!==undefined ? String(r[idxName]).trim() : '';
+      let cell;
+      if(!code){ cell = ''; }
+      else if(!sysItem){ cell = `<span style="color:var(--out);">ไม่พบในระบบ</span>`; }
+      else{
+        const mismatch = fileName && sysItem.name.trim().toLowerCase() !== fileName.toLowerCase();
+        cell = `<span style="color:${mismatch?'var(--warn)':'var(--ink-soft)'};">${sysItem.name}${mismatch?' ⚠️':''}</span>`;
+      }
+      html += `<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${cell}</td>`;
+    }
+    html += '</tr>';
   });
   html += '</table>';
   document.getElementById('bulkPreviewTable').innerHTML = html;
