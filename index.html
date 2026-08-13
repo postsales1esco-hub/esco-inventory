@@ -488,16 +488,25 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
             <div class="iv-form-row two">
               <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="bulkMapItemNo" onchange="refreshBulkPreview()"></select></div>
-              <div><label class="iv-label">ชื่อสินค้า (ไม่บังคับ — ไว้ตรวจสอบ)</label><select class="iv-input" id="bulkMapName" onchange="refreshBulkPreview()"></select></div>
+              <div><label class="iv-label">ชื่อสินค้า (ไม่บังคับ — ใช้ตรวจสอบ/อัปเดตชื่อ)</label><select class="iv-input" id="bulkMapName" onchange="refreshBulkPreview()"></select></div>
             </div>
             <div class="iv-form-row two">
-              <div><label class="iv-label">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty"></select></div>
-              <div><label class="iv-label">วันที่รับเข้า (ไม่บังคับ)</label><select class="iv-input" id="bulkMapDate"></select></div>
+              <div><label class="iv-label">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty" onchange="refreshBulkPreview()"></select></div>
+              <div><label class="iv-label">หน่วยนับ / UOM (ไม่บังคับ — ใช้ตอนเพิ่มสินค้าใหม่)</label><select class="iv-input" id="bulkMapUnit"></select></div>
             </div>
             <div class="iv-form-row two">
+              <div><label class="iv-label">วันที่รับเข้า (ไม่บังคับ)</label><select class="iv-input" id="bulkMapDate" onchange="refreshBulkPreview()"></select></div>
               <div><label class="iv-label">Customer / อ้างอิง (ไม่บังคับ)</label><select class="iv-input" id="bulkMapCustomer"></select></div>
+            </div>
+            <div class="iv-form-row">
               <div><label class="iv-label">หมายเหตุ (ไม่บังคับ)</label><select class="iv-input" id="bulkMapNote"></select></div>
             </div>
+            <p class="iv-hint">ถ้ารหัสสินค้าในไฟล์ไม่พบในระบบ จะเพิ่มเป็นสินค้าใหม่ให้อัตโนมัติ และถ้าชื่อในไฟล์ไม่ตรงกับชื่อในระบบ (รหัสตรงกัน) จะอัปเดตชื่อในระบบให้ตรงกับไฟล์ · แถวที่ยังไม่ได้กรอกวันที่รับในคอลัมน์ "วันที่รับเข้า" จะถือว่ายังไม่เข้าคลังจริง ระบบจะข้ามแถวนั้นให้อัตโนมัติ (ไม่ต้องลบหรือซ่อนแถวเอง อัปโหลดทั้งไฟล์ได้เลย)</p>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin:10px 0;cursor:pointer;">
+              <input type="checkbox" id="bulkSkipDuplicates" checked onchange="refreshBulkPreview()">
+              ข้ามรายการที่เคยรับเข้าไปแล้ว (เทียบจาก รหัสสินค้า + วันที่รับ + จำนวน ตรงกันทั้ง 3 อย่าง) — ป้องกันรับซ้ำเวลาอัปโหลดไฟล์เดิมที่มีข้อมูลสะสม
+            </label>
+            <p class="iv-hint" id="bulkDupHint"></p>
             <div id="bulkPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
             <p class="iv-hint" id="bulkSummaryHint"></p>
             <button class="iv-btn in" onclick="confirmBulkReceive()">รับเข้าทั้งหมด</button>
@@ -891,6 +900,18 @@ function activePool(){
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// formats a raw cell value for display in file-import preview tables (handles Excel Date objects)
+function previewCell(v){
+  if(v===undefined || v===null || v==='') return '';
+  if(v instanceof Date){
+    if(isNaN(v.getTime())) return '';
+    const dd = String(v.getDate()).padStart(2,'0');
+    const mm = String(v.getMonth()+1).padStart(2,'0');
+    return `${dd}/${mm}/${v.getFullYear()}`;
+  }
+  return v;
+}
 
 function fmtDate(ts){
   const d = new Date(ts);
@@ -1395,7 +1416,7 @@ function handleImportFile(e){
         importRows = parseCsvText(evt.target.result);
       }else{
         const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, {type:'array'});
+        const wb = XLSX.read(data, {type:'array', cellDates:true});
         const ws = wb.Sheets[wb.SheetNames[0]];
         importRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
       }
@@ -1450,7 +1471,7 @@ function renderRawPreview(){
     const isHeader = i===importHeaderRowIndex;
     html += `<tr style="${isHeader?'background:var(--reserve-soft);':''}">`;
     html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
-    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${previewCell(c)}</td>`).join('');
     html += '</tr>';
   }
   html += '</table>';
@@ -1490,7 +1511,7 @@ function renderImportPreview(headers){
   let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:\'JetBrains Mono\',monospace;">';
   html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('') + '</tr>';
   rows.forEach(r=>{
-    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('') + '</tr>';
+    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${previewCell(r[i])}</td>`).join('') + '</tr>';
   });
   html += '</table>';
   document.getElementById('importPreviewTable').innerHTML = html;
@@ -1511,7 +1532,7 @@ function handleBulkFile(e){
         bulkRows = parseCsvText(evt.target.result);
       }else{
         const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, {type:'array'});
+        const wb = XLSX.read(data, {type:'array', cellDates:true});
         const ws = wb.Sheets[wb.SheetNames[0]];
         bulkRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
       }
@@ -1547,7 +1568,7 @@ function renderBulkRawPreview(){
     const isHeader = i===bulkHeaderRowIndex;
     html += `<tr style="${isHeader?'background:var(--in-soft);':''}">`;
     html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
-    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${previewCell(c)}</td>`).join('');
     html += '</tr>';
   }
   html += '</table>';
@@ -1562,13 +1583,14 @@ function afterParseBulk(){
   renderBulkRawPreview();
 
   const headers = (bulkRows[bulkHeaderRowIndex]||[]).map(h=>String(h===undefined||h===null?'':h).trim());
-  ['bulkMapItemNo','bulkMapName','bulkMapQty','bulkMapNote','bulkMapDate','bulkMapCustomer'].forEach(id=>{
+  ['bulkMapItemNo','bulkMapName','bulkMapQty','bulkMapUnit','bulkMapNote','bulkMapDate','bulkMapCustomer'].forEach(id=>{
     const sel = document.getElementById(id);
     sel.innerHTML = '<option value="-1">— ไม่ระบุ —</option>' + headers.map((h,i)=>`<option value="${i}">${h || '(คอลัมน์ '+(i+1)+')'}</option>`).join('');
   });
   autoGuessColumn('bulkMapItemNo', headers, ['item no','itemno','item.no','รหัส','part no','sku','code']);
   autoGuessColumn('bulkMapName', headers, ['description','name','ชื่อ','รายละเอียด']);
   autoGuessColumn('bulkMapQty', headers, ["q'ty",'qty','จำนวน','remain','stock','คงเหลือ','received','รับ']);
+  autoGuessColumn('bulkMapUnit', headers, ['uom','unit','หน่วย']);
   autoGuessColumn('bulkMapNote', headers, ['note','remark','หมายเหตุ']);
   autoGuessColumn('bulkMapDate', headers, ['date','วันที่','received date','วันรับ']);
   autoGuessColumn('bulkMapCustomer', headers, ['customer','ลูกค้า','อ้างอิง','supplier','ผู้ส่ง']);
@@ -1583,39 +1605,84 @@ function refreshBulkPreview(){
   renderBulkPreview(headers);
 }
 
+// returns a local YYYY-MM-DD key for a timestamp, used to compare "same day" receiving events
+function dayKey(ts){
+  const d = new Date(ts);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// true if an IN ledger entry already exists for this item, on this day, with this exact qty
+function isDuplicateReceive(itemId, ts, qty){
+  const key = dayKey(ts);
+  return ledger.some(t => t.type==='IN' && t.itemId===itemId && Math.abs(t.qty-qty)<1e-9 && dayKey(t.ts)===key);
+}
+
 function renderBulkPreview(headers){
   const rows = bulkRows.slice(bulkHeaderRowIndex+1, bulkHeaderRowIndex+6);
   const idxItemNo = parseInt(document.getElementById('bulkMapItemNo').value);
   const idxName = parseInt(document.getElementById('bulkMapName').value);
+  const idxQty = parseInt(document.getElementById('bulkMapQty').value);
+  const idxDate = parseInt(document.getElementById('bulkMapDate').value);
+  const skipDup = document.getElementById('bulkSkipDuplicates').checked;
   const byCode = new Map(items.map(it=>[it.itemNo.toLowerCase(), it]));
+  const seenInBatch = new Set(); // catches duplicate rows within the pasted/uploaded data itself
 
   let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:\'JetBrains Mono\',monospace;">';
   html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('');
   if(idxItemNo>=0) html += `<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">ชื่อในระบบ</th>`;
+  if(idxItemNo>=0 && idxQty>=0 && idxDate>=0) html += `<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">สถานะ</th>`;
   html += '</tr>';
   rows.forEach(r=>{
-    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('');
+    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${previewCell(r[i])}</td>`).join('');
+    let sysItem = null;
     if(idxItemNo>=0){
       const code = r[idxItemNo]!==undefined ? String(r[idxItemNo]).trim() : '';
-      const sysItem = code ? byCode.get(code.toLowerCase()) : null;
+      sysItem = code ? byCode.get(code.toLowerCase()) : null;
       const fileName = idxName>=0 && r[idxName]!==undefined ? String(r[idxName]).trim() : '';
+      const rowHasNoDate = idxDate>=0 && code && !parseExcelDateValue(r[idxDate]);
       let cell;
       if(!code){ cell = ''; }
-      else if(!sysItem){ cell = `<span style="color:var(--out);">ไม่พบในระบบ</span>`; }
+      else if(rowHasNoDate){ cell = `<span style="color:var(--ink-soft);">—</span>`; }
+      else if(!sysItem){ cell = `<span style="color:var(--in);">+ เพิ่มสินค้าใหม่</span>`; }
       else{
         const mismatch = fileName && sysItem.name.trim().toLowerCase() !== fileName.toLowerCase();
-        cell = `<span style="color:${mismatch?'var(--warn)':'var(--ink-soft)'};">${sysItem.name}${mismatch?' ⚠️':''}</span>`;
+        cell = `<span style="color:${mismatch?'var(--warn)':'var(--ink-soft)'};">${sysItem.name}${mismatch?' ⚠️ จะอัปเดตชื่อ':''}</span>`;
       }
       html += `<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${cell}</td>`;
+    }
+    if(idxItemNo>=0 && idxQty>=0 && idxDate>=0){
+      const code = r[idxItemNo]!==undefined ? String(r[idxItemNo]).trim() : '';
+      const qtyRaw = r[idxQty];
+      const qty = (qtyRaw!==undefined && qtyRaw!=='' && !isNaN(parseFloat(qtyRaw))) ? parseFloat(qtyRaw) : 0;
+      const ts = parseExcelDateValue(r[idxDate]) || null;
+      let statusCell = '';
+      if(code && qty>0 && !ts){
+        statusCell = `<span style="color:var(--ink-soft);">⏳ ยังไม่มีวันที่รับ (ยังไม่เข้าคลัง — จะข้าม)</span>`;
+      }else if(code && qty>0 && ts && skipDup){
+        const batchKey = code.toLowerCase()+'|'+dayKey(ts)+'|'+qty;
+        const isDup = (sysItem && isDuplicateReceive(sysItem.id, ts, qty)) || seenInBatch.has(batchKey);
+        if(isDup){ statusCell = `<span style="color:var(--out);">🔁 ซ้ำ (จะข้าม)</span>`; }
+        else{ statusCell = `<span style="color:var(--in);">✓ รับเข้าใหม่</span>`; seenInBatch.add(batchKey); }
+      }
+      html += `<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${statusCell}</td>`;
     }
     html += '</tr>';
   });
   html += '</table>';
   document.getElementById('bulkPreviewTable').innerHTML = html;
+
+  const dupHint = document.getElementById('bulkDupHint');
+  if(idxItemNo>=0 && idxQty>=0 && idxDate<0){
+    dupHint.textContent = '💡 เลือกคอลัมน์ "วันที่รับเข้า" ด้านบนเพื่อให้ระบบตรวจจับรายการซ้ำได้';
+  }else{
+    dupHint.textContent = '';
+  }
 }
 
 function parseExcelDateValue(raw){
   if(raw===undefined || raw===null || raw==='') return null;
+  if(raw instanceof Date){
+    return isNaN(raw.getTime()) ? null : raw.getTime();
+  }
   if(typeof raw === 'number'){
     // Excel serial date
     const ms = Math.round((raw - 25569) * 86400 * 1000);
@@ -1630,21 +1697,36 @@ async function confirmBulkReceive(){
   if(!requireEdit()) return;
   const idxItemNo = parseInt(document.getElementById('bulkMapItemNo').value);
   const idxQty = parseInt(document.getElementById('bulkMapQty').value);
+  const idxName = parseInt(document.getElementById('bulkMapName').value);
+  const idxUnit = parseInt(document.getElementById('bulkMapUnit').value);
   const idxNote = parseInt(document.getElementById('bulkMapNote').value);
   const idxDate = parseInt(document.getElementById('bulkMapDate').value);
   const idxCustomer = parseInt(document.getElementById('bulkMapCustomer').value);
+  const skipDup = document.getElementById('bulkSkipDuplicates').checked && idxDate>=0;
 
   if(idxItemNo<0 || idxQty<0){ showToast('กรุณาเลือกคอลัมน์รหัสสินค้าและจำนวนอย่างน้อย'); return; }
 
   const dataRows = bulkRows.slice(bulkHeaderRowIndex+1);
   const byCode = new Map(items.map(it=>[it.itemNo.toLowerCase(), it]));
-  let received=0, totalQty=0, notFound=[], invalidQty=0;
+  let received=0, totalQty=0, newlyAdded=[], nameUpdated=[], invalidQty=0, duplicateSkipped=[], notYetReceived=[];
+  let itemsChanged = false;
+  const seenInBatch = new Set();
 
   for(const row of dataRows){
     const itemNoRaw = row[idxItemNo];
     if(itemNoRaw===undefined || itemNoRaw===null || String(itemNoRaw).trim()===''){ continue; }
     const itemNo = String(itemNoRaw).trim();
-    const item = byCode.get(itemNo.toLowerCase());
+
+    // if a "date received" column is mapped and this row has no date, treat it as not-yet-arrived stock
+    // (e.g. a planned/upcoming shipment listed in the sheet) — skip it without touching the catalog or ledger
+    if(idxDate>=0 && !parseExcelDateValue(row[idxDate])){
+      notYetReceived.push(itemNo);
+      continue;
+    }
+
+    const fileName = idxName>=0 && row[idxName]!==undefined && row[idxName]!==null ? String(row[idxName]).trim() : '';
+    const fileUnit = idxUnit>=0 && row[idxUnit]!==undefined && row[idxUnit]!==null ? String(row[idxUnit]).trim() : '';
+    let item = byCode.get(itemNo.toLowerCase());
     const qtyRaw = row[idxQty];
     const qty = (qtyRaw!==undefined && qtyRaw!=='' && !isNaN(parseFloat(qtyRaw))) ? parseFloat(qtyRaw) : 0;
     const customer = idxCustomer>=0 && row[idxCustomer] ? String(row[idxCustomer]).trim() : '';
@@ -1652,22 +1734,53 @@ async function confirmBulkReceive(){
     const note = [customer ? 'Customer/อ้างอิง: '+customer : '', baseNote].filter(Boolean).join(' · ');
     const ts = (idxDate>=0 ? parseExcelDateValue(row[idxDate]) : null) || Date.now();
 
-    if(!item){ notFound.push(itemNo); continue; }
+    if(!item){
+      // item code not found in system — add it as a new item automatically
+      item = {id:uid(), itemNo, name: fileName || itemNo, unit: fileUnit || 'PC', reorder:0, baseQty:0};
+      items.push(item);
+      byCode.set(itemNo.toLowerCase(), item);
+      newlyAdded.push(itemNo);
+      itemsChanged = true;
+    }else if(fileName && item.name.trim().toLowerCase() !== fileName.toLowerCase()){
+      // item code matches but name differs — update the system name to match the file
+      item.name = fileName;
+      nameUpdated.push(itemNo);
+      itemsChanged = true;
+    }
+
     if(!(qty>0)){ invalidQty++; continue; }
+
+    if(skipDup){
+      const batchKey = itemNo.toLowerCase()+'|'+dayKey(ts)+'|'+qty;
+      if(seenInBatch.has(batchKey) || isDuplicateReceive(item.id, ts, qty)){
+        duplicateSkipped.push(itemNo);
+        continue;
+      }
+      seenInBatch.add(batchKey);
+    }
 
     ledger.push({id:uid(), itemId:item.id, type:'IN', qty, note, customer, ts});
     received++;
     totalQty += qty;
   }
 
+  if(itemsChanged) await saveItems();
   await saveLedger();
 
   let msg = `รับเข้าสำเร็จ ${received} รายการ (รวม ${totalQty} หน่วย)`;
-  if(notFound.length) msg += ` — ไม่พบรหัสสินค้า ${notFound.length} รายการในระบบ`;
+  if(newlyAdded.length) msg += ` — เพิ่มสินค้าใหม่ ${newlyAdded.length} รายการ`;
+  if(nameUpdated.length) msg += ` — อัปเดตชื่อสินค้า ${nameUpdated.length} รายการ`;
+  if(duplicateSkipped.length) msg += ` — ข้ามรายการซ้ำ ${duplicateSkipped.length} รายการ`;
+  if(notYetReceived.length) msg += ` — ยังไม่ระบุวันที่รับ ${notYetReceived.length} รายการ (ข้ามไว้ก่อน)`;
   showToast(msg);
-  if(notFound.length){
-    document.getElementById('bulkSummaryHint').textContent = `⚠️ ไม่พบสินค้ารหัส: ${notFound.slice(0,15).join(', ')}${notFound.length>15?` และอีก ${notFound.length-15} รายการ`:''} — เพิ่มสินค้าเหล่านี้ในระบบก่อน แล้วอัปโหลดไฟล์นี้ซ้ำอีกครั้ง`;
-  }
+
+  let hint = '';
+  if(newlyAdded.length) hint += `เพิ่มสินค้าใหม่: ${newlyAdded.slice(0,15).join(', ')}${newlyAdded.length>15?` และอีก ${newlyAdded.length-15} รายการ`:''}`;
+  if(nameUpdated.length) hint += `${hint?' · ':''}อัปเดตชื่อสินค้า: ${nameUpdated.slice(0,15).join(', ')}${nameUpdated.length>15?` และอีก ${nameUpdated.length-15} รายการ`:''}`;
+  if(duplicateSkipped.length) hint += `${hint?' · ':''}ข้ามรายการซ้ำ (เคยรับแล้ว): ${duplicateSkipped.slice(0,15).join(', ')}${duplicateSkipped.length>15?` และอีก ${duplicateSkipped.length-15} รายการ`:''}`;
+  if(notYetReceived.length) hint += `${hint?' · ':''}ยังไม่มีวันที่รับ (ยังไม่เข้าคลัง — ข้ามไว้ก่อน): ${notYetReceived.slice(0,15).join(', ')}${notYetReceived.length>15?` และอีก ${notYetReceived.length-15} รายการ`:''}`;
+  document.getElementById('bulkSummaryHint').textContent = hint;
+
   document.getElementById('bulkPaste').value='';
   document.getElementById('bulkFile').value='';
   renderAll();
@@ -1689,7 +1802,7 @@ function handleRecountFile(e){
         recountRows = parseCsvText(evt.target.result);
       }else{
         const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, {type:'array'});
+        const wb = XLSX.read(data, {type:'array', cellDates:true});
         const ws = wb.Sheets[wb.SheetNames[0]];
         recountRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
       }
@@ -1725,7 +1838,7 @@ function renderRecountRawPreview(){
     const isHeader = i===recountHeaderRowIndex;
     html += `<tr style="${isHeader?'background:var(--warn-soft);':''}">`;
     html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
-    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${previewCell(c)}</td>`).join('');
     html += '</tr>';
   }
   html += '</table>';
@@ -1966,7 +2079,7 @@ function handleExtImportFile(e){
         extImportRows = parseCsvText(evt.target.result);
       }else{
         const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, {type:'array'});
+        const wb = XLSX.read(data, {type:'array', cellDates:true});
         const ws = wb.Sheets[wb.SheetNames[0]];
         extImportRows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
       }
@@ -2002,7 +2115,7 @@ function renderExtRawPreview(){
     const isHeader = i===extImportHeaderRowIndex;
     html += `<tr style="${isHeader?'background:var(--reserve-soft);':''}">`;
     html += `<td style="padding:3px 6px;color:var(--ink-soft);border-bottom:1px solid var(--border);">แถว ${i+1}${isHeader?' ★':''}</td>`;
-    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${c!==undefined?c:''}</td>`).join('');
+    html += row.map(c=>`<td style="padding:3px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${previewCell(c)}</td>`).join('');
     html += '</tr>';
   }
   html += '</table>';
@@ -2036,7 +2149,7 @@ function renderExtImportPreview(headers){
   let html = '<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:\'JetBrains Mono\',monospace;">';
   html += '<tr>' + headers.map(h=>`<th style="text-align:left;border-bottom:1.5px solid var(--border);padding:4px 6px;color:var(--ink-soft);white-space:nowrap;">${h}</th>`).join('') + '</tr>';
   rows.forEach(r=>{
-    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${r[i]!==undefined?r[i]:''}</td>`).join('') + '</tr>';
+    html += '<tr>' + headers.map((h,i)=>`<td style="padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap;">${previewCell(r[i])}</td>`).join('') + '</tr>';
   });
   html += '</table>';
   document.getElementById('extImportPreviewTable').innerHTML = html;
