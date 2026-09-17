@@ -42,10 +42,17 @@
 .iv-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
 .iv-badge{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--ink);color:var(--bg);padding:5px 10px;border-radius:3px;letter-spacing:0.05em;}
 
-.iv-tabs{display:flex;flex-wrap:wrap;gap:2px;background:var(--border);border-radius:8px;padding:3px;margin-bottom:20px;}
-.iv-tab{flex:1 1 18%;min-width:90px;text-align:center;padding:10px 6px;font-family:'Archivo',sans-serif;font-weight:600;font-size:12.5px;border-radius:6px;cursor:pointer;color:var(--ink-soft);transition:all .15s ease;user-select:none;}
-.iv-tab.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.iv-tabs-outer{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -16px 20px;padding:10px 16px 8px;}
+.iv-tabs{display:flex;flex-wrap:nowrap;gap:2px;background:var(--border);border-radius:9px;padding:3px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.iv-tabs::-webkit-scrollbar{display:none;}
+.iv-tab{flex:0 0 auto;white-space:nowrap;text-align:center;padding:10px 14px;font-family:'Archivo',sans-serif;font-weight:600;font-size:12.5px;border-radius:6px;cursor:pointer;color:var(--ink-soft);transition:background .15s ease,color .15s ease,box-shadow .15s ease;user-select:none;}
+.iv-tab.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1);}
 .iv-tab:hover:not(.active){color:var(--ink);}
+@media (hover:hover){ .iv-tab:hover:not(.active){background:rgba(255,255,255,.5);} }
+@media (min-width:700px){
+  .iv-tabs{padding:4px;}
+  .iv-tab{padding:11px 18px;font-size:13px;}
+}
 
 .iv-panel{display:none;}
 .iv-panel.active{display:block;animation:ivFade .18s ease;}
@@ -238,7 +245,23 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 @media (max-width:480px){
   .iv-stats{grid-template-columns:1fr 1fr;}
   .iv-form-row.two{grid-template-columns:1fr 1fr;}
-  .iv-tab{flex:1 1 45%;}
+}
+
+/* ---- desktop / large-screen refinements ---- */
+@media (min-width:700px){
+  .iv-shell{max-width:1080px;padding:28px 24px 70px;}
+  .iv-title{font-size:29px;}
+  .iv-card{padding:22px;}
+  .iv-btn{cursor:pointer;}
+}
+@media (hover:hover) and (min-width:700px){
+  .iv-card{transition:box-shadow .15s ease,transform .15s ease;}
+  .iv-item, .iv-carousel-card, .iv-detail-card, .iv-tx{transition:box-shadow .15s ease;}
+  .iv-item:hover, .iv-carousel-card:hover, .iv-tx:hover{box-shadow:0 3px 10px rgba(0,0,0,.06);}
+  .iv-toggle-btn:hover:not([class*="sel-"]){border-color:var(--ink-soft);}
+}
+@media (min-width:900px){
+  .iv-stats{grid-template-columns:repeat(4,1fr);gap:14px;}
 }
 </style>
 </head>
@@ -259,7 +282,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <div id="loadErrorBanner" class="iv-hide"></div>
 
-    <div class="iv-tabs">
+    <div class="iv-tabs-outer"><div class="iv-tabs">
       <div class="iv-tab active" data-tab="items">รายการสินค้า</div>
       <div class="iv-tab" data-tab="dash">ภาพรวม</div>
       <div class="iv-tab" data-tab="move">รับ-จ่าย-จอง-ยืม</div>
@@ -269,7 +292,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <div class="iv-tab" data-tab="recount">นับสต็อกรายเดือน</div>
       <div class="iv-tab" data-tab="history">ประวัติ</div>
       <div class="iv-tab" data-tab="settings">ตั้งค่า</div>
-    </div>
+    </div></div>
 
     <!-- ============ DASHBOARD ============ -->
     <div class="iv-panel" id="panel-dash">
@@ -338,11 +361,6 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-toggle-btn" id="btnInBulk" onclick="setInSubMode('bulk')">📄 รับเข้าจากไฟล์ (หลายรายการ)</div>
         </div>
 
-        <div class="iv-form-row two iv-hide" id="sourceModeToggle" style="margin-top:6px;">
-          <div class="iv-toggle-btn sel-in" id="btnSrcStock" onclick="setSourceMode('stock')">📦 จากสต็อกในระบบ</div>
-          <div class="iv-toggle-btn" id="btnSrcExternal" onclick="setSourceMode('external')">🏷️ นอกสต็อก (นอกระบบ)</div>
-        </div>
-
         <div id="singleEntrySection">
           <div class="iv-form-row">
             <div>
@@ -369,6 +387,14 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
                 <div id="txQtyBreakdown" class="iv-hint" style="margin:4px 0 0;"></div>
               </div>
             </div>
+          </div>
+
+          <div id="txAddLineWrap" class="iv-hide" style="margin:-2px 0 14px;">
+            <button type="button" class="iv-btn-sm" style="width:100%;padding:10px;justify-content:center;display:flex;align-items:center;gap:6px;" onclick="addCartItem()">➕ เพิ่มรายการนี้ลงตะกร้า</button>
+          </div>
+          <div id="txCartWrap" class="iv-hide" style="margin-bottom:14px;">
+            <label class="iv-label">รายการที่เพิ่มแล้ว (<span id="txCartCount">0</span>)</label>
+            <div id="txCartList" class="iv-item-list" style="margin-top:6px;"></div>
           </div>
 
           <div id="inFields" class="iv-hide">
@@ -878,7 +904,7 @@ let reservations = [];  // {id, itemId, qty, note, ts, status: 'active'|'fulfill
 let borrows = [];       // {id, itemId, qty, borrower, note, dueDate, ts, status:'out'|'returned', returnedTs, source:'stock'|'external'}
 let currentMode = 'IN';
 let inSubMode = 'single';
-let txSourceMode = 'stock'; // 'stock' or 'external' — only relevant for RESERVE / BORROW modes
+let txCart = []; // staged lines for multi-item RESERVE/BORROW: {itemId, qty, source:'stock'|'external'}
 let settings = {editPin:''};
 let editUnlocked = true;
 
@@ -896,7 +922,10 @@ function findItemRef(itemId, source){
 }
 // which item pool the transaction form is currently working against
 function activePool(){
-  return (['RESERVE','BORROW'].includes(currentMode) && txSourceMode==='external') ? externalItems : items;
+  return ['RESERVE','BORROW'].includes(currentMode) ? [...items, ...externalItems] : items;
+}
+function isExternalItemId(itemId){
+  return externalItems.some(i=>i.id===itemId);
 }
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -1092,6 +1121,7 @@ const MODE_META = {
 
 function setMode(mode){
   currentMode = mode;
+  txCart = [];
   Object.values(MODE_META).forEach(m=> document.getElementById(m.btn).classList.remove('sel-in','sel-out','sel-reserve','sel-borrow'));
   const meta = MODE_META[mode];
   document.getElementById(meta.btn).classList.add('sel-'+mode.toLowerCase());
@@ -1104,31 +1134,20 @@ function setMode(mode){
   document.getElementById('reserveFields').classList.toggle('iv-hide', mode!=='RESERVE');
   document.getElementById('inFields').classList.toggle('iv-hide', mode!=='IN');
   document.getElementById('outFields').classList.toggle('iv-hide', mode!=='OUT');
-  document.getElementById('sourceModeToggle').classList.toggle('iv-hide', !['RESERVE','BORROW'].includes(mode));
+  document.getElementById('txAddLineWrap').classList.toggle('iv-hide', !['RESERVE','BORROW'].includes(mode));
   if(mode==='BORROW' && !document.getElementById('txBorrowDate').value){
     document.getElementById('txBorrowDate').value = new Date().toISOString().slice(0,10);
   }
   if(mode==='IN' && !document.getElementById('txInDate').value){
     document.getElementById('txInDate').value = new Date().toISOString().slice(0,10);
   }
-  document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'หมายเหตุเพิ่มเติม (ไม่บังคับ)' : 'หมายเหตุ (ไม่บังคับ)';
+  document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'หมายเหตุเพิ่มเติม (ไม่บังคับ, ใช้กับทุกรายการในตะกร้า)' : (mode==='BORROW' ? 'หมายเหตุ (ไม่บังคับ, ใช้กับทุกรายการในตะกร้า)' : 'หมายเหตุ (ไม่บังคับ)');
   document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
   if(mode!=='IN') setInSubMode('single');
-  if(!['RESERVE','BORROW'].includes(mode)) txSourceMode = 'stock';
-  document.getElementById('btnSrcStock').classList.toggle('sel-in', txSourceMode==='stock');
-  document.getElementById('btnSrcExternal').classList.toggle('sel-in', txSourceMode==='external');
   populateItemSelect();
+  renderTxCart();
   updateTxCurrentQty();
   validateTxForm();
-}
-
-function setSourceMode(mode){
-  txSourceMode = mode;
-  document.getElementById('btnSrcStock').classList.toggle('sel-in', mode==='stock');
-  document.getElementById('btnSrcExternal').classList.toggle('sel-in', mode==='external');
-  document.getElementById('txItemSelect').value = '';
-  populateItemSelect();
-  updateTxCurrentQty();
 }
 
 function setInSubMode(sub){
@@ -1154,7 +1173,7 @@ function syncItemSearchDisplay(){
   const item = activePool().find(i=>i.id===hidden.value);
   const input = document.getElementById('txItemSearchInput');
   input.value = item ? `${item.itemNo} — ${item.name}` : '';
-  input.placeholder = activePool()===externalItems ? 'พิมพ์รหัสหรือชื่อสินค้านอกสต็อกเพื่อค้นหา...' : 'พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา...';
+  input.placeholder = ['RESERVE','BORROW'].includes(currentMode) ? 'พิมพ์รหัสหรือชื่อสินค้า (รวมนอกสต็อก) เพื่อค้นหา...' : 'พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา...';
 }
 
 function filterItemOptions(){
@@ -1170,10 +1189,14 @@ function filterItemOptions(){
   if(filtered.length===0){
     dropdown.innerHTML = `<div class="iv-combo-empty">ไม่พบสินค้าที่ตรงกับ "${raw}"</div>`;
   }else{
-    dropdown.innerHTML = filtered.map(it=>`<div class="iv-combo-item" onmousedown="selectItemOption('${it.id}')">
+    dropdown.innerHTML = filtered.map(it=>{
+      const isExt = isExternalItemId(it.id);
+      return `<div class="iv-combo-item" onmousedown="selectItemOption('${it.id}')">
       <span class="iv-combo-item-no">${it.itemNo}</span>
       <span class="iv-combo-item-name">${it.name}</span>
-    </div>`).join('');
+      ${isExt ? '<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">นอกสต็อก</span>' : ''}
+    </div>`;
+    }).join('');
   }
   dropdown.classList.remove('iv-hide');
 }
@@ -1202,7 +1225,7 @@ function updateTxCurrentQty(){
   breakdownParts.push(`พร้อมใช้ ${avail}`);
   const breakdownText = `ทั้งหมด ${total} ${item.unit} (${breakdownParts.join(' · ')})`;
 
-  if(['RESERVE','BORROW'].includes(currentMode) && txSourceMode==='external'){
+  if(['RESERVE','BORROW'].includes(currentMode) && isExternalItemId(item.id)){
     labelEl.textContent = 'พร้อมใช้งานตอนนี้ (นอกสต็อก)';
     qtyEl.className = 'iv-odo';
     qtyEl.textContent = avail + ' ' + item.unit;
@@ -1222,41 +1245,184 @@ function updateTxCurrentQty(){
 }
 
 function validateTxForm(){
-  const qty = parseFloat(document.getElementById('txQty').value);
   const btn = document.getElementById('txSubmitBtn');
+  if(['RESERVE','BORROW'].includes(currentMode)){
+    let ok = txCart.length > 0;
+    if(currentMode==='BORROW' && !document.getElementById('txBorrower').value.trim()) ok = false;
+    btn.disabled = !ok;
+    btn.textContent = txCart.length > 0 ? `${MODE_META[currentMode].submitText} (${txCart.length} รายการ)` : MODE_META[currentMode].submitText;
+    return;
+  }
+  const qty = parseFloat(document.getElementById('txQty').value);
   let ok = qty > 0;
-  if(currentMode==='BORROW' && !document.getElementById('txBorrower').value.trim()) ok = false;
   btn.disabled = !ok;
+  btn.textContent = MODE_META[currentMode].submitText;
+}
+
+// ---- multi-item cart for RESERVE / BORROW ----
+function addCartItem(){
+  const sel = document.getElementById('txItemSelect');
+  const itemId = sel.value;
+  const pool = activePool();
+  const item = pool.find(i=>i.id===itemId);
+  if(!item){ showToast('เลือกสินค้าก่อน'); return; }
+  const qty = parseFloat(document.getElementById('txQty').value);
+  if(!(qty>0)){ showToast('กรอกจำนวนให้ถูกต้อง'); return; }
+  const source = isExternalItemId(itemId) ? 'external' : 'stock';
+
+  const alreadyInCart = txCart.filter(c=>c.itemId===itemId).reduce((s,c)=>s+c.qty,0);
+  const avail = availableQty(itemId) - alreadyInCart;
+  if(currentMode==='BORROW' && qty > avail){
+    showToast(`"${item.name}" พร้อมใช้งานแค่ ${Math.max(avail,0)} ${item.unit} — เพิ่มจำนวนนี้ไม่ได้`);
+    return;
+  }
+  if(currentMode==='RESERVE' && source==='external' && qty > avail){
+    showToast(`"${item.name}" พร้อมใช้งานแค่ ${Math.max(avail,0)} ${item.unit} — จองเกินไม่ได้`);
+    return;
+  }
+
+  const existing = txCart.find(c=>c.itemId===itemId);
+  if(existing) existing.qty += qty;
+  else txCart.push({itemId, qty, source});
+
+  document.getElementById('txQty').value='';
+  document.getElementById('txItemSearchInput').value='';
+  sel.value='';
+  document.getElementById('txCurrentQty').textContent='—';
+  document.getElementById('txQtyBreakdown').textContent='';
+  renderTxCart();
+  validateTxForm();
+  document.getElementById('txItemSearchInput').focus();
+}
+
+function removeCartLine(itemId){
+  txCart = txCart.filter(c=>c.itemId!==itemId);
+  renderTxCart();
+  validateTxForm();
+}
+
+function renderTxCart(){
+  const wrap = document.getElementById('txCartWrap');
+  const list = document.getElementById('txCartList');
+  const countEl = document.getElementById('txCartCount');
+  const showCart = ['RESERVE','BORROW'].includes(currentMode) && txCart.length>0;
+  wrap.classList.toggle('iv-hide', !showCart);
+  countEl.textContent = txCart.length;
+  if(!showCart) return;
+  list.innerHTML = txCart.map(c=>{
+    const item = c.source==='external' ? externalItems.find(i=>i.id===c.itemId) : items.find(i=>i.id===c.itemId);
+    if(!item) return '';
+    return `<div class="iv-item">
+      <div class="iv-item-main">
+        <div class="iv-item-name">${item.name}${c.source==='external' ? ' <span class="iv-badge" style="font-size:9px;padding:3px 7px;">นอกสต็อก</span>' : ''}</div>
+        <div class="iv-item-meta">${item.itemNo}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="iv-odo sm">${c.qty} ${item.unit}</span>
+        <button type="button" class="iv-btn-sm neg" onclick="removeCartLine('${c.itemId}')">ลบ</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitCart(){
+  if(txCart.length===0) return;
+  const note = document.getElementById('txNote').value.trim();
+
+  if(currentMode==='RESERVE'){
+    const svso = document.getElementById('txSvso').value.trim();
+    const quotation = document.getElementById('txQuotation').value.trim();
+    const customer = document.getElementById('txCustomer').value.trim();
+    const requestedBy = document.getElementById('txRequestedBy').value.trim();
+    let anyBackorder = false;
+    let savedCount = 0;
+    for(const c of txCart){
+      const isExternalSrc = c.source==='external';
+      const item = isExternalSrc ? externalItems.find(i=>i.id===c.itemId) : items.find(i=>i.id===c.itemId);
+      if(!item) continue;
+      let backorder = false;
+      const avail = availableQty(c.itemId);
+      if(c.qty > avail){
+        if(isExternalSrc){ showToast(`"${item.name}" พร้อมใช้งานแค่ ${avail} ${item.unit} — ข้ามรายการนี้`); continue; }
+        backorder = true; anyBackorder = true;
+      }
+      const composedNote = [
+        svso ? 'SVSO: '+svso : '',
+        quotation ? 'ใบเสนอราคา: '+quotation : '',
+        customer ? 'ลูกค้า: '+customer : '',
+        requestedBy ? 'ผู้จอง: '+requestedBy : '',
+        isExternalSrc ? 'สินค้านอกสต็อก' : '',
+        note
+      ].filter(Boolean).join(' · ');
+      reservations.push({id:uid(), itemId:c.itemId, qty:c.qty, svso, quotation, customer, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
+      ledger.push({id:uid(), itemId:c.itemId, type:'RESERVE', qty:c.qty, note: composedNote, ts:Date.now(), source: isExternalSrc?'external':'stock'});
+      savedCount++;
+    }
+    await saveReservations();
+    await saveLedger();
+    if(savedCount>0){
+      showToast(`บันทึกการจอง ${savedCount} รายการแล้ว${anyBackorder?' (บางรายการจองล่วงหน้า สต๊อกไม่พอตอนนี้)':''}`);
+    }
+    document.getElementById('txSvso').value='';
+    document.getElementById('txQuotation').value='';
+    document.getElementById('txCustomer').value='';
+    document.getElementById('txRequestedBy').value='';
+  }
+  else if(currentMode==='BORROW'){
+    const borrower = document.getElementById('txBorrower').value.trim();
+    if(!borrower){ showToast('กรอกชื่อผู้ยืม'); return; }
+    const dueDate = document.getElementById('txDueDate').value;
+    const borrowDateInput = document.getElementById('txBorrowDate').value;
+    const borrowDate = borrowDateInput || new Date().toISOString().slice(0,10);
+    const borrowTs = new Date(borrowDate+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now();
+    let savedCount = 0;
+    for(const c of txCart){
+      const isExternalSrc = c.source==='external';
+      const item = isExternalSrc ? externalItems.find(i=>i.id===c.itemId) : items.find(i=>i.id===c.itemId);
+      if(!item) continue;
+      const avail = availableQty(c.itemId);
+      if(c.qty > avail){ showToast(`"${item.name}" พร้อมใช้งานแค่ ${avail} ${item.unit} — ข้ามรายการนี้`); continue; }
+      borrows.push({id:uid(), itemId:c.itemId, qty:c.qty, borrower, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
+      ledger.push({id:uid(), itemId:c.itemId, type:'BORROW', qty:c.qty, note:borrower + (note?(' · '+note):'') + (isExternalSrc?' · สินค้านอกสต็อก':''), ts:borrowTs, source: isExternalSrc?'external':'stock'});
+      savedCount++;
+    }
+    await saveBorrows();
+    await saveLedger();
+    if(savedCount>0){
+      showToast(`บันทึกการยืม ${savedCount} รายการให้ ${borrower} แล้ว`);
+    }
+    document.getElementById('txBorrower').value='';
+    document.getElementById('txDueDate').value='';
+    document.getElementById('txBorrowDate').value = new Date().toISOString().slice(0,10);
+  }
+
+  txCart = [];
+  renderTxCart();
+  document.getElementById('txNote').value='';
+  validateTxForm();
+  updateTxCurrentQty();
+  renderAll();
 }
 
 async function submitTransaction(){
   if(!requireEdit()) return;
+  if(['RESERVE','BORROW'].includes(currentMode)){
+    await submitCart();
+    return;
+  }
   const sel = document.getElementById('txItemSelect');
   const itemId = sel.value;
-  const isExternalSrc = ['RESERVE','BORROW'].includes(currentMode) && txSourceMode==='external';
-  const item = isExternalSrc ? externalItems.find(i=>i.id===itemId) : items.find(i=>i.id===itemId);
+  const item = items.find(i=>i.id===itemId);
   if(!item) return;
   const qty = parseFloat(document.getElementById('txQty').value);
   if(!(qty>0)) return;
   const note = document.getElementById('txNote').value.trim();
 
-  // Stock validation applies to both real stock and off-stock items now (off-stock Q'ty is tracked and enforced).
-  if(currentMode==='OUT' || currentMode==='BORROW'){
+  if(currentMode==='OUT'){
     const avail = availableQty(item.id);
     if(qty > avail){
       showToast(`พร้อมใช้งานแค่ ${avail} ${item.unit} — ทำรายการนี้ไม่ได้`);
       return;
-    }
-  }
-  let backorder = false;
-  if(currentMode==='RESERVE'){
-    const avail = availableQty(item.id);
-    if(qty > avail){
-      if(isExternalSrc){
-        showToast(`พร้อมใช้งานแค่ ${avail} ${item.unit} — จองเกินไม่ได้`);
-        return;
-      }
-      backorder = true;
     }
   }
 
@@ -1289,44 +1455,6 @@ async function submitTransaction(){
     document.getElementById('txOutQuotation').value='';
     document.getElementById('txOutCustomer').value='';
     document.getElementById('txOutRequestedBy').value='';
-  }
-  else if(currentMode==='RESERVE'){
-    const svso = document.getElementById('txSvso').value.trim();
-    const quotation = document.getElementById('txQuotation').value.trim();
-    const customer = document.getElementById('txCustomer').value.trim();
-    const requestedBy = document.getElementById('txRequestedBy').value.trim();
-    const composedNote = [
-      svso ? 'SVSO: '+svso : '',
-      quotation ? 'ใบเสนอราคา: '+quotation : '',
-      customer ? 'ลูกค้า: '+customer : '',
-      requestedBy ? 'ผู้จอง: '+requestedBy : '',
-      isExternalSrc ? 'สินค้านอกสต็อก' : '',
-      note
-    ].filter(Boolean).join(' · ');
-    reservations.push({id:uid(), itemId, qty, svso, quotation, customer, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
-    await saveReservations();
-    ledger.push({id:uid(), itemId, type:'RESERVE', qty, note: composedNote, ts:Date.now(), source: isExternalSrc?'external':'stock'});
-    await saveLedger();
-    showToast(isExternalSrc ? `จองสินค้านอกสต็อก ${qty} ${item.unit} แล้ว` : (backorder ? `จองล่วงหน้า ${qty} ${item.unit} แล้ว (สต๊อกไม่พอตอนนี้ รอสินค้าเข้า)` : `จอง ${qty} ${item.unit} แล้ว`));
-    document.getElementById('txSvso').value='';
-    document.getElementById('txQuotation').value='';
-    document.getElementById('txCustomer').value='';
-    document.getElementById('txRequestedBy').value='';
-  }
-  else if(currentMode==='BORROW'){
-    const borrower = document.getElementById('txBorrower').value.trim();
-    const dueDate = document.getElementById('txDueDate').value;
-    const borrowDateInput = document.getElementById('txBorrowDate').value;
-    const borrowDate = borrowDateInput || new Date().toISOString().slice(0,10);
-    const borrowTs = new Date(borrowDate+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now();
-    borrows.push({id:uid(), itemId, qty, borrower, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
-    await saveBorrows();
-    ledger.push({id:uid(), itemId, type:'BORROW', qty, note:borrower + (note?(' · '+note):'') + (isExternalSrc?' · สินค้านอกสต็อก':''), ts:borrowTs, source: isExternalSrc?'external':'stock'});
-    await saveLedger();
-    showToast(`บันทึกยืม ${qty} ${item.unit} ให้ ${borrower} แล้ว`);
-    document.getElementById('txBorrower').value='';
-    document.getElementById('txDueDate').value='';
-    document.getElementById('txBorrowDate').value = new Date().toISOString().slice(0,10);
   }
 
   document.getElementById('txQty').value='';
