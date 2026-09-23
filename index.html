@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Esco Inventory Quantity</title>
+<title>Esco Inventory Stock</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
@@ -41,18 +41,25 @@
 .iv-title{font-family:'Archivo',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.01em;margin:0;}
 .iv-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;}
 .iv-badge{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--ink);color:var(--bg);padding:5px 10px;border-radius:3px;letter-spacing:0.05em;}
+.iv-header-right{display:flex;align-items:center;gap:8px;}
+.iv-lang-toggle{display:flex;background:var(--border);border-radius:20px;padding:2px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;}
+.iv-lang-opt{padding:5px 10px;border-radius:16px;cursor:pointer;color:var(--ink-soft);user-select:none;transition:background .15s ease,color .15s ease;}
+.iv-lang-opt.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08);}
 
 .iv-tabs-outer{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -16px 20px;padding:10px 16px 8px;}
 .iv-tabs{display:flex;flex-wrap:nowrap;gap:2px;background:var(--border);border-radius:9px;padding:3px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
 .iv-tabs::-webkit-scrollbar{display:none;}
-.iv-tab{flex:0 0 auto;white-space:nowrap;text-align:center;padding:10px 14px;font-family:'Archivo',sans-serif;font-weight:600;font-size:12.5px;border-radius:6px;cursor:pointer;color:var(--ink-soft);transition:background .15s ease,color .15s ease,box-shadow .15s ease;user-select:none;}
+.iv-tab{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;white-space:nowrap;text-align:center;padding:8px 13px 7px;min-width:60px;font-family:'Archivo',sans-serif;font-weight:600;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;border-radius:6px;cursor:pointer;color:var(--ink-soft);transition:background .15s ease,color .15s ease,box-shadow .15s ease;user-select:none;}
+.iv-tab-ic{font-size:15px;line-height:1;}
 .iv-tab.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1);}
 .iv-tab:hover:not(.active){color:var(--ink);}
 @media (hover:hover){ .iv-tab:hover:not(.active){background:rgba(255,255,255,.5);} }
 @media (min-width:700px){
   .iv-tabs{padding:4px;}
-  .iv-tab{padding:11px 18px;font-size:13px;}
+  .iv-tab{padding:10px 20px 9px;font-size:10.5px;min-width:76px;}
+  .iv-tab-ic{font-size:17px;}
 }
+
 
 .iv-panel{display:none;}
 .iv-panel.active{display:block;animation:ivFade .18s ease;}
@@ -274,50 +281,52 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <div class="iv-header">
       <div>
-        <p class="iv-title">Esco Inventory Quantity</p>
+        <p class="iv-title">Esco Inventory Stock</p>
         <p class="iv-sub" id="ivDateLine">— IN · OUT · RESERVED · BORROW —</p>
       </div>
-      <div class="iv-badge" id="ivSyncBadge">SYNCED</div>
+      <div class="iv-header-right">
+        <div class="iv-badge" id="ivSyncBadge">SYNCED</div>
+      </div>
     </div>
 
     <div id="loadErrorBanner" class="iv-hide"></div>
 
     <div class="iv-tabs-outer"><div class="iv-tabs">
-      <div class="iv-tab active" data-tab="items">ITEMS</div>
-      <div class="iv-tab" data-tab="dash">DASHBOARD</div>
-      <div class="iv-tab" data-tab="move">IN/OUT/RESERVED/BORROW</div>
-      <div class="iv-tab" data-tab="pending">RESERVED/BORROW</div>
-      <div class="iv-tab" data-tab="import">STOCK IN/ADD ITEMS</div>
-      <div class="iv-tab" data-tab="external">ITEMS NOT IN SYSTEM STOCK</div>
-      <div class="iv-tab" data-tab="recount">MONTHLY STOCK COUNT</div>
-      <div class="iv-tab" data-tab="history">HISTORY</div>
-      <div class="iv-tab" data-tab="settings">SETTING</div>
+      <div class="iv-tab active" data-tab="items"><span class="iv-tab-ic">📦</span><span data-i18n="tab_items">สินค้า</span></div>
+      <div class="iv-tab" data-tab="dash"><span class="iv-tab-ic">📊</span><span data-i18n="tab_dash">ภาพรวม</span></div>
+      <div class="iv-tab" data-tab="move"><span class="iv-tab-ic">🔄</span><span data-i18n="tab_move">รับ-จ่าย</span></div>
+      <div class="iv-tab" data-tab="pending"><span class="iv-tab-ic">📌</span><span data-i18n="tab_pending">จอง/ยืม</span></div>
+      <div class="iv-tab" data-tab="import"><span class="iv-tab-ic">📥</span><span data-i18n="tab_import">นำเข้า</span></div>
+      <div class="iv-tab" data-tab="external"><span class="iv-tab-ic">🏷️</span><span data-i18n="tab_external">นอกสต็อก</span></div>
+      <div class="iv-tab" data-tab="recount"><span class="iv-tab-ic">🔢</span><span data-i18n="tab_recount">นับสต็อก</span></div>
+      <div class="iv-tab" data-tab="history"><span class="iv-tab-ic">🕘</span><span data-i18n="tab_history">ประวัติ</span></div>
+      <div class="iv-tab" data-tab="settings"><span class="iv-tab-ic">⚙️</span><span data-i18n="tab_settings">ตั้งค่า</span></div>
     </div></div>
 
     <!-- ============ DASHBOARD ============ -->
     <div class="iv-panel" id="panel-dash">
       <div class="iv-stats">
         <div class="iv-stat">
-          <div class="iv-stat-label">รายการทั้งหมด</div>
+          <div class="iv-stat-label" data-i18n="dash_stat_total">รายการทั้งหมด</div>
           <div class="iv-stat-value" id="statTotalItems">0</div>
         </div>
         <div class="iv-stat warn">
-          <div class="iv-stat-label">Stock น้อย</div>
+          <div class="iv-stat-label" data-i18n="dash_stat_low">Stock น้อย</div>
           <div class="iv-stat-value" id="statLow">0</div>
         </div>
         <div class="iv-stat reserve">
-          <div class="iv-stat-label">จองอยู่ (รายการ)</div>
+          <div class="iv-stat-label" data-i18n="dash_stat_reserved">จองอยู่ (รายการ)</div>
           <div class="iv-stat-value" id="statReserved">0</div>
         </div>
         <div class="iv-stat borrow">
-          <div class="iv-stat-label">ยืม</div>
+          <div class="iv-stat-label" data-i18n="dash_stat_borrowed">ยืม</div>
           <div class="iv-stat-value" id="statBorrowed">0</div>
         </div>
       </div>
 
       <div class="iv-card">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
-          <p class="iv-card-title" style="margin:0;">สินค้าขายดี</p>
+          <p class="iv-card-title" style="margin:0;" data-i18n="dash_top_movers">สินค้าขายดี</p>
           <select class="iv-input" id="topMoversYear" style="width:auto;padding:6px 10px;font-size:12.5px;" onchange="renderTopMovers()"></select>
         </div>
         <p class="iv-hint" id="topMoversSummary" style="margin-bottom:10px;"></p>
@@ -325,19 +334,19 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
 
       <div class="iv-card" id="lowStockCard">
-        <p class="iv-card-title"><span class="iv-dot" style="background:var(--warn)"></span>ต้องเติมสต๊อก</p>
+        <p class="iv-card-title"><span class="iv-dot" style="background:var(--warn)"></span><span data-i18n="dash_low_stock">ต้องเติมสต๊อก</span></p>
         <div id="lowStockList" class="iv-carousel"></div>
       </div>
 
       <div class="iv-card" id="overdueCard">
-        <p class="iv-card-title"><span class="iv-dot" style="background:var(--borrow)"></span>ยืมเกินกำหนดคืน</p>
+        <p class="iv-card-title"><span class="iv-dot" style="background:var(--borrow)"></span><span data-i18n="dash_overdue">ยืมเกินกำหนดคืน</span></p>
         <div id="overdueList" class="iv-item-list iv-scroll-list"></div>
       </div>
 
       <div class="iv-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-          <p class="iv-card-title" style="margin:0;">เคลื่อนไหวล่าสุด</p>
-          <span onclick="goToTab('history')" style="cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);text-decoration:underline;">ดูทั้งหมด →</span>
+          <p class="iv-card-title" style="margin:0;" data-i18n="dash_recent">เคลื่อนไหวล่าสุด</p>
+          <span onclick="goToTab('history')" style="cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);text-decoration:underline;" data-i18n="dash_view_all">ดูทั้งหมด →</span>
         </div>
         <div id="recentTxList" class="iv-tx-list"></div>
       </div>
@@ -346,27 +355,27 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ STOCK IN/OUT/RESERVE/BORROW ============ -->
     <div class="iv-panel" id="panel-move">
       <div class="iv-card">
-        <p class="iv-card-title">บันทึกรายการ</p>
+        <p class="iv-card-title" data-i18n="move_card_title">บันทึกรายการ</p>
 
         <div class="iv-toggle">
-          <div class="iv-toggle-btn sel-in" id="btnModeIn" onclick="setMode('IN')">▲ รับเข้า</div>
-          <div class="iv-toggle-btn" id="btnModeOut" onclick="setMode('OUT')">▼ นำออก</div>
-          <div class="iv-toggle-btn" id="btnModeReserve" onclick="setMode('RESERVE')">⚑ จอง</div>
-          <div class="iv-toggle-btn" id="btnModeBorrow" onclick="setMode('BORROW')">↷ ยืม</div>
+          <div class="iv-toggle-btn sel-in" id="btnModeIn" onclick="setMode('IN')">▲ <span data-i18n="mode_in">รับเข้า</span></div>
+          <div class="iv-toggle-btn" id="btnModeOut" onclick="setMode('OUT')">▼ <span data-i18n="mode_out">นำออก</span></div>
+          <div class="iv-toggle-btn" id="btnModeReserve" onclick="setMode('RESERVE')">⚑ <span data-i18n="mode_reserve">จอง</span></div>
+          <div class="iv-toggle-btn" id="btnModeBorrow" onclick="setMode('BORROW')">↷ <span data-i18n="mode_borrow">ยืม</span></div>
         </div>
         <div class="iv-hint" id="modeHint">รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที</div>
 
         <div class="iv-form-row two iv-hide" id="inSubModeToggle">
-          <div class="iv-toggle-btn sel-in" id="btnInSingle" onclick="setInSubMode('single')">กรอกทีละรายการ</div>
-          <div class="iv-toggle-btn" id="btnInBulk" onclick="setInSubMode('bulk')">📄 รับเข้าจากไฟล์ (หลายรายการ)</div>
+          <div class="iv-toggle-btn sel-in" id="btnInSingle" onclick="setInSubMode('single')" data-i18n="in_sub_single">กรอกทีละรายการ</div>
+          <div class="iv-toggle-btn" id="btnInBulk" onclick="setInSubMode('bulk')">📄 <span data-i18n="in_sub_bulk">รับเข้าจากไฟล์ (หลายรายการ)</span></div>
         </div>
 
         <div id="singleEntrySection">
           <div class="iv-form-row">
             <div>
-              <label class="iv-label">สินค้า</label>
+              <label class="iv-label" data-i18n="lbl_item">สินค้า</label>
               <div class="iv-combo">
-                <input class="iv-input" type="text" id="txItemSearchInput" placeholder="พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา..." autocomplete="off"
+                <input class="iv-input" type="text" id="txItemSearchInput" placeholder="พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา..." autocomplete="off" data-i18n-ph="ph_item_search"
                        oninput="filterItemOptions()" onfocus="filterItemOptions()"
                        onblur="setTimeout(()=>document.getElementById('txItemDropdown').classList.add('iv-hide'),150)">
                 <input type="hidden" id="txItemSelect">
@@ -377,7 +386,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
           <div class="iv-form-row two">
             <div>
-              <label class="iv-label">จำนวน</label>
+              <label class="iv-label" data-i18n="lbl_qty">จำนวน</label>
               <input class="iv-input iv-qty-input" type="number" min="1" id="txQty" placeholder="0" oninput="validateTxForm()">
             </div>
             <div>
@@ -390,22 +399,22 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           </div>
 
           <div id="txAddLineWrap" class="iv-hide" style="margin:-2px 0 14px;">
-            <button type="button" class="iv-btn-sm" style="width:100%;padding:10px;justify-content:center;display:flex;align-items:center;gap:6px;" onclick="addCartItem()">➕ เพิ่มรายการนี้ลงตะกร้า</button>
+            <button type="button" class="iv-btn-sm" style="width:100%;padding:10px;justify-content:center;display:flex;align-items:center;gap:6px;" onclick="addCartItem()">➕ <span data-i18n="cart_add_line">เพิ่มรายการนี้ลงตะกร้า</span></button>
           </div>
           <div id="txCartWrap" class="iv-hide" style="margin-bottom:14px;">
-            <label class="iv-label">รายการที่เพิ่มแล้ว (<span id="txCartCount">0</span>)</label>
+            <label class="iv-label"><span data-i18n="cart_added_lines">รายการที่เพิ่มแล้ว</span> (<span id="txCartCount">0</span>)</label>
             <div id="txCartList" class="iv-item-list" style="margin-top:6px;"></div>
           </div>
 
           <div id="inFields" class="iv-hide">
             <div class="iv-form-row two">
               <div>
-                <label class="iv-label">วันที่รับเข้า</label>
+                <label class="iv-label" data-i18n="lbl_in_date">วันที่รับเข้า</label>
                 <input class="iv-input" type="date" id="txInDate">
               </div>
               <div>
-                <label class="iv-label">Customer / อ้างอิง (ไม่บังคับ)</label>
-                <input class="iv-input" type="text" id="txInCustomer" placeholder="ชื่อลูกค้า / ที่มาของสินค้า">
+                <label class="iv-label" data-i18n="lbl_in_customer">Customer / อ้างอิง (ไม่บังคับ)</label>
+                <input class="iv-input" type="text" id="txInCustomer" placeholder="ชื่อลูกค้า / ที่มาของสินค้า" data-i18n-ph="ph_customer_source">
               </div>
             </div>
           </div>
@@ -414,38 +423,38 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             <div class="iv-form-row two">
               <div>
                 <label class="iv-label">SVSO No.</label>
-                <input class="iv-input" type="text" id="txOutSvso" placeholder="เช่น SVSO-00123">
+                <input class="iv-input" type="text" id="txOutSvso" placeholder="เช่น SVSO-00123" data-i18n-ph="ph_eg_svso">
               </div>
               <div>
                 <label class="iv-label">Quotation No.</label>
-                <input class="iv-input" type="text" id="txOutQuotation" placeholder="เช่น QT-00456">
+                <input class="iv-input" type="text" id="txOutQuotation" placeholder="เช่น QT-00456" data-i18n-ph="ph_eg_qt">
               </div>
             </div>
             <div class="iv-form-row two">
               <div>
                 <label class="iv-label">Customer Name</label>
-                <input class="iv-input" type="text" id="txOutCustomer" placeholder="ชื่อลูกค้า">
+                <input class="iv-input" type="text" id="txOutCustomer" placeholder="ชื่อลูกค้า" data-i18n-ph="ph_customer_name">
               </div>
               <div>
-                <label class="iv-label">ผู้เบิก</label>
-                <input class="iv-input" type="text" id="txOutRequestedBy" placeholder="ชื่อผู้เบิก">
+                <label class="iv-label" data-i18n="lbl_requested_by_out">ผู้เบิก</label>
+                <input class="iv-input" type="text" id="txOutRequestedBy" placeholder="ชื่อผู้เบิก" data-i18n-ph="ph_requested_by">
               </div>
             </div>
           </div>
 
           <div class="iv-form-row iv-hide" id="borrowFields">
             <div>
-              <label class="iv-label">ผู้ยืม</label>
-              <input class="iv-input" type="text" id="txBorrower" placeholder="ชื่อผู้ยืม">
+              <label class="iv-label" data-i18n="lbl_borrower">ผู้ยืม</label>
+              <input class="iv-input" type="text" id="txBorrower" placeholder="ชื่อผู้ยืม" data-i18n-ph="ph_borrower_name">
             </div>
           </div>
           <div class="iv-form-row two iv-hide" id="borrowDueField">
             <div>
-              <label class="iv-label">วันที่ยืม</label>
+              <label class="iv-label" data-i18n="lbl_borrow_date">วันที่ยืม</label>
               <input class="iv-input" type="date" id="txBorrowDate">
             </div>
             <div>
-              <label class="iv-label">กำหนดคืน (ไม่บังคับ)</label>
+              <label class="iv-label" data-i18n="lbl_due_date">กำหนดคืน (ไม่บังคับ)</label>
               <input class="iv-input" type="date" id="txDueDate">
             </div>
           </div>
@@ -454,21 +463,21 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             <div class="iv-form-row two">
               <div>
                 <label class="iv-label">SVSO No.</label>
-                <input class="iv-input" type="text" id="txSvso" placeholder="เช่น SVSO-00123">
+                <input class="iv-input" type="text" id="txSvso" placeholder="เช่น SVSO-00123" data-i18n-ph="ph_eg_svso">
               </div>
               <div>
                 <label class="iv-label">Quotation No.</label>
-                <input class="iv-input" type="text" id="txQuotation" placeholder="เช่น QT-00456">
+                <input class="iv-input" type="text" id="txQuotation" placeholder="เช่น QT-00456" data-i18n-ph="ph_eg_qt">
               </div>
             </div>
             <div class="iv-form-row two">
               <div>
                 <label class="iv-label">Customer Name</label>
-                <input class="iv-input" type="text" id="txCustomer" placeholder="ชื่อลูกค้า">
+                <input class="iv-input" type="text" id="txCustomer" placeholder="ชื่อลูกค้า" data-i18n-ph="ph_customer_name">
               </div>
               <div>
-                <label class="iv-label">ผู้จอง</label>
-                <input class="iv-input" type="text" id="txRequestedBy" placeholder="ชื่อผู้จอง">
+                <label class="iv-label" data-i18n="lbl_requested_by_reserve">ผู้จอง</label>
+                <input class="iv-input" type="text" id="txRequestedBy" placeholder="ชื่อผู้จอง" data-i18n-ph="ph_requester_reserve">
               </div>
             </div>
           </div>
@@ -476,7 +485,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-form-row">
             <div>
               <label class="iv-label" id="txNoteLabel">หมายเหตุ (ไม่บังคับ)</label>
-              <input class="iv-input" type="text" id="txNote" placeholder="เช่น เบิกงาน SVSO-00123, รับจากซัพพลายเออร์">
+              <input class="iv-input" type="text" id="txNote" placeholder="เช่น เบิกงาน SVSO-00123, รับจากซัพพลายเออร์" data-i18n-ph="ph_note_example">
             </div>
           </div>
 
@@ -485,57 +494,57 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
         <!-- ===== BULK RECEIVE (IN mode only) ===== -->
         <div id="bulkReceiveSection" class="iv-hide">
-          <p class="iv-hint">อัปโหลดไฟล์ใบรับของ / ใบนับสต๊อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)</p>
+          <p class="iv-hint" data-i18n="bulk_in_hint">อัปโหลดไฟล์ใบรับของ / ใบนับสต๊อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)</p>
           <div class="iv-form-row">
             <div>
-              <label class="iv-label">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
+              <label class="iv-label" data-i18n="lbl_upload_file">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
               <input class="iv-input" type="file" id="bulkFile" accept=".xlsx,.xls,.csv" onchange="handleBulkFile(event)">
             </div>
           </div>
-          <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+          <p class="iv-hint"><span data-i18n="txt_paste_hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</span></p>
           <div class="iv-form-row">
-            <textarea class="iv-input" id="bulkPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+            <textarea class="iv-input" id="bulkPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..." data-i18n-ph="ph_paste_here"></textarea>
           </div>
-          <button class="iv-btn neutral" onclick="parseBulkPaste()">อ่านข้อมูลที่วาง</button>
+          <button class="iv-btn neutral" onclick="parseBulkPaste()" data-i18n="btn_read_pasted">อ่านข้อมูลที่วาง</button>
 
           <div id="bulkPreviewWrap" class="iv-hide" style="margin-top:18px;">
             <div class="iv-form-row two" style="align-items:end;">
               <div>
-                <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+                <label class="iv-label" data-i18n="lbl_header_row_at">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
                 <input class="iv-input" type="number" min="1" id="bulkHeaderRowInput" value="1">
               </div>
               <div>
-                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyBulkHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyBulkHeaderRow()" data-i18n="btn_use_as_header">ใช้แถวนี้เป็นหัวตาราง</button>
               </div>
             </div>
             <p class="iv-hint" id="bulkRawPreviewHint"></p>
             <div id="bulkRawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
 
-            <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+            <p class="iv-card-title" style="font-size:13px;" data-i18n="txt_map_columns">จับคู่คอลัมน์</p>
             <div class="iv-form-row two">
-              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="bulkMapItemNo" onchange="refreshBulkPreview()"></select></div>
-              <div><label class="iv-label">ชื่อสินค้า (ไม่บังคับ — ใช้ตรวจสอบ/อัปเดตชื่อ)</label><select class="iv-input" id="bulkMapName" onchange="refreshBulkPreview()"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_map_itemno">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="bulkMapItemNo" onchange="refreshBulkPreview()"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_map_name_opt">ชื่อสินค้า (ไม่บังคับ — ใช้ตรวจสอบ/อัปเดตชื่อ)</label><select class="iv-input" id="bulkMapName" onchange="refreshBulkPreview()"></select></div>
             </div>
             <div class="iv-form-row two">
-              <div><label class="iv-label">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty" onchange="refreshBulkPreview()"></select></div>
-              <div><label class="iv-label">หน่วยนับ / UOM (ไม่บังคับ — ใช้ตอนเพิ่มสินค้าใหม่)</label><select class="iv-input" id="bulkMapUnit"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_map_qty_in">จำนวนที่รับเข้า *</label><select class="iv-input" id="bulkMapQty" onchange="refreshBulkPreview()"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_map_uom_opt">หน่วยนับ / UOM (ไม่บังคับ — ใช้ตอนเพิ่มสินค้าใหม่)</label><select class="iv-input" id="bulkMapUnit"></select></div>
             </div>
             <div class="iv-form-row two">
-              <div><label class="iv-label">วันที่รับเข้า (ไม่บังคับ)</label><select class="iv-input" id="bulkMapDate" onchange="refreshBulkPreview()"></select></div>
-              <div><label class="iv-label">Customer / อ้างอิง (ไม่บังคับ)</label><select class="iv-input" id="bulkMapCustomer"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_map_date_opt">วันที่รับเข้า (ไม่บังคับ)</label><select class="iv-input" id="bulkMapDate" onchange="refreshBulkPreview()"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_in_customer">Customer / อ้างอิง (ไม่บังคับ)</label><select class="iv-input" id="bulkMapCustomer"></select></div>
             </div>
             <div class="iv-form-row">
-              <div><label class="iv-label">หมายเหตุ (ไม่บังคับ)</label><select class="iv-input" id="bulkMapNote"></select></div>
+              <div><label class="iv-label" data-i18n="note_optional">หมายเหตุ (ไม่บังคับ)</label><select class="iv-input" id="bulkMapNote"></select></div>
             </div>
-            <p class="iv-hint">ถ้ารหัสสินค้าในไฟล์ไม่พบในระบบ จะเพิ่มเป็นสินค้าใหม่ให้อัตโนมัติ และถ้าชื่อในไฟล์ไม่ตรงกับชื่อในระบบ (รหัสตรงกัน) จะอัปเดตชื่อในระบบให้ตรงกับไฟล์ · แถวที่ยังไม่ได้กรอกวันที่รับในคอลัมน์ "วันที่รับเข้า" จะถือว่ายังไม่เข้าคลังจริง ระบบจะข้ามแถวนั้นให้อัตโนมัติ (ไม่ต้องลบหรือซ่อนแถวเอง อัปโหลดทั้งไฟล์ได้เลย)</p>
+            <p class="iv-hint" data-i18n="bulk_map_hint">ถ้ารหัสสินค้าในไฟล์ไม่พบในระบบ จะเพิ่มเป็นสินค้าใหม่ให้อัตโนมัติ และถ้าชื่อในไฟล์ไม่ตรงกับชื่อในระบบ (รหัสตรงกัน) จะอัปเดตชื่อในระบบให้ตรงกับไฟล์ · แถวที่ยังไม่ได้กรอกวันที่รับในคอลัมน์ "วันที่รับเข้า" จะถือว่ายังไม่เข้าคลังจริง ระบบจะข้ามแถวนั้นให้อัตโนมัติ (ไม่ต้องลบหรือซ่อนแถวเอง อัปโหลดทั้งไฟล์ได้เลย)</p>
             <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin:10px 0;cursor:pointer;">
               <input type="checkbox" id="bulkSkipDuplicates" checked onchange="refreshBulkPreview()">
-              ข้ามรายการที่เคยรับเข้าไปแล้ว (เทียบจาก รหัสสินค้า + วันที่รับ + จำนวน ตรงกันทั้ง 3 อย่าง) — ป้องกันรับซ้ำเวลาอัปโหลดไฟล์เดิมที่มีข้อมูลสะสม
+              <span data-i18n="bulk_skip_dup">ข้ามรายการที่เคยรับเข้าไปแล้ว (เทียบจาก รหัสสินค้า + วันที่รับ + จำนวน ตรงกันทั้ง 3 อย่าง) — ป้องกันรับซ้ำเวลาอัปโหลดไฟล์เดิมที่มีข้อมูลสะสม</span>
             </label>
             <p class="iv-hint" id="bulkDupHint"></p>
             <div id="bulkPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
             <p class="iv-hint" id="bulkSummaryHint"></p>
-            <button class="iv-btn in" onclick="confirmBulkReceive()">รับเข้าทั้งหมด</button>
+            <button class="iv-btn in" onclick="confirmBulkReceive()" data-i18n="btn_receive_all">รับเข้าทั้งหมด</button>
           </div>
         </div>
       </div>
@@ -543,14 +552,14 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <!-- ============ RESERVE / BORROW PENDING ============ -->
     <div class="iv-panel" id="panel-pending">
-      <input class="iv-input iv-search" type="text" id="pendingSearch" placeholder="ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม..." oninput="renderPending()">
+      <input class="iv-input iv-search" type="text" id="pendingSearch" placeholder="ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม..." oninput="renderPending()" data-i18n-ph="ph_pending_search">
       <div class="iv-card">
-        <p class="iv-card-title"><span class="iv-dot reserve"></span>รายการจองที่ยังไม่ตัดนำออก</p>
-      <p class="iv-hint" style="margin-top:-6px;margin-bottom:10px;">รายการที่มี ⚠ สต๊อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต๊อกไว้ให้อยู่</p>
+        <p class="iv-card-title"><span class="iv-dot reserve"></span><span data-i18n="pending_reserve_title">รายการจองที่ยังไม่ตัดนำออก</span></p>
+      <p class="iv-hint" style="margin-top:-6px;margin-bottom:10px;" data-i18n="pending_reserve_hint">รายการที่มี ⚠ สต๊อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต๊อกไว้ให้อยู่</p>
         <div id="reserveList"></div>
       </div>
       <div class="iv-card">
-        <p class="iv-card-title"><span class="iv-dot borrow"></span>รายการยืมที่ยังไม่คืน</p>
+        <p class="iv-card-title"><span class="iv-dot borrow"></span><span data-i18n="pending_borrow_title">รายการยืมที่ยังไม่คืน</span></p>
         <div id="borrowList"></div>
       </div>
     </div>
@@ -558,15 +567,15 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ ITEMS (list & detail) ============ -->
     <div class="iv-panel active" id="panel-items">
       <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <input class="iv-input iv-search" style="margin-bottom:0;" type="text" id="itemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderItems()">
-        <button class="iv-btn-sm" style="white-space:nowrap;" onclick="goToTab('import')">+ เพิ่มสินค้า</button>
+        <input class="iv-input iv-search" style="margin-bottom:0;" type="text" id="itemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderItems()" data-i18n-ph="ph_item_search_plain">
+        <button class="iv-btn-sm" style="white-space:nowrap;" onclick="goToTab('import')">+ <span data-i18n="btn_add_item">เพิ่มสินค้า</span></button>
       </div>
       <div class="iv-table-wrap">
         <table class="iv-item-table">
           <thead>
             <tr>
               <th>Item No.</th>
-              <th>Description</th>
+              <th data-i18n="th_description">Description</th>
               <th class="num">Q'ty</th>
               <th></th>
             </tr>
@@ -580,179 +589,179 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <div class="iv-panel" id="panel-import">
       <div class="iv-card">
         <div class="iv-add-toggle" onclick="toggleImport()">
-          <p class="iv-card-title" style="margin:0;">นำเข้าอะไหล่จากไฟล์ (Excel/CSV)</p>
+          <p class="iv-card-title" style="margin:0;" data-i18n="import_card_title">นำเข้าอะไหล่จากไฟล์ (Excel/CSV)</p>
           <div class="iv-plus" id="importPlus">+</div>
         </div>
         <div id="importPanel" class="iv-hide" style="margin-top:14px;">
           <div class="iv-form-row">
             <div>
-              <label class="iv-label">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
+              <label class="iv-label" data-i18n="lbl_upload_file">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
               <input class="iv-input" type="file" id="importFile" accept=".xlsx,.xls,.csv" onchange="handleImportFile(event)">
             </div>
           </div>
-          <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+          <p class="iv-hint"><span data-i18n="txt_paste_hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</span></p>
           <div class="iv-form-row">
-            <textarea class="iv-input" id="importPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+            <textarea class="iv-input" id="importPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..." data-i18n-ph="ph_paste_here"></textarea>
           </div>
-          <button class="iv-btn neutral" onclick="parsePastedData()">อ่านข้อมูลที่วาง</button>
+          <button class="iv-btn neutral" onclick="parsePastedData()" data-i18n="btn_read_pasted">อ่านข้อมูลที่วาง</button>
 
           <div id="importPreviewWrap" class="iv-hide" style="margin-top:18px;">
             <div class="iv-form-row two" style="align-items:end;">
               <div>
-                <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+                <label class="iv-label" data-i18n="lbl_header_row_at">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
                 <input class="iv-input" type="number" min="1" id="headerRowInput" value="1" oninput="">
               </div>
               <div>
-                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyHeaderRow()" data-i18n="btn_use_as_header">ใช้แถวนี้เป็นหัวตาราง</button>
               </div>
             </div>
             <p class="iv-hint" id="rawPreviewHint"></p>
             <div id="rawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
 
-            <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+            <p class="iv-card-title" style="font-size:13px;" data-i18n="txt_map_columns">จับคู่คอลัมน์</p>
             <div class="iv-form-row two">
-              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="mapItemNo"></select></div>
-              <div><label class="iv-label">ชื่อสินค้า *</label><select class="iv-input" id="mapName"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_map_itemno">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="mapItemNo"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_item_name_req">ชื่อสินค้า *</label><select class="iv-input" id="mapName"></select></div>
             </div>
             <div class="iv-form-row two">
-              <div><label class="iv-label">หน่วยนับ</label><select class="iv-input" id="mapUnit"></select></div>
-              <div><label class="iv-label">จำนวนเริ่มต้น</label><select class="iv-input" id="mapQty"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_uom">หน่วยนับ</label><select class="iv-input" id="mapUnit"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_initial_qty">จำนวนเริ่มต้น</label><select class="iv-input" id="mapQty"></select></div>
             </div>
             <div class="iv-form-row">
-              <div><label class="iv-label">จุดสั่งซื้อ (ไม่บังคับ)</label><select class="iv-input" id="mapReorder"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_reorder_opt">จุดสั่งซื้อ (ไม่บังคับ)</label><select class="iv-input" id="mapReorder"></select></div>
             </div>
             <div id="importPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
             <p class="iv-hint" id="importSummaryHint"></p>
-            <button class="iv-btn in" onclick="confirmImport()">นำเข้าข้อมูล</button>
+            <button class="iv-btn in" onclick="confirmImport()" data-i18n="btn_import_data">นำเข้าข้อมูล</button>
           </div>
         </div>
       </div>
 
       <div class="iv-card">
         <div class="iv-add-toggle" onclick="toggleAddItem()">
-          <p class="iv-card-title" style="margin:0;">เพิ่มสินค้าใหม่ (ทีละรายการ)</p>
+          <p class="iv-card-title" style="margin:0;" data-i18n="addone_card_title">เพิ่มสินค้าใหม่ (ทีละรายการ)</p>
           <div class="iv-plus" id="addItemPlus">+</div>
         </div>
         <div id="addItemForm" class="iv-hide" style="margin-top:14px;">
           <div class="iv-form-row two">
             <div>
-              <label class="iv-label">รหัสสินค้า (Item No.)</label>
-              <input class="iv-input" type="text" id="newItemNo" placeholder="เช่น 5090086">
+              <label class="iv-label" data-i18n="lbl_itemno_field">รหัสสินค้า (Item No.)</label>
+              <input class="iv-input" type="text" id="newItemNo" placeholder="เช่น 5090086" data-i18n-ph="ph_eg_itemno">
             </div>
             <div>
-              <label class="iv-label">หน่วยนับ</label>
-              <input class="iv-input" type="text" id="newItemUnit" placeholder="เช่น PC, BOX">
+              <label class="iv-label" data-i18n="lbl_uom">หน่วยนับ</label>
+              <input class="iv-input" type="text" id="newItemUnit" placeholder="เช่น PC, BOX" data-i18n-ph="ph_eg_uom">
             </div>
           </div>
           <div class="iv-form-row">
             <div>
-              <label class="iv-label">ชื่อสินค้า</label>
-              <input class="iv-input" type="text" id="newItemName" placeholder="ชื่อ / รายละเอียดสินค้า">
+              <label class="iv-label" data-i18n="lbl_item_name">ชื่อสินค้า</label>
+              <input class="iv-input" type="text" id="newItemName" placeholder="ชื่อ / รายละเอียดสินค้า" data-i18n-ph="ph_item_name_desc">
             </div>
           </div>
           <div class="iv-form-row two">
             <div>
-              <label class="iv-label">จำนวนเริ่มต้น</label>
+              <label class="iv-label" data-i18n="lbl_initial_qty">จำนวนเริ่มต้น</label>
               <input class="iv-input" type="number" min="0" id="newItemQty" placeholder="0">
             </div>
             <div>
-              <label class="iv-label">จุดสั่งซื้อ (แจ้งเตือนเมื่อต่ำกว่านี้)</label>
+              <label class="iv-label" data-i18n="lbl_reorder_alert">จุดสั่งซื้อ (แจ้งเตือนเมื่อต่ำกว่านี้)</label>
               <input class="iv-input" type="number" min="0" id="newItemReorder" placeholder="0">
             </div>
           </div>
-          <button class="iv-btn neutral" onclick="addItem()">เพิ่มสินค้า</button>
+          <button class="iv-btn neutral" onclick="addItem()" data-i18n="btn_add_item">เพิ่มสินค้า</button>
         </div>
       </div>
     </div>
 
     <!-- ============ EXTERNAL / OFF-STOCK ITEMS ============ -->
     <div class="iv-panel" id="panel-external">
-      <p class="iv-hint" style="margin-bottom:12px;">รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน</p>
+      <p class="iv-hint" style="margin-bottom:12px;" data-i18n="ext_panel_hint">รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน</p>
 
       <div class="iv-card">
-        <p class="iv-card-title">เพิ่มสินค้านอกสต็อก</p>
+        <p class="iv-card-title" data-i18n="ext_add_title">เพิ่มสินค้านอกสต็อก</p>
 
         <div class="iv-form-row two" style="margin-top:10px;">
-          <div class="iv-toggle-btn sel-in" id="btnExtSingle" onclick="setExtSubMode('single')">กรอกทีละรายการ</div>
-          <div class="iv-toggle-btn" id="btnExtBulk" onclick="setExtSubMode('bulk')">📄 อัปโหลดจากไฟล์ (หลายรายการ)</div>
+          <div class="iv-toggle-btn sel-in" id="btnExtSingle" onclick="setExtSubMode('single')" data-i18n="in_sub_single">กรอกทีละรายการ</div>
+          <div class="iv-toggle-btn" id="btnExtBulk" onclick="setExtSubMode('bulk')">📄 <span data-i18n="ext_sub_bulk">อัปโหลดจากไฟล์ (หลายรายการ)</span></div>
         </div>
 
         <div id="extSingleSection" style="margin-top:14px;">
           <div class="iv-form-row two">
             <div>
-              <label class="iv-label">รหัสสินค้า (Item No.)</label>
-              <input class="iv-input" type="text" id="newExtItemNo" placeholder="เช่น EXT-00123">
+              <label class="iv-label" data-i18n="lbl_itemno_field">รหัสสินค้า (Item No.)</label>
+              <input class="iv-input" type="text" id="newExtItemNo" placeholder="เช่น EXT-00123" data-i18n-ph="ph_eg_extitemno">
             </div>
             <div>
-              <label class="iv-label">หน่วยนับ</label>
-              <input class="iv-input" type="text" id="newExtItemUnit" placeholder="เช่น PC, BOX">
+              <label class="iv-label" data-i18n="lbl_uom">หน่วยนับ</label>
+              <input class="iv-input" type="text" id="newExtItemUnit" placeholder="เช่น PC, BOX" data-i18n-ph="ph_eg_uom">
             </div>
           </div>
           <div class="iv-form-row">
             <div>
-              <label class="iv-label">ชื่อสินค้า</label>
-              <input class="iv-input" type="text" id="newExtItemName" placeholder="ชื่อ / รายละเอียดสินค้า">
+              <label class="iv-label" data-i18n="lbl_item_name">ชื่อสินค้า</label>
+              <input class="iv-input" type="text" id="newExtItemName" placeholder="ชื่อ / รายละเอียดสินค้า" data-i18n-ph="ph_item_name_desc">
             </div>
           </div>
           <div class="iv-form-row two">
             <div>
-              <label class="iv-label">จำนวน</label>
+              <label class="iv-label" data-i18n="lbl_qty">จำนวน</label>
               <input class="iv-input" type="number" min="0" id="newExtItemQty" placeholder="0">
             </div>
             <div></div>
           </div>
-          <button class="iv-btn neutral" onclick="addExternalItem()">เพิ่มสินค้านอกสต็อก</button>
+          <button class="iv-btn neutral" onclick="addExternalItem()" data-i18n="btn_add_ext_item">เพิ่มสินค้านอกสต็อก</button>
         </div>
 
         <div id="extBulkSection" class="iv-hide" style="margin-top:14px;">
-          <p class="iv-hint">อัปโหลดไฟล์รายการสินค้านอกสต็อก แล้วระบบจะเพิ่มให้ทุกรายการในไฟล์ทีเดียว (ข้ามรหัสสินค้าที่มีอยู่แล้ว)</p>
+          <p class="iv-hint" data-i18n="ext_bulk_hint">อัปโหลดไฟล์รายการสินค้านอกสต็อก แล้วระบบจะเพิ่มให้ทุกรายการในไฟล์ทีเดียว (ข้ามรหัสสินค้าที่มีอยู่แล้ว)</p>
           <div class="iv-form-row">
             <div>
-              <label class="iv-label">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
+              <label class="iv-label" data-i18n="lbl_upload_file">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
               <input class="iv-input" type="file" id="extImportFile" accept=".xlsx,.xls,.csv" onchange="handleExtImportFile(event)">
             </div>
           </div>
-          <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+          <p class="iv-hint"><span data-i18n="txt_paste_hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</span></p>
           <div class="iv-form-row">
-            <textarea class="iv-input" id="extImportPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+            <textarea class="iv-input" id="extImportPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..." data-i18n-ph="ph_paste_here"></textarea>
           </div>
-          <button class="iv-btn neutral" onclick="parseExtImportPaste()">อ่านข้อมูลที่วาง</button>
+          <button class="iv-btn neutral" onclick="parseExtImportPaste()" data-i18n="btn_read_pasted">อ่านข้อมูลที่วาง</button>
 
           <div id="extImportPreviewWrap" class="iv-hide" style="margin-top:18px;">
             <div class="iv-form-row two" style="align-items:end;">
               <div>
-                <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+                <label class="iv-label" data-i18n="lbl_header_row_at">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
                 <input class="iv-input" type="number" min="1" id="extHeaderRowInput" value="1">
               </div>
               <div>
-                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyExtHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+                <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyExtHeaderRow()" data-i18n="btn_use_as_header">ใช้แถวนี้เป็นหัวตาราง</button>
               </div>
             </div>
             <p class="iv-hint" id="extRawPreviewHint"></p>
             <div id="extRawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
 
-            <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+            <p class="iv-card-title" style="font-size:13px;" data-i18n="txt_map_columns">จับคู่คอลัมน์</p>
             <div class="iv-form-row two">
-              <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="extMapItemNo"></select></div>
-              <div><label class="iv-label">ชื่อสินค้า *</label><select class="iv-input" id="extMapName"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_map_itemno">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="extMapItemNo"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_item_name_req">ชื่อสินค้า *</label><select class="iv-input" id="extMapName"></select></div>
             </div>
             <div class="iv-form-row two">
-              <div><label class="iv-label">หน่วยนับ</label><select class="iv-input" id="extMapUnit"></select></div>
-              <div><label class="iv-label">จำนวน</label><select class="iv-input" id="extMapQty"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_uom">หน่วยนับ</label><select class="iv-input" id="extMapUnit"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_qty">จำนวน</label><select class="iv-input" id="extMapQty"></select></div>
             </div>
             <div id="extImportPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
             <p class="iv-hint" id="extImportSummaryHint"></p>
-            <button class="iv-btn neutral" onclick="confirmExtImport()">เพิ่มสินค้าทั้งหมด</button>
+            <button class="iv-btn neutral" onclick="confirmExtImport()" data-i18n="btn_add_all_items">เพิ่มสินค้าทั้งหมด</button>
           </div>
         </div>
       </div>
 
       <div class="iv-card">
-        <p class="iv-card-title">รายการสินค้านอกสต็อกทั้งหมด</p>
-        <input class="iv-input iv-search" type="text" id="extItemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderExternalItems()">
+        <p class="iv-card-title" data-i18n="ext_list_title">รายการสินค้านอกสต็อกทั้งหมด</p>
+        <input class="iv-input iv-search" type="text" id="extItemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderExternalItems()" data-i18n-ph="ph_item_search_plain">
         <div class="iv-table-wrap">
           <table class="iv-item-table">
-            <thead><tr><th>Item No.</th><th>Description</th><th>หน่วย</th><th class="num">Q'ty</th><th></th></tr></thead>
+            <thead><tr><th>Item No.</th><th data-i18n="th_description">Description</th><th data-i18n="lbl_uom">หน่วย</th><th class="num">Q'ty</th><th></th></tr></thead>
             <tbody id="extItemList"></tbody>
           </table>
         </div>
@@ -762,58 +771,58 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ STOCK COUNT RECONCILIATION ============ -->
     <div class="iv-panel" id="panel-recount">
       <div class="iv-card">
-        <p class="iv-card-title">ปรับสต็อกจากการนับประจำเดือน</p>
-        <p class="iv-hint" style="margin-bottom:12px;">อัปโหลดไฟล์ผลนับสต็อกจริง (เช่น ไฟล์จากทางบัญชี) ระบบจะเทียบกับยอดในระบบตอนนี้ แล้วคำนวณส่วนต่างให้อัตโนมัติ — ถ้านับได้มากกว่าจะรับเข้าส่วนต่าง ถ้านับได้น้อยกว่าจะนำออกส่วนต่าง พร้อมบันทึกเป็นประวัติ "นับสต็อกรายเดือน" แยกจากรายการปกติให้ตรวจสอบย้อนหลังได้ง่าย</p>
+        <p class="iv-card-title" data-i18n="recount_card_title">ปรับสต็อกจากการนับประจำเดือน</p>
+        <p class="iv-hint" style="margin-bottom:12px;" data-i18n="recount_hint">อัปโหลดไฟล์ผลนับสต็อกจริง (เช่น ไฟล์จากทางบัญชี) ระบบจะเทียบกับยอดในระบบตอนนี้ แล้วคำนวณส่วนต่างให้อัตโนมัติ — ถ้านับได้มากกว่าจะรับเข้าส่วนต่าง ถ้านับได้น้อยกว่าจะนำออกส่วนต่าง พร้อมบันทึกเป็นประวัติ "นับสต็อกรายเดือน" แยกจากรายการปกติให้ตรวจสอบย้อนหลังได้ง่าย</p>
 
         <div class="iv-form-row">
           <div>
-            <label class="iv-label">วันที่นับ (ไม่บังคับ — จะแนบไว้ในหมายเหตุ)</label>
+            <label class="iv-label" data-i18n="lbl_count_date">วันที่นับ (ไม่บังคับ — จะแนบไว้ในหมายเหตุ)</label>
             <input class="iv-input" type="date" id="recountPeriod">
           </div>
         </div>
 
         <div class="iv-form-row">
           <div>
-            <label class="iv-label">อัปโหลดไฟล์ผลนับสต็อก (.xlsx / .xls / .csv)</label>
+            <label class="iv-label" data-i18n="lbl_upload_count_file">อัปโหลดไฟล์ผลนับสต็อก (.xlsx / .xls / .csv)</label>
             <input class="iv-input" type="file" id="recountFile" accept=".xlsx,.xls,.csv" onchange="handleRecountFile(event)">
           </div>
         </div>
-        <p class="iv-hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</p>
+        <p class="iv-hint"><span data-i18n="txt_paste_hint">หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่</span></p>
         <div class="iv-form-row">
-          <textarea class="iv-input" id="recountPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..."></textarea>
+          <textarea class="iv-input" id="recountPaste" rows="4" placeholder="วางข้อมูลจาก Excel ที่นี่..." data-i18n-ph="ph_paste_here"></textarea>
         </div>
-        <button class="iv-btn neutral" onclick="parseRecountPaste()">อ่านข้อมูลที่วาง</button>
+        <button class="iv-btn neutral" onclick="parseRecountPaste()" data-i18n="btn_read_pasted">อ่านข้อมูลที่วาง</button>
 
         <div id="recountPreviewWrap" class="iv-hide" style="margin-top:18px;">
           <div class="iv-form-row two" style="align-items:end;">
             <div>
-              <label class="iv-label">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
+              <label class="iv-label" data-i18n="lbl_header_row_at">หัวตารางอยู่แถวที่ (ในไฟล์)</label>
               <input class="iv-input" type="number" min="1" id="recountHeaderRowInput" value="1">
             </div>
             <div>
-              <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyRecountHeaderRow()">ใช้แถวนี้เป็นหัวตาราง</button>
+              <button class="iv-btn-sm" style="width:100%;padding:10px;" onclick="applyRecountHeaderRow()" data-i18n="btn_use_as_header">ใช้แถวนี้เป็นหัวตาราง</button>
             </div>
           </div>
           <p class="iv-hint" id="recountRawPreviewHint"></p>
           <div id="recountRawPreviewTable" style="overflow-x:auto;margin:8px 0 16px;"></div>
 
-          <p class="iv-card-title" style="font-size:13px;">จับคู่คอลัมน์</p>
+          <p class="iv-card-title" style="font-size:13px;" data-i18n="txt_map_columns">จับคู่คอลัมน์</p>
           <div class="iv-form-row two">
-            <div><label class="iv-label">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="recountMapItemNo"></select></div>
-            <div><label class="iv-label">จำนวนที่นับได้จริง *</label><select class="iv-input" id="recountMapQty"></select></div>
+            <div><label class="iv-label" data-i18n="lbl_map_itemno">รหัสสินค้า (Item No.) *</label><select class="iv-input" id="recountMapItemNo"></select></div>
+            <div><label class="iv-label" data-i18n="lbl_actual_count">จำนวนที่นับได้จริง *</label><select class="iv-input" id="recountMapQty"></select></div>
           </div>
 
-          <button class="iv-btn neutral" onclick="calcRecountDiff()" style="margin-top:6px;">คำนวณส่วนต่าง</button>
+          <button class="iv-btn neutral" onclick="calcRecountDiff()" style="margin-top:6px;" data-i18n="btn_calc_diff">คำนวณส่วนต่าง</button>
 
           <div id="recountDiffWrap" class="iv-hide" style="margin-top:16px;">
             <p class="iv-hint" id="recountDiffSummary" style="margin-bottom:10px;"></p>
             <div class="iv-table-wrap">
               <table class="iv-item-table">
-                <thead><tr><th>Item No.</th><th>Description</th><th class="num">ในระบบ</th><th class="num">นับได้จริง</th><th class="num">ส่วนต่าง</th></tr></thead>
+                <thead><tr><th>Item No.</th><th data-i18n="th_description">Description</th><th class="num" data-i18n="th_in_system">ในระบบ</th><th class="num" data-i18n="th_actual_count">นับได้จริง</th><th class="num" data-i18n="th_diff">ส่วนต่าง</th></tr></thead>
                 <tbody id="recountDiffTable"></tbody>
               </table>
             </div>
-            <button class="iv-btn out" onclick="confirmRecount()" style="margin-top:14px;">ยืนยันปรับยอดตามผลนับ</button>
+            <button class="iv-btn out" onclick="confirmRecount()" style="margin-top:14px;" data-i18n="btn_confirm_recount">ยืนยันปรับยอดตามผลนับ</button>
           </div>
         </div>
       </div>
@@ -821,25 +830,25 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <!-- ============ HISTORY ============ -->
     <div class="iv-panel" id="panel-history">
-      <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="renderHistory()">
+      <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="renderHistory()" data-i18n-ph="ph_history_search">
       <div class="iv-tx-list" id="fullTxList"></div>
     </div>
 
     <!-- ============ SETTINGS ============ -->
     <div class="iv-panel" id="panel-settings">
       <div class="iv-card">
-        <p class="iv-card-title">สำรองข้อมูล</p>
-        <p class="iv-hint" style="margin-bottom:12px;">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
-        <button class="iv-btn neutral" onclick="exportToExcel()">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
+        <p class="iv-card-title" data-i18n="settings_backup_title">สำรองข้อมูล</p>
+        <p class="iv-hint" style="margin-bottom:12px;" data-i18n="settings_backup_hint">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
+        <button class="iv-btn neutral" onclick="exportToExcel()" data-i18n="btn_download_backup">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
       </div>
 
       <div class="iv-card">
-        <p class="iv-card-title">สิทธิ์การเข้าถึง</p>
+        <p class="iv-card-title" data-i18n="settings_access_title">สิทธิ์การเข้าถึง</p>
         <div id="accessBox"></div>
       </div>
     </div>
 
-    <div class="iv-footnote">ข้อมูลบันทึกอัตโนมัติและใช้ร่วมกันได้ทุกคนที่เปิดแอปนี้</div>
+    <div class="iv-footnote" data-i18n="footnote">ข้อมูลบันทึกอัตโนมัติและใช้ร่วมกันได้ทุกคนที่เปิดแอปนี้</div>
   </div>
 </div>
 
@@ -896,6 +905,440 @@ window.storage = {
   async delete(key, shared){ return null; },
   async list(prefix, shared){ return null; }
 };
+
+// ===== i18n (TH / EN) =====
+let LANG = 'th';
+const I18N = {
+  th: {
+  header_sub: '— รับ · จ่าย · จอง · ยืม —',
+  tab_items: 'สินค้า',
+  tab_dash: 'ภาพรวม',
+  tab_move: 'รับ-จ่าย',
+  tab_pending: 'จอง/ยืม',
+  tab_import: 'นำเข้า',
+  tab_external: 'นอกสต็อก',
+  tab_recount: 'นับสต็อก',
+  tab_history: 'ประวัติ',
+  tab_settings: 'ตั้งค่า',
+  dash_stat_total: 'รายการทั้งหมด',
+  dash_stat_low: 'Stock น้อย',
+  dash_stat_reserved: 'จองอยู่ (รายการ)',
+  dash_stat_borrowed: 'ยืม',
+  dash_top_movers: 'สินค้าขายดี',
+  dash_low_stock: 'ต้องเติมสต๊อก',
+  dash_overdue: 'ยืมเกินกำหนดคืน',
+  dash_recent: 'เคลื่อนไหวล่าสุด',
+  dash_view_all: 'ดูทั้งหมด →',
+  ph_item_search: 'พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา...',
+  ph_customer_source: 'ชื่อลูกค้า / ที่มาของสินค้า',
+  ph_eg_svso: 'เช่น SVSO-00123',
+  ph_eg_qt: 'เช่น QT-00456',
+  ph_customer_name: 'ชื่อลูกค้า',
+  ph_requested_by: 'ชื่อผู้เบิก',
+  ph_borrower_name: 'ชื่อผู้ยืม',
+  ph_requester_reserve: 'ชื่อผู้จอง',
+  ph_note_example: 'เช่น เบิกงาน SVSO-00123, รับจากซัพพลายเออร์',
+  move_card_title: 'บันทึกรายการ',
+  mode_in: 'รับเข้า',
+  mode_out: 'นำออก',
+  mode_reserve: 'จอง',
+  mode_borrow: 'ยืม',
+  in_sub_single: 'กรอกทีละรายการ',
+  in_sub_bulk: 'รับเข้าจากไฟล์ (หลายรายการ)',
+  lbl_item: 'สินค้า',
+  lbl_qty: 'จำนวน',
+  cart_add_line: 'เพิ่มรายการนี้ลงตะกร้า',
+  cart_added_lines: 'รายการที่เพิ่มแล้ว',
+  lbl_in_date: 'วันที่รับเข้า',
+  lbl_in_customer: 'Customer / อ้างอิง (ไม่บังคับ)',
+  lbl_requested_by_out: 'ผู้เบิก',
+  lbl_borrower: 'ผู้ยืม',
+  lbl_borrow_date: 'วันที่ยืม',
+  lbl_due_date: 'กำหนดคืน (ไม่บังคับ)',
+  lbl_requested_by_reserve: 'ผู้จอง',
+  txt_paste_hint: 'หรือคัดลอกข้อมูล (รวมหัวตาราง) จาก Excel แล้ววางที่นี่',
+  ph_paste_here: 'วางข้อมูลจาก Excel ที่นี่...',
+  btn_read_pasted: 'อ่านข้อมูลที่วาง',
+  btn_use_as_header: 'ใช้แถวนี้เป็นหัวตาราง',
+  txt_map_columns: 'จับคู่คอลัมน์',
+  lbl_upload_file: 'อัปโหลดไฟล์ (.xlsx / .xls / .csv)',
+  lbl_header_row_at: 'หัวตารางอยู่แถวที่ (ในไฟล์)',
+  lbl_map_itemno: 'รหัสสินค้า (Item No.) *',
+  lbl_uom: 'หน่วยนับ',
+  bulk_in_hint: 'อัปโหลดไฟล์ใบรับของ / ใบนับสต๊อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)',
+  lbl_map_name_opt: 'ชื่อสินค้า (ไม่บังคับ — ใช้ตรวจสอบ/อัปเดตชื่อ)',
+  lbl_map_qty_in: 'จำนวนที่รับเข้า *',
+  lbl_map_uom_opt: 'หน่วยนับ / UOM (ไม่บังคับ — ใช้ตอนเพิ่มสินค้าใหม่)',
+  lbl_map_date_opt: 'วันที่รับเข้า (ไม่บังคับ)',
+  note_optional: 'หมายเหตุ (ไม่บังคับ)',
+  bulk_map_hint: 'ถ้ารหัสสินค้าในไฟล์ไม่พบในระบบ จะเพิ่มเป็นสินค้าใหม่ให้อัตโนมัติ และถ้าชื่อในไฟล์ไม่ตรงกับชื่อในระบบ (รหัสตรงกัน) จะอัปเดตชื่อในระบบให้ตรงกับไฟล์ · แถวที่ยังไม่ได้กรอกวันที่รับในคอลัมน์ "วันที่รับเข้า" จะถือว่ายังไม่เข้าคลังจริง ระบบจะข้ามแถวนั้นให้อัตโนมัติ (ไม่ต้องลบหรือซ่อนแถวเอง อัปโหลดทั้งไฟล์ได้เลย)',
+  bulk_skip_dup: 'ข้ามรายการที่เคยรับเข้าไปแล้ว (เทียบจาก รหัสสินค้า + วันที่รับ + จำนวน ตรงกันทั้ง 3 อย่าง) — ป้องกันรับซ้ำเวลาอัปโหลดไฟล์เดิมที่มีข้อมูลสะสม',
+  btn_receive_all: 'รับเข้าทั้งหมด',
+  ph_pending_search: 'ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม...',
+  pending_reserve_title: 'รายการจองที่ยังไม่ตัดนำออก',
+  pending_reserve_hint: 'รายการที่มี ⚠ สต๊อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต๊อกไว้ให้อยู่',
+  pending_borrow_title: 'รายการยืมที่ยังไม่คืน',
+  ph_item_search_plain: 'ค้นหาด้วยรหัสหรือชื่อสินค้า...',
+  btn_add_item: 'เพิ่มสินค้า',
+  th_description: 'Description',
+  import_card_title: 'นำเข้าอะไหล่จากไฟล์ (Excel/CSV)',
+  lbl_item_name_req: 'ชื่อสินค้า *',
+  lbl_initial_qty: 'จำนวนเริ่มต้น',
+  lbl_reorder_opt: 'จุดสั่งซื้อ (ไม่บังคับ)',
+  btn_import_data: 'นำเข้าข้อมูล',
+  addone_card_title: 'เพิ่มสินค้าใหม่ (ทีละรายการ)',
+  lbl_itemno_field: 'รหัสสินค้า (Item No.)',
+  ph_eg_itemno: 'เช่น 5090086',
+  ph_eg_uom: 'เช่น PC, BOX',
+  lbl_item_name: 'ชื่อสินค้า',
+  ph_item_name_desc: 'ชื่อ / รายละเอียดสินค้า',
+  lbl_reorder_alert: 'จุดสั่งซื้อ (แจ้งเตือนเมื่อต่ำกว่านี้)',
+  ext_panel_hint: 'รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน',
+  ext_add_title: 'เพิ่มสินค้านอกสต็อก',
+  ext_sub_bulk: 'อัปโหลดจากไฟล์ (หลายรายการ)',
+  ph_eg_extitemno: 'เช่น EXT-00123',
+  btn_add_ext_item: 'เพิ่มสินค้านอกสต็อก',
+  ext_bulk_hint: 'อัปโหลดไฟล์รายการสินค้านอกสต็อก แล้วระบบจะเพิ่มให้ทุกรายการในไฟล์ทีเดียว (ข้ามรหัสสินค้าที่มีอยู่แล้ว)',
+  btn_add_all_items: 'เพิ่มสินค้าทั้งหมด',
+  ext_list_title: 'รายการสินค้านอกสต็อกทั้งหมด',
+  recount_card_title: 'ปรับสต็อกจากการนับประจำเดือน',
+  recount_hint: 'อัปโหลดไฟล์ผลนับสต็อกจริง (เช่น ไฟล์จากทางบัญชี) ระบบจะเทียบกับยอดในระบบตอนนี้ แล้วคำนวณส่วนต่างให้อัตโนมัติ — ถ้านับได้มากกว่าจะรับเข้าส่วนต่าง ถ้านับได้น้อยกว่าจะนำออกส่วนต่าง พร้อมบันทึกเป็นประวัติ "นับสต็อกรายเดือน" แยกจากรายการปกติให้ตรวจสอบย้อนหลังได้ง่าย',
+  lbl_count_date: 'วันที่นับ (ไม่บังคับ — จะแนบไว้ในหมายเหตุ)',
+  lbl_upload_count_file: 'อัปโหลดไฟล์ผลนับสต็อก (.xlsx / .xls / .csv)',
+  lbl_actual_count: 'จำนวนที่นับได้จริง *',
+  btn_calc_diff: 'คำนวณส่วนต่าง',
+  th_in_system: 'ในระบบ',
+  th_actual_count: 'นับได้จริง',
+  th_diff: 'ส่วนต่าง',
+  btn_confirm_recount: 'ยืนยันปรับยอดตามผลนับ',
+  ph_history_search: 'ค้นหาประวัติ...',
+  settings_backup_title: 'สำรองข้อมูล',
+  settings_backup_hint: 'ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป',
+  btn_download_backup: 'ดาวน์โหลดสำรองข้อมูล (.xlsx)',
+  settings_access_title: 'สิทธิ์การเข้าถึง',
+  footnote: 'ข้อมูลบันทึกอัตโนมัติและใช้ร่วมกันได้ทุกคนที่เปิดแอปนี้',
+  err_items: 'รายการสินค้า',
+  err_ext_items: 'สินค้านอกสต็อก',
+  err_ledger: 'ประวัติ',
+  err_reservations: 'รายการจอง',
+  err_borrows: 'รายการยืม',
+  seed_item_name: 'ตัวอย่างสินค้า (ลบได้)',
+  note_initial_balance: 'ยอดเริ่มต้น',
+  note_initial_balance_migrated: 'ยอดเริ่มต้น (ย้ายจากเวอร์ชันก่อนหน้า)',
+  err_load_failed: 'โหลดข้อมูลไม่สำเร็จ: {list} — อาจไม่ใช่ข้อมูลหายจริง เกิดจากปัญหาการเชื่อมต่อชั่วคราว',
+  btn_reload: 'โหลดใหม่',
+  submit_in: 'บันทึกรับเข้า',
+  submit_out: 'บันทึกนำออก',
+  submit_reserve: 'บันทึกการจอง',
+  submit_borrow: 'บันทึกการยืม',
+  hint_in: 'รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที',
+  hint_out: 'นำสินค้าออกแบบถาวร (เบิกใช้งาน) จะตัดจากยอดพร้อมใช้งานทันที',
+  hint_reserve: 'กันสต๊อกไว้ล่วงหน้า ยังไม่ตัดของออกจากคลัง แต่จะไม่นับรวมในยอด "พร้อมใช้งาน" ของคนอื่น',
+  hint_borrow: 'ของออกจากคลังชั่วคราว ต้องนำมาคืน — ระบบจะติดตามจนกว่าจะคืน',
+  note_optional_cart: 'หมายเหตุ (ไม่บังคับ, ใช้กับทุกรายการในตะกร้า)',
+  ph_item_search_wide: 'พิมพ์รหัสหรือชื่อสินค้า (รวมนอกสต็อก) เพื่อค้นหา...',
+  no_items_match: 'ไม่พบสินค้าที่ตรงกับ "{q}"',
+  badge_off_stock: 'นอกสต็อก',
+  word_reserved: 'จอง',
+  word_available: 'พร้อมใช้',
+  word_total: 'ทั้งหมด',
+  word_lines: 'รายการ',
+  lbl_avail_now_ext: 'พร้อมใช้งานตอนนี้ (นอกสต็อก)',
+  lbl_total_now: 'คงเหลือทั้งหมดตอนนี้',
+  lbl_avail_now: 'พร้อมใช้งานตอนนี้',
+  toast_pick_item_first: 'เลือกสินค้าก่อน',
+  toast_enter_valid_qty: 'กรอกจำนวนให้ถูกต้อง',
+  toast_avail_only_borrow: '"{name}" พร้อมใช้งานแค่ {avail} {unit} — เพิ่มจำนวนนี้ไม่ได้',
+  toast_avail_only_reserve: '"{name}" พร้อมใช้งานแค่ {avail} {unit} — จองเกินไม่ได้',
+  btn_remove: 'ลบ',
+  toast_skip_avail_only: '"{name}" พร้อมใช้งานแค่ {avail} {unit} — ข้ามรายการนี้',
+  note_prefix_svso: 'SVSO: ',
+  note_prefix_quotation: 'ใบเสนอราคา: ',
+  note_prefix_customer: 'ลูกค้า: ',
+  note_prefix_reserved_by: 'ผู้จอง: ',
+  note_off_stock_item: 'สินค้านอกสต็อก',
+  toast_reserve_saved: 'บันทึกการจอง {count} รายการแล้ว',
+  toast_backorder_note: '(บางรายการจองล่วงหน้า สต๊อกไม่พอตอนนี้)',
+  toast_enter_borrower: 'กรอกชื่อผู้ยืม',
+  toast_borrow_saved: 'บันทึกการยืม {count} รายการให้ {borrower} แล้ว',
+  toast_avail_only_out: 'พร้อมใช้งานแค่ {avail} {unit} — ทำรายการนี้ไม่ได้',
+  note_prefix_customer_ref: 'Customer/อ้างอิง: ',
+  toast_received: 'รับเข้า {qty} {unit} แล้ว',
+  note_prefix_issued_by: 'ผู้เบิก: ',
+  toast_issued: 'นำออก {qty} {unit} แล้ว',
+  toast_view_only: 'โหมดดูอย่างเดียว — ปลดล็อกที่แท็บ "ภาพรวม" ก่อน',
+  toast_enter_password: 'กรุณาใส่รหัสผ่าน',
+  toast_pin_set: 'ตั้งรหัสผ่านแล้ว คนอื่นที่เปิดแอปนี้ต้องกรอกรหัสก่อนแก้ไขข้อมูล',
+  toast_pin_removed: 'ยกเลิกรหัสผ่านแล้ว ทุกคนแก้ไขข้อมูลได้',
+  toast_unlocked: 'ปลดล็อกโหมดแก้ไขแล้ว',
+  toast_wrong_password: 'รหัสผ่านไม่ถูกต้อง',
+  toast_locked_again: 'เปลี่ยนเป็นโหมดดูอย่างเดียวแล้ว (สำหรับเบราว์เซอร์นี้)',
+  access_hint_none: 'ตอนนี้ทุกคนที่เปิดลิงก์นี้แก้ไขข้อมูลได้ ถ้าอยากให้บางคนดูได้อย่างเดียว ตั้งรหัสผ่านสำหรับแก้ไขข้อมูลไว้ได้ที่นี่',
+  lbl_set_edit_pin: 'ตั้งรหัสผ่านแก้ไขข้อมูล',
+  ph_eg_pin: 'เช่น 1234',
+  btn_set_password: 'ตั้งรหัสผ่าน',
+  access_status_unlocked: 'สถานะ: ✅ แก้ไขข้อมูลได้ (เบราว์เซอร์นี้ปลดล็อกอยู่)',
+  btn_switch_view_only: 'เปลี่ยนเป็นดูอย่างเดียว',
+  btn_remove_password: 'ยกเลิกรหัสผ่าน (ให้ทุกคนแก้ไขได้)',
+  access_status_locked: 'สถานะ: 🔒 ดูอย่างเดียว — กรอกรหัสผ่านเพื่อแก้ไขข้อมูล',
+  ph_password: 'รหัสผ่าน',
+  btn_unlock: 'ปลดล็อก',
+  tag_out: 'หมด',
+  tag_low: 'ใกล้หมด',
+  item_deleted: '(สินค้าถูกลบแล้ว)',
+  word_borrowed_by: 'ยืมโดย',
+  word_borrowed_on: 'ยืมเมื่อ',
+  word_due: 'กำหนดคืน',
+  tag_overdue: 'เกินกำหนด',
+  btn_return_item: 'คืนของ',
+  empty_no_tx_title: 'ยังไม่มีรายการ',
+  empty_no_tx_sub: 'เริ่มบันทึกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"',
+  word_year: 'ปี',
+  top_movers_none: 'ยังไม่มีข้อมูลนำออกในปี {year}',
+  empty_no_data_title: 'ไม่มีข้อมูล',
+  empty_no_data_sub: 'จะแสดงเมื่อมีการนำออกในปีนี้',
+  top_movers_summary: 'นำออกรวมทั้งปี {year}: {total} ชิ้น จาก {count} รายการสินค้า — แสดง Top {shown}',
+  empty_no_history_title: 'ไม่มีประวัติ',
+  empty_no_history_sub: 'รายการทั้งหมดจะแสดงที่นี่',
+  toast_no_data_to_backup: 'ยังไม่มีข้อมูลให้สำรอง',
+  toast_not_enough_actual_stock: 'ของจริงในคลังไม่พอ ตรวจสอบยอดก่อนตัดนำออก',
+  note_fulfilled_from_reservation: 'ตัดนำออกจากรายการจอง',
+  toast_fulfilled: 'ตัดนำออก {qty} {unit} จากรายการจองแล้ว',
+  note_reservation_released: 'ยกเลิกการจอง',
+  toast_reservation_released: 'ยกเลิกรายการจองแล้ว',
+  note_returned_from: 'รับคืนจาก ',
+  toast_returned: 'รับคืน {qty} {unit} จาก {borrower} แล้ว'
+},
+  en: {
+  header_sub: '— IN · OUT · RESERVED · BORROW —',
+  tab_items: 'ITEMS',
+  tab_dash: 'DASHBOARD',
+  tab_move: 'IN/OUT',
+  tab_pending: 'RESERVED',
+  tab_import: 'STOCK IN',
+  tab_external: 'OFF-STOCK',
+  tab_recount: 'RECOUNT',
+  tab_history: 'HISTORY',
+  tab_settings: 'SETTINGS',
+  dash_stat_total: 'Total Items',
+  dash_stat_low: 'Low Stock',
+  dash_stat_reserved: 'Reserved (Lines)',
+  dash_stat_borrowed: 'Borrowed',
+  dash_top_movers: 'Top Movers',
+  dash_low_stock: 'Needs Restock',
+  dash_overdue: 'Overdue Borrows',
+  dash_recent: 'Recent Activity',
+  dash_view_all: 'View All →',
+  ph_item_search: 'Type item code or name to search...',
+  ph_customer_source: 'Customer name / source',
+  ph_eg_svso: 'e.g. SVSO-00123',
+  ph_eg_qt: 'e.g. QT-00456',
+  ph_customer_name: 'Customer name',
+  ph_requested_by: 'Requested by',
+  ph_borrower_name: 'Borrower name',
+  ph_requester_reserve: 'Reserved by',
+  ph_note_example: 'e.g. Issued for SVSO-00123, received from supplier',
+  move_card_title: 'Record Transaction',
+  mode_in: 'Stock In',
+  mode_out: 'Stock Out',
+  mode_reserve: 'Reserve',
+  mode_borrow: 'Borrow',
+  in_sub_single: 'Enter one at a time',
+  in_sub_bulk: 'Receive from file (multiple items)',
+  lbl_item: 'Item',
+  lbl_qty: 'Quantity',
+  cart_add_line: 'Add This Line to Cart',
+  cart_added_lines: 'Lines Added',
+  lbl_in_date: 'Date Received',
+  lbl_in_customer: 'Customer / Reference (optional)',
+  lbl_requested_by_out: 'Requested By',
+  lbl_borrower: 'Borrower',
+  lbl_borrow_date: 'Borrow Date',
+  lbl_due_date: 'Due Date (optional)',
+  lbl_requested_by_reserve: 'Reserved By',
+  txt_paste_hint: 'Or copy data (including header row) from Excel and paste here',
+  ph_paste_here: 'Paste data from Excel here...',
+  btn_read_pasted: 'Read Pasted Data',
+  btn_use_as_header: 'Use This Row as Header',
+  txt_map_columns: 'Map Columns',
+  lbl_upload_file: 'Upload File (.xlsx / .xls / .csv)',
+  lbl_header_row_at: 'Header Row Number (in file)',
+  lbl_map_itemno: 'Item No. *',
+  lbl_uom: 'UOM',
+  bulk_in_hint: 'Upload a receiving/count sheet and the system will receive every row at once (matched by item code already in the system only)',
+  lbl_map_name_opt: 'Item Name (optional — used to verify/update name)',
+  lbl_map_qty_in: 'Quantity Received *',
+  lbl_map_uom_opt: 'UOM (optional — used when adding new items)',
+  lbl_map_date_opt: 'Date Received (optional)',
+  note_optional: 'Note (optional)',
+  bulk_map_hint: 'If an item code in the file isn\'t found in the system, it\'s added as a new item automatically, and if the name in the file doesn\'t match the system (same code) the system name is updated to match the file. Rows with no date in the "Date Received" column are treated as not yet received — the system skips them automatically (no need to delete or hide rows, you can upload the whole file).',
+  bulk_skip_dup: 'Skip items already received before (matched on item code + date received + quantity, all three matching) — prevents duplicate receiving when re-uploading a cumulative file',
+  btn_receive_all: 'Receive All',
+  ph_pending_search: 'Search by item name/code, SVSO, customer, reserved/borrowed by...',
+  pending_reserve_title: 'Reservations Not Yet Fulfilled',
+  pending_reserve_hint: 'Lines marked ⚠ Not enough stock are backorders reserved ahead of stock arriving — they still hold the reservation',
+  pending_borrow_title: 'Borrows Not Yet Returned',
+  ph_item_search_plain: 'Search by item code or name...',
+  btn_add_item: 'Add Item',
+  th_description: 'Description',
+  import_card_title: 'Import Parts from File (Excel/CSV)',
+  lbl_item_name_req: 'Item Name *',
+  lbl_initial_qty: 'Initial Quantity',
+  lbl_reorder_opt: 'Reorder Point (optional)',
+  btn_import_data: 'Import Data',
+  addone_card_title: 'Add New Item (One at a Time)',
+  lbl_itemno_field: 'Item No.',
+  ph_eg_itemno: 'e.g. 5090086',
+  ph_eg_uom: 'e.g. PC, BOX',
+  lbl_item_name: 'Item Name',
+  ph_item_name_desc: 'Item name / description',
+  lbl_reorder_alert: 'Reorder Point (alert when below this)',
+  ext_panel_hint: 'Items not yet in the main stock system (real data will be added separately later). Use them to "Reserve" or "Borrow" just like normal items — the system tracks remaining quantity and blocks over-reserving/borrowing here too',
+  ext_add_title: 'Add Off-Stock Item',
+  ext_sub_bulk: 'Upload from File (Multiple Items)',
+  ph_eg_extitemno: 'e.g. EXT-00123',
+  btn_add_ext_item: 'Add Off-Stock Item',
+  ext_bulk_hint: 'Upload a file of off-stock items and the system will add every row at once (skipping item codes that already exist)',
+  btn_add_all_items: 'Add All Items',
+  ext_list_title: 'All Off-Stock Items',
+  recount_card_title: 'Adjust Stock from Monthly Count',
+  recount_hint: 'Upload the actual stock count file (e.g. from accounting). The system compares it to the current system balance and calculates the difference automatically — a higher count receives in the difference, a lower count takes out the difference, logged as "Monthly Stock Count" history separate from normal transactions for easy review later',
+  lbl_count_date: 'Count Date (optional — attached to the note)',
+  lbl_upload_count_file: 'Upload Stock Count File (.xlsx / .xls / .csv)',
+  lbl_actual_count: 'Actual Counted Quantity *',
+  btn_calc_diff: 'Calculate Difference',
+  th_in_system: 'In System',
+  th_actual_count: 'Counted',
+  th_diff: 'Difference',
+  btn_confirm_recount: 'Confirm Adjustment from Count',
+  ph_history_search: 'Search history...',
+  settings_backup_title: 'Backup Data',
+  settings_backup_hint: 'Download all data (items, history, reservations/borrows) as an Excel file any time — does not affect data in the app',
+  btn_download_backup: 'Download Backup (.xlsx)',
+  settings_access_title: 'Access Control',
+  footnote: 'Data is saved automatically and shared with everyone who opens this app',
+  err_items: 'Items',
+  err_ext_items: 'Off-Stock Items',
+  err_ledger: 'History',
+  err_reservations: 'Reservations',
+  err_borrows: 'Borrows',
+  seed_item_name: 'Sample Item (deletable)',
+  note_initial_balance: 'Initial balance',
+  note_initial_balance_migrated: 'Initial balance (migrated from previous version)',
+  err_load_failed: 'Failed to load: {list} — this may not be real data loss, likely a temporary connection issue',
+  btn_reload: 'Reload',
+  submit_in: 'Save Stock In',
+  submit_out: 'Save Stock Out',
+  submit_reserve: 'Save Reservation',
+  submit_borrow: 'Save Borrow',
+  hint_in: 'Receives items into stock — increases the balance immediately',
+  hint_out: 'Removes items permanently (issued for use) — deducts from available balance immediately',
+  hint_reserve: 'Holds stock in advance — not yet removed from the warehouse, but excluded from others\' "Available" balance',
+  hint_borrow: 'Items leave the warehouse temporarily and must be returned — the system tracks it until returned',
+  note_optional_cart: 'Note (optional, applies to every line in the cart)',
+  ph_item_search_wide: 'Type item code or name (including off-stock) to search...',
+  no_items_match: 'No items match "{q}"',
+  badge_off_stock: 'Off-Stock',
+  word_reserved: 'Reserved',
+  word_available: 'Available',
+  word_total: 'Total',
+  word_lines: 'lines',
+  lbl_avail_now_ext: 'Available Now (Off-Stock)',
+  lbl_total_now: 'Total Balance Now',
+  lbl_avail_now: 'Available Now',
+  toast_pick_item_first: 'Select an item first',
+  toast_enter_valid_qty: 'Enter a valid quantity',
+  toast_avail_only_borrow: '"{name}" only has {avail} {unit} available — can\'t add this quantity',
+  toast_avail_only_reserve: '"{name}" only has {avail} {unit} available — can\'t reserve more than that',
+  btn_remove: 'Remove',
+  toast_skip_avail_only: '"{name}" only has {avail} {unit} available — skipping this line',
+  note_prefix_svso: 'SVSO: ',
+  note_prefix_quotation: 'Quotation: ',
+  note_prefix_customer: 'Customer: ',
+  note_prefix_reserved_by: 'Reserved by: ',
+  note_off_stock_item: 'Off-stock item',
+  toast_reserve_saved: 'Saved {count} reservation line(s)',
+  toast_backorder_note: '(some lines are backorders — not enough stock right now)',
+  toast_enter_borrower: 'Enter the borrower\'s name',
+  toast_borrow_saved: 'Saved {count} borrow line(s) for {borrower}',
+  toast_avail_only_out: 'Only {avail} {unit} available — can\'t complete this transaction',
+  note_prefix_customer_ref: 'Customer/Reference: ',
+  toast_received: 'Received {qty} {unit}',
+  note_prefix_issued_by: 'Requested by: ',
+  toast_issued: 'Issued {qty} {unit}',
+  toast_view_only: 'View-only mode — unlock from the "Settings" tab first',
+  toast_enter_password: 'Please enter a password',
+  toast_pin_set: 'Password set — others opening this app must enter it before editing data',
+  toast_pin_removed: 'Password removed — everyone can edit data',
+  toast_unlocked: 'Edit mode unlocked',
+  toast_wrong_password: 'Incorrect password',
+  toast_locked_again: 'Switched to view-only mode (for this browser)',
+  access_hint_none: 'Anyone with this link can currently edit data. If you want some people to be view-only, set an edit password here',
+  lbl_set_edit_pin: 'Set Edit Password',
+  ph_eg_pin: 'e.g. 1234',
+  btn_set_password: 'Set Password',
+  access_status_unlocked: 'Status: ✅ Can edit data (this browser is unlocked)',
+  btn_switch_view_only: 'Switch to View-Only',
+  btn_remove_password: 'Remove Password (let everyone edit)',
+  access_status_locked: 'Status: 🔒 View-only — enter password to edit',
+  ph_password: 'Password',
+  btn_unlock: 'Unlock',
+  tag_out: 'Out',
+  tag_low: 'Low',
+  item_deleted: '(item deleted)',
+  word_borrowed_by: 'Borrowed by',
+  word_borrowed_on: 'Borrowed on',
+  word_due: 'Due',
+  tag_overdue: 'Overdue',
+  btn_return_item: 'Return',
+  empty_no_tx_title: 'No transactions yet',
+  empty_no_tx_sub: 'Start recording from the "IN/OUT" tab',
+  word_year: 'Year',
+  top_movers_none: 'No stock-out data yet for {year}',
+  empty_no_data_title: 'No data',
+  empty_no_data_sub: 'Will show once there\'s stock-out activity this year',
+  top_movers_summary: 'Total stock-out for {year}: {total} units across {count} items — showing top {shown}',
+  empty_no_history_title: 'No history',
+  empty_no_history_sub: 'All transactions will show here',
+  toast_no_data_to_backup: 'No data to back up yet',
+  toast_not_enough_actual_stock: 'Not enough physical stock — check the balance before fulfilling',
+  note_fulfilled_from_reservation: 'Fulfilled from reservation',
+  toast_fulfilled: 'Fulfilled {qty} {unit} from the reservation',
+  note_reservation_released: 'Reservation released',
+  toast_reservation_released: 'Reservation released',
+  note_returned_from: 'Returned from ',
+  toast_returned: 'Returned {qty} {unit} from {borrower}'
+}
+};
+function t(key, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) || (I18N.th && I18N.th[key]) || key;
+  if(vars){ Object.keys(vars).forEach(k=>{ s = s.split('{'+k+'}').join(vars[k]); }); }
+  return s;
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    // only replace direct text nodes so nested elements (icons, counters) are preserved
+    for(const node of el.childNodes){
+      if(node.nodeType===3){ node.textContent = t(key); return; }
+    }
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-i18n-ph'));
+  });
+  document.documentElement.lang = LANG==='th' ? 'th' : 'en';
+}
+async function setLang(lang){
+  if(lang!==LANG){
+    LANG = lang;
+    try{ await window.storage.set('inv:lang', lang, false); }catch(e){}
+  }
+  applyI18n();
+  // refresh anything JS renders text into directly (mode hint, note label, submit button, current-qty label, dropdown placeholder)
+  if(typeof setMode==='function') setMode(currentMode);
+  if(typeof renderAll==='function') renderAll();
+}
 
 let items = [];
 let externalItems = []; // off-stock catalog: {id, itemNo, name, unit} — no quantity tracking
@@ -976,33 +1419,36 @@ function totalStock(it){ return (it.baseQty||0) + onHand(it.id); }
 // baseQty is folded into ledger IN at creation time (see addItem) — kept simple: onHand already includes base via seed IN entry.
 
 async function loadData(){
+  try{ const r = await window.storage.get('inv:lang', false); if(r && (r.value==='th'||r.value==='en')) LANG = r.value; }catch(e){}
   const loadErrors = [];
-  try{ const r = await window.storage.get(KEY_ITEMS, true); items = r ? JSON.parse(r.value) : []; }catch(e){ items = []; loadErrors.push('รายการสินค้า'); }
-  try{ const r = await window.storage.get(KEY_EXTERNAL_ITEMS, true); externalItems = r ? JSON.parse(r.value) : []; }catch(e){ externalItems = []; loadErrors.push('สินค้านอกสต็อก'); }
-  try{ const r = await window.storage.get(KEY_LEDGER, true); ledger = r ? JSON.parse(r.value) : []; }catch(e){ ledger = []; loadErrors.push('ประวัติ'); }
-  try{ const r = await window.storage.get(KEY_RESERVATIONS, true); reservations = r ? JSON.parse(r.value) : []; }catch(e){ reservations = []; loadErrors.push('รายการจอง'); }
-  try{ const r = await window.storage.get(KEY_BORROWS, true); borrows = r ? JSON.parse(r.value) : []; }catch(e){ borrows = []; loadErrors.push('รายการยืม'); }
+  try{ const r = await window.storage.get(KEY_ITEMS, true); items = r ? JSON.parse(r.value) : []; }catch(e){ items = []; loadErrors.push(t('err_items')); }
+  try{ const r = await window.storage.get(KEY_EXTERNAL_ITEMS, true); externalItems = r ? JSON.parse(r.value) : []; }catch(e){ externalItems = []; loadErrors.push(t('err_ext_items')); }
+  try{ const r = await window.storage.get(KEY_LEDGER, true); ledger = r ? JSON.parse(r.value) : []; }catch(e){ ledger = []; loadErrors.push(t('err_ledger')); }
+  try{ const r = await window.storage.get(KEY_RESERVATIONS, true); reservations = r ? JSON.parse(r.value) : []; }catch(e){ reservations = []; loadErrors.push(t('err_reservations')); }
+  try{ const r = await window.storage.get(KEY_BORROWS, true); borrows = r ? JSON.parse(r.value) : []; }catch(e){ borrows = []; loadErrors.push(t('err_borrows')); }
 
   if(items.length===0 && ledger.length===0){
     const seedId = uid();
-    items = [{id:seedId, itemNo:'DEMO-001', name:'ตัวอย่างสินค้า (ลบได้)', unit:'PC', reorder:5, baseQty:0}];
-    ledger = [{id:uid(), itemId:seedId, type:'IN', qty:20, note:'ยอดเริ่มต้น', ts:Date.now()}];
+    items = [{id:seedId, itemNo:'DEMO-001', name:t('seed_item_name'), unit:'PC', reorder:5, baseQty:0}];
+    ledger = [{id:uid(), itemId:seedId, type:'IN', qty:20, note:t('note_initial_balance'), ts:Date.now()}];
   } else if(ledger.length===0 && items.some(it=>it.baseQty)){
     // migrating from the earlier version (pre reserve/borrow): pull baseQty into ledger, and old transactions if present
     items.forEach(it=>{
-      if(it.baseQty){ ledger.push({id:uid(), itemId:it.id, type:'IN', qty:it.baseQty, note:'ยอดเริ่มต้น (ย้ายจากเวอร์ชันก่อนหน้า)', ts:Date.now()}); }
+      if(it.baseQty){ ledger.push({id:uid(), itemId:it.id, type:'IN', qty:it.baseQty, note:t('note_initial_balance_migrated'), ts:Date.now()}); }
       it.baseQty = 0;
     });
     try{
       const old = await window.storage.get('inv:transactions', true);
       if(old){
         const oldTx = JSON.parse(old.value);
-        oldTx.forEach(t=> ledger.push({id:t.id||uid(), itemId:t.itemId, type:t.type, qty:t.qty, note:t.note, ts:t.ts}));
+        oldTx.forEach(tx=> ledger.push({id:tx.id||uid(), itemId:tx.itemId, type:tx.type, qty:tx.qty, note:tx.note, ts:tx.ts}));
       }
     }catch(e){}
     await saveItems();
     await saveLedger();
   }
+  applyI18n();
+  setMode(currentMode);
   renderAll();
   showLoadErrorBanner(loadErrors);
 }
@@ -1012,8 +1458,8 @@ function showLoadErrorBanner(errors){
   if(!el) return;
   if(!errors || errors.length===0){ el.classList.add('iv-hide'); el.innerHTML=''; return; }
   el.classList.remove('iv-hide');
-  el.innerHTML = `⚠️ โหลดข้อมูลไม่สำเร็จ: ${errors.join(', ')} — อาจไม่ใช่ข้อมูลหายจริง เกิดจากปัญหาการเชื่อมต่อชั่วคราว
-    <button class="iv-btn-sm" style="margin-left:8px;" onclick="reloadAllData()">โหลดใหม่</button>`;
+  el.innerHTML = `⚠️ ${t('err_load_failed', {list: errors.join(', ')})}
+    <button class="iv-btn-sm" style="margin-left:8px;" onclick="reloadAllData()">${t('btn_reload')}</button>`;
 }
 
 async function reloadAllData(){
@@ -1030,18 +1476,18 @@ async function loadSettings(){
 
 function requireEdit(){
   if(editUnlocked) return true;
-  showToast('โหมดดูอย่างเดียว — ปลดล็อกที่แท็บ "ภาพรวม" ก่อน');
+  showToast(t('toast_view_only'));
   return false;
 }
 
 async function setEditPin(){
   const val = document.getElementById('newPinInput').value.trim();
-  if(!val){ showToast('กรุณาใส่รหัสผ่าน'); return; }
+  if(!val){ showToast(t('toast_enter_password')); return; }
   settings.editPin = val;
   await window.storage.set(KEY_SETTINGS, JSON.stringify(settings), true);
   editUnlocked = true;
   await window.storage.set(KEY_UNLOCK, JSON.stringify(true), false);
-  showToast('ตั้งรหัสผ่านแล้ว คนอื่นที่เปิดแอปนี้ต้องกรอกรหัสก่อนแก้ไขข้อมูล');
+  showToast(t('toast_pin_set'));
   renderAccessUI();
 }
 
@@ -1049,7 +1495,7 @@ async function removeEditPin(){
   settings.editPin = '';
   await window.storage.set(KEY_SETTINGS, JSON.stringify(settings), true);
   editUnlocked = true;
-  showToast('ยกเลิกรหัสผ่านแล้ว ทุกคนแก้ไขข้อมูลได้');
+  showToast(t('toast_pin_removed'));
   renderAccessUI();
 }
 
@@ -1058,17 +1504,17 @@ async function tryUnlock(){
   if(val && val === settings.editPin){
     editUnlocked = true;
     await window.storage.set(KEY_UNLOCK, JSON.stringify(true), false);
-    showToast('ปลดล็อกโหมดแก้ไขแล้ว');
+    showToast(t('toast_unlocked'));
     renderAccessUI();
   }else{
-    showToast('รหัสผ่านไม่ถูกต้อง');
+    showToast(t('toast_wrong_password'));
   }
 }
 
 async function lockAgain(){
   editUnlocked = false;
   await window.storage.set(KEY_UNLOCK, JSON.stringify(false), false);
-  showToast('เปลี่ยนเป็นโหมดดูอย่างเดียวแล้ว (สำหรับเบราว์เซอร์นี้)');
+  showToast(t('toast_locked_again'));
   renderAccessUI();
 }
 
@@ -1077,24 +1523,24 @@ function renderAccessUI(){
   if(!box) return;
   if(!settings.editPin){
     box.innerHTML = `
-      <p class="iv-hint" style="margin-bottom:10px;">ตอนนี้ทุกคนที่เปิดลิงก์นี้แก้ไขข้อมูลได้ ถ้าอยากให้บางคนดูได้อย่างเดียว ตั้งรหัสผ่านสำหรับแก้ไขข้อมูลไว้ได้ที่นี่</p>
+      <p class="iv-hint" style="margin-bottom:10px;">${t('access_hint_none')}</p>
       <div class="iv-form-row two" style="align-items:end;">
-        <div><label class="iv-label">ตั้งรหัสผ่านแก้ไขข้อมูล</label><input class="iv-input" type="text" id="newPinInput" placeholder="เช่น 1234"></div>
-        <div><button class="iv-btn neutral" onclick="setEditPin()">ตั้งรหัสผ่าน</button></div>
+        <div><label class="iv-label">${t('lbl_set_edit_pin')}</label><input class="iv-input" type="text" id="newPinInput" placeholder="${t('ph_eg_pin')}"></div>
+        <div><button class="iv-btn neutral" onclick="setEditPin()">${t('btn_set_password')}</button></div>
       </div>`;
   }else if(editUnlocked){
     box.innerHTML = `
-      <p class="iv-hint" style="margin-bottom:10px;">สถานะ: ✅ แก้ไขข้อมูลได้ (เบราว์เซอร์นี้ปลดล็อกอยู่)</p>
+      <p class="iv-hint" style="margin-bottom:10px;">${t('access_status_unlocked')}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="iv-btn-sm" onclick="lockAgain()">เปลี่ยนเป็นดูอย่างเดียว</button>
-        <button class="iv-btn-sm neg" onclick="removeEditPin()">ยกเลิกรหัสผ่าน (ให้ทุกคนแก้ไขได้)</button>
+        <button class="iv-btn-sm" onclick="lockAgain()">${t('btn_switch_view_only')}</button>
+        <button class="iv-btn-sm neg" onclick="removeEditPin()">${t('btn_remove_password')}</button>
       </div>`;
   }else{
     box.innerHTML = `
-      <p class="iv-hint" style="margin-bottom:10px;">สถานะ: 🔒 ดูอย่างเดียว — กรอกรหัสผ่านเพื่อแก้ไขข้อมูล</p>
+      <p class="iv-hint" style="margin-bottom:10px;">${t('access_status_locked')}</p>
       <div class="iv-form-row two" style="align-items:end;">
-        <div><input class="iv-input" type="text" id="unlockPinInput" placeholder="รหัสผ่าน"></div>
-        <div><button class="iv-btn neutral" onclick="tryUnlock()">ปลดล็อก</button></div>
+        <div><input class="iv-input" type="text" id="unlockPinInput" placeholder="${t('ph_password')}"></div>
+        <div><button class="iv-btn neutral" onclick="tryUnlock()">${t('btn_unlock')}</button></div>
       </div>`;
   }
 }
@@ -1113,10 +1559,10 @@ function showToast(msg){
 }
 
 const MODE_META = {
-  IN:      {btn:'btnModeIn',      cls:'in',      submitText:'บันทึกรับเข้า',   hint:'รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที'},
-  OUT:     {btn:'btnModeOut',     cls:'out',     submitText:'บันทึกนำออก',  hint:'นำสินค้าออกแบบถาวร (เบิกใช้งาน) จะตัดจากยอดพร้อมใช้งานทันที'},
-  RESERVE: {btn:'btnModeReserve', cls:'reserve', submitText:'บันทึกการจอง',   hint:'กันสต๊อกไว้ล่วงหน้า ยังไม่ตัดของออกจากคลัง แต่จะไม่นับรวมในยอด "พร้อมใช้งาน" ของคนอื่น'},
-  BORROW:  {btn:'btnModeBorrow',  cls:'borrow',  submitText:'บันทึกการยืม',   hint:'ของออกจากคลังชั่วคราว ต้องนำมาคืน — ระบบจะติดตามจนกว่าจะคืน'}
+  IN:      {btn:'btnModeIn',      cls:'in',      submitKey:'submit_in',      hintKey:'hint_in'},
+  OUT:     {btn:'btnModeOut',     cls:'out',     submitKey:'submit_out',     hintKey:'hint_out'},
+  RESERVE: {btn:'btnModeReserve', cls:'reserve', submitKey:'submit_reserve', hintKey:'hint_reserve'},
+  BORROW:  {btn:'btnModeBorrow',  cls:'borrow',  submitKey:'submit_borrow',  hintKey:'hint_borrow'}
 };
 
 function setMode(mode){
@@ -1127,8 +1573,8 @@ function setMode(mode){
   document.getElementById(meta.btn).classList.add('sel-'+mode.toLowerCase());
   const submit = document.getElementById('txSubmitBtn');
   submit.className = 'iv-btn ' + meta.cls;
-  submit.textContent = meta.submitText;
-  document.getElementById('modeHint').textContent = meta.hint;
+  submit.textContent = t(meta.submitKey);
+  document.getElementById('modeHint').textContent = t(meta.hintKey);
   document.getElementById('borrowFields').classList.toggle('iv-hide', mode!=='BORROW');
   document.getElementById('borrowDueField').classList.toggle('iv-hide', mode!=='BORROW');
   document.getElementById('reserveFields').classList.toggle('iv-hide', mode!=='RESERVE');
@@ -1141,7 +1587,7 @@ function setMode(mode){
   if(mode==='IN' && !document.getElementById('txInDate').value){
     document.getElementById('txInDate').value = new Date().toISOString().slice(0,10);
   }
-  document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? 'หมายเหตุเพิ่มเติม (ไม่บังคับ, ใช้กับทุกรายการในตะกร้า)' : (mode==='BORROW' ? 'หมายเหตุ (ไม่บังคับ, ใช้กับทุกรายการในตะกร้า)' : 'หมายเหตุ (ไม่บังคับ)');
+  document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? t('note_optional_cart') : (mode==='BORROW' ? t('note_optional_cart') : t('note_optional'));
   document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
   if(mode!=='IN') setInSubMode('single');
   populateItemSelect();
@@ -1173,7 +1619,7 @@ function syncItemSearchDisplay(){
   const item = activePool().find(i=>i.id===hidden.value);
   const input = document.getElementById('txItemSearchInput');
   input.value = item ? `${item.itemNo} — ${item.name}` : '';
-  input.placeholder = ['RESERVE','BORROW'].includes(currentMode) ? 'พิมพ์รหัสหรือชื่อสินค้า (รวมนอกสต็อก) เพื่อค้นหา...' : 'พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา...';
+  input.placeholder = ['RESERVE','BORROW'].includes(currentMode) ? t('ph_item_search_wide') : t('ph_item_search');
 }
 
 function filterItemOptions(){
@@ -1187,14 +1633,14 @@ function filterItemOptions(){
   const filtered = pool.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
 
   if(filtered.length===0){
-    dropdown.innerHTML = `<div class="iv-combo-empty">ไม่พบสินค้าที่ตรงกับ "${raw}"</div>`;
+    dropdown.innerHTML = `<div class="iv-combo-empty">${t('no_items_match', {q: raw})}</div>`;
   }else{
     dropdown.innerHTML = filtered.map(it=>{
       const isExt = isExternalItemId(it.id);
       return `<div class="iv-combo-item" onmousedown="selectItemOption('${it.id}')">
       <span class="iv-combo-item-no">${it.itemNo}</span>
       <span class="iv-combo-item-name">${it.name}</span>
-      ${isExt ? '<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">นอกสต็อก</span>' : ''}
+      ${isExt ? `<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}
     </div>`;
     }).join('');
   }
@@ -1221,22 +1667,22 @@ function updateTxCurrentQty(){
   const reserved = reservedQty(item.id);
   const avail = availableQty(item.id);
   const breakdownParts = [];
-  if(reserved>0) breakdownParts.push(`จอง ${reserved}`);
-  breakdownParts.push(`พร้อมใช้ ${avail}`);
-  const breakdownText = `ทั้งหมด ${total} ${item.unit} (${breakdownParts.join(' · ')})`;
+  if(reserved>0) breakdownParts.push(`${t('word_reserved')} ${reserved}`);
+  breakdownParts.push(`${t('word_available')} ${avail}`);
+  const breakdownText = `${t('word_total')} ${total} ${item.unit} (${breakdownParts.join(' · ')})`;
 
   if(['RESERVE','BORROW'].includes(currentMode) && isExternalItemId(item.id)){
-    labelEl.textContent = 'พร้อมใช้งานตอนนี้ (นอกสต็อก)';
+    labelEl.textContent = t('lbl_avail_now_ext');
     qtyEl.className = 'iv-odo';
     qtyEl.textContent = avail + ' ' + item.unit;
     breakdownEl.textContent = breakdownText;
   }else if(currentMode==='IN'){
-    labelEl.textContent = 'คงเหลือทั้งหมดตอนนี้';
+    labelEl.textContent = t('lbl_total_now');
     qtyEl.className = 'iv-odo';
     qtyEl.textContent = total + ' ' + item.unit;
     breakdownEl.textContent = reserved>0 ? breakdownText : '';
   }else{
-    labelEl.textContent = 'พร้อมใช้งานตอนนี้';
+    labelEl.textContent = t('lbl_avail_now');
     qtyEl.className = 'iv-odo';
     qtyEl.textContent = avail + ' ' + item.unit;
     breakdownEl.textContent = breakdownText;
@@ -1250,13 +1696,13 @@ function validateTxForm(){
     let ok = txCart.length > 0;
     if(currentMode==='BORROW' && !document.getElementById('txBorrower').value.trim()) ok = false;
     btn.disabled = !ok;
-    btn.textContent = txCart.length > 0 ? `${MODE_META[currentMode].submitText} (${txCart.length} รายการ)` : MODE_META[currentMode].submitText;
+    btn.textContent = txCart.length > 0 ? `${t(MODE_META[currentMode].submitKey)} (${txCart.length} ${t('word_lines')})` : t(MODE_META[currentMode].submitKey);
     return;
   }
   const qty = parseFloat(document.getElementById('txQty').value);
   let ok = qty > 0;
   btn.disabled = !ok;
-  btn.textContent = MODE_META[currentMode].submitText;
+  btn.textContent = t(MODE_META[currentMode].submitKey);
 }
 
 // ---- multi-item cart for RESERVE / BORROW ----
@@ -1265,19 +1711,19 @@ function addCartItem(){
   const itemId = sel.value;
   const pool = activePool();
   const item = pool.find(i=>i.id===itemId);
-  if(!item){ showToast('เลือกสินค้าก่อน'); return; }
+  if(!item){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('txQty').value);
-  if(!(qty>0)){ showToast('กรอกจำนวนให้ถูกต้อง'); return; }
+  if(!(qty>0)){ showToast(t('toast_enter_valid_qty')); return; }
   const source = isExternalItemId(itemId) ? 'external' : 'stock';
 
   const alreadyInCart = txCart.filter(c=>c.itemId===itemId).reduce((s,c)=>s+c.qty,0);
   const avail = availableQty(itemId) - alreadyInCart;
   if(currentMode==='BORROW' && qty > avail){
-    showToast(`"${item.name}" พร้อมใช้งานแค่ ${Math.max(avail,0)} ${item.unit} — เพิ่มจำนวนนี้ไม่ได้`);
+    showToast(t('toast_avail_only_borrow', {name:item.name, avail:Math.max(avail,0), unit:item.unit}));
     return;
   }
   if(currentMode==='RESERVE' && source==='external' && qty > avail){
-    showToast(`"${item.name}" พร้อมใช้งานแค่ ${Math.max(avail,0)} ${item.unit} — จองเกินไม่ได้`);
+    showToast(t('toast_avail_only_reserve', {name:item.name, avail:Math.max(avail,0), unit:item.unit}));
     return;
   }
 
@@ -1314,12 +1760,12 @@ function renderTxCart(){
     if(!item) return '';
     return `<div class="iv-item">
       <div class="iv-item-main">
-        <div class="iv-item-name">${item.name}${c.source==='external' ? ' <span class="iv-badge" style="font-size:9px;padding:3px 7px;">นอกสต็อก</span>' : ''}</div>
+        <div class="iv-item-name">${item.name}${c.source==='external' ? ` <span class="iv-badge" style="font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}</div>
         <div class="iv-item-meta">${item.itemNo}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="iv-odo sm">${c.qty} ${item.unit}</span>
-        <button type="button" class="iv-btn-sm neg" onclick="removeCartLine('${c.itemId}')">ลบ</button>
+        <button type="button" class="iv-btn-sm neg" onclick="removeCartLine('${c.itemId}')">${t('btn_remove')}</button>
       </div>
     </div>`;
   }).join('');
@@ -1343,15 +1789,15 @@ async function submitCart(){
       let backorder = false;
       const avail = availableQty(c.itemId);
       if(c.qty > avail){
-        if(isExternalSrc){ showToast(`"${item.name}" พร้อมใช้งานแค่ ${avail} ${item.unit} — ข้ามรายการนี้`); continue; }
+        if(isExternalSrc){ showToast(t('toast_skip_avail_only', {name:item.name, avail, unit:item.unit})); continue; }
         backorder = true; anyBackorder = true;
       }
       const composedNote = [
-        svso ? 'SVSO: '+svso : '',
-        quotation ? 'ใบเสนอราคา: '+quotation : '',
-        customer ? 'ลูกค้า: '+customer : '',
-        requestedBy ? 'ผู้จอง: '+requestedBy : '',
-        isExternalSrc ? 'สินค้านอกสต็อก' : '',
+        svso ? t('note_prefix_svso')+svso : '',
+        quotation ? t('note_prefix_quotation')+quotation : '',
+        customer ? t('note_prefix_customer')+customer : '',
+        requestedBy ? t('note_prefix_reserved_by')+requestedBy : '',
+        isExternalSrc ? t('note_off_stock_item') : '',
         note
       ].filter(Boolean).join(' · ');
       reservations.push({id:uid(), itemId:c.itemId, qty:c.qty, svso, quotation, customer, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
@@ -1361,7 +1807,7 @@ async function submitCart(){
     await saveReservations();
     await saveLedger();
     if(savedCount>0){
-      showToast(`บันทึกการจอง ${savedCount} รายการแล้ว${anyBackorder?' (บางรายการจองล่วงหน้า สต๊อกไม่พอตอนนี้)':''}`);
+      showToast(t('toast_reserve_saved', {count:savedCount}) + (anyBackorder ? ' ' + t('toast_backorder_note') : ''));
     }
     document.getElementById('txSvso').value='';
     document.getElementById('txQuotation').value='';
@@ -1370,7 +1816,7 @@ async function submitCart(){
   }
   else if(currentMode==='BORROW'){
     const borrower = document.getElementById('txBorrower').value.trim();
-    if(!borrower){ showToast('กรอกชื่อผู้ยืม'); return; }
+    if(!borrower){ showToast(t('toast_enter_borrower')); return; }
     const dueDate = document.getElementById('txDueDate').value;
     const borrowDateInput = document.getElementById('txBorrowDate').value;
     const borrowDate = borrowDateInput || new Date().toISOString().slice(0,10);
@@ -1381,15 +1827,15 @@ async function submitCart(){
       const item = isExternalSrc ? externalItems.find(i=>i.id===c.itemId) : items.find(i=>i.id===c.itemId);
       if(!item) continue;
       const avail = availableQty(c.itemId);
-      if(c.qty > avail){ showToast(`"${item.name}" พร้อมใช้งานแค่ ${avail} ${item.unit} — ข้ามรายการนี้`); continue; }
+      if(c.qty > avail){ showToast(t('toast_skip_avail_only', {name:item.name, avail, unit:item.unit})); continue; }
       borrows.push({id:uid(), itemId:c.itemId, qty:c.qty, borrower, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
-      ledger.push({id:uid(), itemId:c.itemId, type:'BORROW', qty:c.qty, note:borrower + (note?(' · '+note):'') + (isExternalSrc?' · สินค้านอกสต็อก':''), ts:borrowTs, source: isExternalSrc?'external':'stock'});
+      ledger.push({id:uid(), itemId:c.itemId, type:'BORROW', qty:c.qty, note:borrower + (note?(' · '+note):'') + (isExternalSrc?' · '+t('note_off_stock_item'):''), ts:borrowTs, source: isExternalSrc?'external':'stock'});
       savedCount++;
     }
     await saveBorrows();
     await saveLedger();
     if(savedCount>0){
-      showToast(`บันทึกการยืม ${savedCount} รายการให้ ${borrower} แล้ว`);
+      showToast(t('toast_borrow_saved', {count:savedCount, borrower}));
     }
     document.getElementById('txBorrower').value='';
     document.getElementById('txDueDate').value='';
@@ -1421,7 +1867,7 @@ async function submitTransaction(){
   if(currentMode==='OUT'){
     const avail = availableQty(item.id);
     if(qty > avail){
-      showToast(`พร้อมใช้งานแค่ ${avail} ${item.unit} — ทำรายการนี้ไม่ได้`);
+      showToast(t('toast_avail_only_out', {avail, unit:item.unit}));
       return;
     }
   }
@@ -1430,10 +1876,10 @@ async function submitTransaction(){
     const dateInput = document.getElementById('txInDate').value;
     const customer = document.getElementById('txInCustomer').value.trim();
     const ts = dateInput ? (new Date(dateInput+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now()) : Date.now();
-    const composedNote = [customer ? 'Customer/อ้างอิง: '+customer : '', note].filter(Boolean).join(' · ');
+    const composedNote = [customer ? t('note_prefix_customer_ref')+customer : '', note].filter(Boolean).join(' · ');
     ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts});
     await saveLedger();
-    showToast(`รับเข้า ${qty} ${item.unit} แล้ว`);
+    showToast(t('toast_received', {qty, unit:item.unit}));
     document.getElementById('txInCustomer').value='';
   }
   else if(currentMode==='OUT'){
@@ -1442,15 +1888,15 @@ async function submitTransaction(){
     const customer = document.getElementById('txOutCustomer').value.trim();
     const requestedBy = document.getElementById('txOutRequestedBy').value.trim();
     const composedNote = [
-      svso ? 'SVSO: '+svso : '',
-      quotation ? 'ใบเสนอราคา: '+quotation : '',
-      customer ? 'ลูกค้า: '+customer : '',
-      requestedBy ? 'ผู้เบิก: '+requestedBy : '',
+      svso ? t('note_prefix_svso')+svso : '',
+      quotation ? t('note_prefix_quotation')+quotation : '',
+      customer ? t('note_prefix_customer')+customer : '',
+      requestedBy ? t('note_prefix_issued_by')+requestedBy : '',
       note
     ].filter(Boolean).join(' · ');
     ledger.push({id:uid(), itemId, type:'OUT', qty, note: composedNote, svso, quotation, customer, requestedBy, ts:Date.now()});
     await saveLedger();
-    showToast(`นำออก ${qty} ${item.unit} แล้ว`);
+    showToast(t('toast_issued', {qty, unit:item.unit}));
     document.getElementById('txOutSvso').value='';
     document.getElementById('txOutQuotation').value='';
     document.getElementById('txOutCustomer').value='';
@@ -1470,23 +1916,23 @@ async function fulfillReservation(id){
   if(!r || r.status!=='active') return;
   const item = findItemRef(r.itemId, r.source);
   if(r.source!=='external' && onHand(r.itemId) < r.qty){
-    showToast('ของจริงในคลังไม่พอ ตรวจสอบยอดก่อนตัดนำออก');
+    showToast(t('toast_not_enough_actual_stock'));
     return;
   }
   r.status = 'fulfilled';
-  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:'ตัดนำออกจากรายการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
+  ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:t('note_fulfilled_from_reservation')+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
   await saveReservations();
   await saveLedger();
-  showToast(`ตัดนำออก ${r.qty} ${item?item.unit:''} จากรายการจองแล้ว`);
+  showToast(t('toast_fulfilled', {qty:r.qty, unit:item?item.unit:''}));
   renderAll();
 }
 
 function reservationSummary(r){
   return [
-    r.svso ? 'SVSO: '+r.svso : '',
-    r.quotation ? 'ใบเสนอราคา: '+r.quotation : '',
-    r.customer ? 'ลูกค้า: '+r.customer : '',
-    r.requestedBy ? 'ผู้จอง: '+r.requestedBy : '',
+    r.svso ? t('note_prefix_svso')+r.svso : '',
+    r.quotation ? t('note_prefix_quotation')+r.quotation : '',
+    r.customer ? t('note_prefix_customer')+r.customer : '',
+    r.requestedBy ? t('note_prefix_reserved_by')+r.requestedBy : '',
     r.note || ''
   ].filter(Boolean).join(' · ');
 }
@@ -1496,10 +1942,10 @@ async function releaseReservation(id){
   const r = reservations.find(x=>x.id===id);
   if(!r || r.status!=='active') return;
   r.status = 'released';
-  ledger.push({id:uid(), itemId:r.itemId, type:'RELEASE', qty:r.qty, note:'ยกเลิกการจอง'+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
+  ledger.push({id:uid(), itemId:r.itemId, type:'RELEASE', qty:r.qty, note:t('note_reservation_released')+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
   await saveReservations();
   await saveLedger();
-  showToast('ยกเลิกรายการจองแล้ว');
+  showToast(t('toast_reservation_released'));
   renderAll();
 }
 
@@ -1510,10 +1956,10 @@ async function returnBorrow(id){
   b.status = 'returned';
   b.returnedTs = Date.now();
   const item = findItemRef(b.itemId, b.source);
-  ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:'รับคืนจาก '+b.borrower, ts:Date.now(), source:b.source});
+  ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:t('note_returned_from')+b.borrower, ts:Date.now(), source:b.source});
   await saveBorrows();
   await saveLedger();
-  showToast(`รับคืน ${b.qty} ${item?item.unit:''} จาก ${b.borrower} แล้ว`);
+  showToast(t('toast_returned', {qty:b.qty, unit:item?item.unit:'', borrower:b.borrower}));
   renderAll();
 }
 
@@ -2396,7 +2842,7 @@ function renderLowStock(){
         <div class="iv-carousel-name">${it.name}</div>
       </div>
       <div class="iv-carousel-bottom">
-        <span class="iv-tag ${cls}">${q<=0?'หมด':'ใกล้หมด'}</span>
+        <span class="iv-tag ${cls}">${q<=0?t('tag_out'):t('tag_low')}</span>
         <span class="iv-odo">${q} ${it.unit}</span>
       </div>
     </div>`;
@@ -2414,13 +2860,13 @@ function renderOverdue(){
     return `<div class="iv-item overdue">
       <div class="iv-item-main">
         <div class="iv-item-code">${item?item.itemNo:''}</div>
-        <div class="iv-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}</div>
-        <div class="iv-item-meta">ยืมโดย ${b.borrower} · ยืมเมื่อ ${b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)} · กำหนดคืน ${fmtDay(b.dueDate)}</div>
+        <div class="iv-item-name">${item?item.name:t('item_deleted')}</div>
+        <div class="iv-item-meta">${t('word_borrowed_by')} ${b.borrower} · ${t('word_borrowed_on')} ${b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)} · ${t('word_due')} ${fmtDay(b.dueDate)}</div>
       </div>
       <div class="iv-item-right">
-        <span class="iv-tag overdue">เกินกำหนด</span>
+        <span class="iv-tag overdue">${t('tag_overdue')}</span>
         <span class="iv-odo borrow">${b.qty} ${item?item.unit:''}</span>
-        <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">คืนของ</button>
+        <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
       </div>
     </div>`;
   }).join('');
@@ -2430,7 +2876,7 @@ function renderRecentTx(){
   const list = document.getElementById('recentTxList');
   const recent = [...ledger].sort((a,b)=>b.ts-a.ts).slice(0,6);
   if(recent.length===0){
-    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ยังไม่มีรายการ</div><div class="iv-empty-sub">เริ่มบันทึกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
+    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_tx_title')}</div><div class="iv-empty-sub">${t('empty_no_tx_sub')}</div></div>`;
     return;
   }
   list.innerHTML = recent.map(txHtml).join('');
@@ -2438,21 +2884,21 @@ function renderRecentTx(){
 
 function renderTopMovers(){
   const yearSel = document.getElementById('topMoversYear');
-  const outEntries = ledger.filter(t=>t.type==='OUT');
-  const years = Array.from(new Set(outEntries.map(t=> new Date(t.ts).getFullYear()))).sort((a,b)=>b-a);
+  const outEntries = ledger.filter(tx=>tx.type==='OUT');
+  const years = Array.from(new Set(outEntries.map(tx=> new Date(tx.ts).getFullYear()))).sort((a,b)=>b-a);
   const currentYear = new Date().getFullYear();
   if(!years.includes(currentYear)) years.unshift(currentYear);
 
   const prevSelected = yearSel.value;
-  yearSel.innerHTML = years.map(y=>`<option value="${y}">ปี ${y}</option>`).join('');
+  yearSel.innerHTML = years.map(y=>`<option value="${y}">${t('word_year')} ${y}</option>`).join('');
   if(prevSelected && years.includes(parseInt(prevSelected))) yearSel.value = prevSelected;
   const selectedYear = parseInt(yearSel.value) || currentYear;
 
   const totals = {};
   let grandTotal = 0;
-  outEntries.filter(t=> new Date(t.ts).getFullYear()===selectedYear).forEach(t=>{
-    totals[t.itemId] = (totals[t.itemId]||0) + t.qty;
-    grandTotal += t.qty;
+  outEntries.filter(tx=> new Date(tx.ts).getFullYear()===selectedYear).forEach(tx=>{
+    totals[tx.itemId] = (totals[tx.itemId]||0) + tx.qty;
+    grandTotal += tx.qty;
   });
 
   const ranked = Object.entries(totals)
@@ -2465,12 +2911,12 @@ function renderTopMovers(){
   const listEl = document.getElementById('topMoversList');
 
   if(ranked.length===0){
-    summaryEl.textContent = `ยังไม่มีข้อมูลนำออกในปี ${selectedYear}`;
-    listEl.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีข้อมูล</div><div class="iv-empty-sub">จะแสดงเมื่อมีการนำออกในปีนี้</div></div>`;
+    summaryEl.textContent = t('top_movers_none', {year:selectedYear});
+    listEl.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_data_title')}</div><div class="iv-empty-sub">${t('empty_no_data_sub')}</div></div>`;
     return;
   }
 
-  summaryEl.textContent = `นำออกรวมทั้งปี ${selectedYear}: ${grandTotal} ชิ้น จาก ${Object.keys(totals).length} รายการสินค้า — แสดง Top ${ranked.length}`;
+  summaryEl.textContent = t('top_movers_summary', {year:selectedYear, total:grandTotal, count:Object.keys(totals).length, shown:ranked.length});
   listEl.innerHTML = ranked.map((r, idx)=> `<div class="iv-item">
       <div class="iv-item-main">
         <div class="iv-item-name">#${idx+1}  ${r.item.name}</div>
@@ -2486,18 +2932,18 @@ const TX_ICON = {IN:'▲', OUT:'▼', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷'
 const TX_SIGN = {IN:'+', OUT:'−', RESERVE:'⚑', RELEASE:'↺', BORROW:'↷', RETURN:'↶', ADJUST_IN:'+', ADJUST_OUT:'−'};
 const TX_CLASS = {IN:'in', OUT:'out', RESERVE:'reserve', RELEASE:'release', BORROW:'borrow', RETURN:'return', ADJUST_IN:'adjust', ADJUST_OUT:'adjust'};
 
-function txHtml(t){
-  const item = findItemRef(t.itemId, t.source);
-  const name = item ? item.name : '(สินค้าถูกลบแล้ว)';
+function txHtml(tx){
+  const item = findItemRef(tx.itemId, tx.source);
+  const name = item ? item.name : t('item_deleted');
   const itemNo = item ? item.itemNo : '';
-  const cls = TX_CLASS[t.type] || 'in';
+  const cls = TX_CLASS[tx.type] || 'in';
   return `<div class="iv-tx">
-    <div class="iv-tx-icon ${cls}">${TX_ICON[t.type]||'•'}</div>
+    <div class="iv-tx-icon ${cls}">${TX_ICON[tx.type]||'•'}</div>
     <div class="iv-tx-main">
-      <div class="iv-tx-name">${name}${t.source==='external'?' <span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">นอกสต็อก</span>':''}</div>
-      <div class="iv-tx-meta">${itemNo}${t.note? ' · '+t.note:''} · ${fmtDate(t.ts)}</div>
+      <div class="iv-tx-name">${name}${tx.source==='external'?` <span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">${t('badge_off_stock')}</span>`:''}</div>
+      <div class="iv-tx-meta">${itemNo}${tx.note? ' · '+tx.note:''} · ${fmtDate(tx.ts)}</div>
     </div>
-    <div class="iv-tx-qty ${cls}">${TX_SIGN[t.type]||''}${t.qty}</div>
+    <div class="iv-tx-qty ${cls}">${TX_SIGN[tx.type]||''}${tx.qty}</div>
   </div>`;
 }
 
@@ -2718,7 +3164,7 @@ function renderHistory(){
     return hay.includes(q);
   });
   if(sorted.length===0){
-    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีประวัติ</div><div class="iv-empty-sub">รายการทั้งหมดจะแสดงที่นี่</div></div>`;
+    list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_history_title')}</div><div class="iv-empty-sub">${t('empty_no_history_sub')}</div></div>`;
     return;
   }
   list.innerHTML = sorted.map(txHtml).join('');
@@ -2738,7 +3184,7 @@ function renderAll(){
 }
 
 function exportToExcel(){
-  if(items.length===0){ showToast('ยังไม่มีข้อมูลให้สำรอง'); return; }
+  if(items.length===0){ showToast(t('toast_no_data_to_backup')); return; }
 
   const itemRows = items.map(it=>{
     const hand = onHand(it.id);
