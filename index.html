@@ -158,9 +158,13 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-item-code{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.02em;}
 .iv-scroll-list{max-height:360px;overflow-y:auto;padding-right:6px;margin-right:-6px;}
 
-.iv-detail-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.iv-detail-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;}
 .iv-detail-card.reserve{border-left-color:var(--reserve);}
 .iv-detail-card.borrow{border-left-color:var(--borrow);}
+.iv-detail-card.group{padding-top:30px;}
+.iv-group-badge{position:absolute;top:10px;right:14px;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--reserve);background:var(--reserve-soft);padding:3px 8px;border-radius:4px;}
+.iv-group-line{padding:10px 0;border-top:1px dashed var(--border);}
+.iv-group-line:first-of-type{border-top:none;padding-top:0;}
 .iv-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
 .iv-detail-item-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14.5px;color:var(--ink);}
 .iv-detail-item-name{font-size:13.5px;color:var(--ink-soft);margin-top:2px;}
@@ -1107,7 +1111,24 @@ const I18N = {
   note_reservation_released: 'ยกเลิกการจอง',
   toast_reservation_released: 'ยกเลิกรายการจองแล้ว',
   note_returned_from: 'รับคืนจาก ',
-  toast_returned: 'รับคืน {qty} {unit} จาก {borrower} แล้ว'
+  toast_returned: 'รับคืน {qty} {unit} จาก {borrower} แล้ว',
+  btn_save_edit: 'บันทึกการแก้ไข',
+  btn_cancel: 'ยกเลิก',
+  btn_fulfill: 'ตัดนำออก',
+  btn_release_reservation: 'ยกเลิกจอง',
+  btn_close_edit: 'ปิดฟอร์มแก้ไข',
+  btn_edit: 'แก้ไข',
+  title_backorder: 'สต๊อกไม่พอ ยังรอสินค้าเข้า',
+  tag_backorder: 'รอสินค้าเข้า',
+  lbl_reserved_on: 'จองเมื่อ',
+  word_items: 'รายการ',
+  empty_no_reservations_title: 'ไม่มีรายการจอง',
+  empty_no_reservations_sub: 'จองสต๊อกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"',
+  empty_no_borrows_title: 'ไม่มีของค้างยืม',
+  lbl_due_date_plain: 'กำหนดคืน',
+  toast_qty_must_be_positive: 'จำนวนต้องมากกว่า 0',
+  toast_reservation_edited: 'แก้ไขรายการจองแล้ว',
+  toast_borrow_edited: 'แก้ไขรายการยืมแล้ว'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1307,7 +1328,24 @@ const I18N = {
   note_reservation_released: 'Reservation released',
   toast_reservation_released: 'Reservation released',
   note_returned_from: 'Returned from ',
-  toast_returned: 'Returned {qty} {unit} from {borrower}'
+  toast_returned: 'Returned {qty} {unit} from {borrower}',
+  btn_save_edit: 'Save Changes',
+  btn_cancel: 'Cancel',
+  btn_fulfill: 'Fulfill',
+  btn_release_reservation: 'Release',
+  btn_close_edit: 'Close Edit',
+  btn_edit: 'Edit',
+  title_backorder: 'Not enough stock — still waiting for items to arrive',
+  tag_backorder: 'Backorder',
+  lbl_reserved_on: 'Reserved On',
+  word_items: 'items',
+  empty_no_reservations_title: 'No reservations',
+  empty_no_reservations_sub: 'Reserve stock from the "IN/OUT" tab',
+  empty_no_borrows_title: 'No outstanding borrows',
+  lbl_due_date_plain: 'Due Date',
+  toast_qty_must_be_positive: 'Quantity must be greater than 0',
+  toast_reservation_edited: 'Reservation updated',
+  toast_borrow_edited: 'Borrow updated'
 }
 };
 function t(key, vars){
@@ -1607,8 +1645,8 @@ function setInSubMode(sub){
 function populateItemSelect(){
   const hidden = document.getElementById('txItemSelect');
   const pool = activePool();
-  if(!hidden.value || !pool.find(i=>i.id===hidden.value)){
-    hidden.value = pool.length ? pool[0].id : '';
+  if(hidden.value && !pool.find(i=>i.id===hidden.value)){
+    hidden.value = '';
   }
   syncItemSearchDisplay();
   updateTxCurrentQty();
@@ -1700,7 +1738,8 @@ function validateTxForm(){
     return;
   }
   const qty = parseFloat(document.getElementById('txQty').value);
-  let ok = qty > 0;
+  const hasItem = !!document.getElementById('txItemSelect').value;
+  let ok = qty > 0 && hasItem;
   btn.disabled = !ok;
   btn.textContent = t(MODE_META[currentMode].submitKey);
 }
@@ -1859,7 +1898,7 @@ async function submitTransaction(){
   const sel = document.getElementById('txItemSelect');
   const itemId = sel.value;
   const item = items.find(i=>i.id===itemId);
-  if(!item) return;
+  if(!item){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('txQty').value);
   if(!(qty>0)) return;
   const note = document.getElementById('txNote').value.trim();
@@ -2964,7 +3003,7 @@ async function saveReservationEdit(id){
   const r = reservations.find(x=>x.id===id);
   if(!r) return;
   const qty = parseFloat(document.getElementById('editResQty_'+id).value);
-  if(!(qty>0)){ showToast('จำนวนต้องมากกว่า 0'); return; }
+  if(!(qty>0)){ showToast(t('toast_qty_must_be_positive')); return; }
   r.qty = qty;
   r.svso = document.getElementById('editResSvso_'+id).value.trim();
   r.quotation = document.getElementById('editResQuotation_'+id).value.trim();
@@ -2973,7 +3012,7 @@ async function saveReservationEdit(id){
   r.note = document.getElementById('editResNote_'+id).value.trim();
   await saveReservations();
   editingReservationId = null;
-  showToast('แก้ไขรายการจองแล้ว');
+  showToast(t('toast_reservation_edited'));
   renderAll();
 }
 
@@ -2982,7 +3021,7 @@ async function saveBorrowEdit(id){
   const b = borrows.find(x=>x.id===id);
   if(!b) return;
   const qty = parseFloat(document.getElementById('editBorQty_'+id).value);
-  if(!(qty>0)){ showToast('จำนวนต้องมากกว่า 0'); return; }
+  if(!(qty>0)){ showToast(t('toast_qty_must_be_positive')); return; }
   b.qty = qty;
   b.borrower = document.getElementById('editBorBorrower_'+id).value.trim();
   b.borrowDate = document.getElementById('editBorBorrowDate_'+id).value;
@@ -2991,8 +3030,38 @@ async function saveBorrowEdit(id){
   if(b.borrowDate){ b.ts = new Date(b.borrowDate+'T'+new Date(b.ts).toTimeString().slice(0,8)).getTime() || b.ts; }
   await saveBorrows();
   editingBorrowId = null;
-  showToast('แก้ไขรายการยืมแล้ว');
+  showToast(t('toast_borrow_edited'));
   renderAll();
+}
+
+function resFieldsFor(r){
+  const fields = [
+    ['SVSO No.', r.svso], ['Quotation No.', r.quotation],
+    ['Customer', r.customer], [t('lbl_requested_by_reserve'), r.requestedBy],
+  ].filter(([k,v])=>v);
+  return fields;
+}
+
+function resEditForm(r){
+  return `
+    <div class="iv-detail-edit-form">
+      <div class="iv-form-row two">
+        <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editResQty_${r.id}" value="${r.qty}"></div>
+        <div><label class="iv-label">SVSO No.</label><input class="iv-input" type="text" id="editResSvso_${r.id}" value="${r.svso||''}"></div>
+      </div>
+      <div class="iv-form-row two">
+        <div><label class="iv-label">Quotation No.</label><input class="iv-input" type="text" id="editResQuotation_${r.id}" value="${r.quotation||''}"></div>
+        <div><label class="iv-label">Customer Name</label><input class="iv-input" type="text" id="editResCustomer_${r.id}" value="${r.customer||''}"></div>
+      </div>
+      <div class="iv-form-row two">
+        <div><label class="iv-label">${t('lbl_requested_by_reserve')}</label><input class="iv-input" type="text" id="editResRequestedBy_${r.id}" value="${r.requestedBy||''}"></div>
+        <div><label class="iv-label">${t('note_optional')}</label><input class="iv-input" type="text" id="editResNote_${r.id}" value="${r.note||''}"></div>
+      </div>
+      <div class="iv-detail-actions">
+        <button class="iv-btn-sm pos" onclick="saveReservationEdit('${r.id}')">${t('btn_save_edit')}</button>
+        <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">${t('btn_cancel')}</button>
+      </div>
+    </div>`;
 }
 
 function renderPending(){
@@ -3005,60 +3074,70 @@ function renderPending(){
     return hay.includes(q);
   });
   if(activeRes.length===0){
-    rList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีรายการจอง</div><div class="iv-empty-sub">จองสต๊อกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
+    rList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_reservations_title')}</div><div class="iv-empty-sub">${t('empty_no_reservations_sub')}</div></div>`;
   }else{
-    rList.innerHTML = activeRes.map(r=>{
-      const item = findItemRef(r.itemId, r.source);
-      const isExternal = r.source==='external';
-      const isShort = !isExternal && item && availableQty(item.id) < 0;
-      const fields = [
-        ['SVSO No.', r.svso], ['Quotation No.', r.quotation],
-        ['Customer', r.customer], ['ผู้จอง', r.requestedBy],
-      ].filter(([k,v])=>v);
-      if(r.note) fields.push(['หมายเหตุ', r.note]);
-      fields.push(['จองเมื่อ', fmtDate(r.ts)]);
+    // group reservations that share the same SVSO/Quotation/Customer/requester (and have at least one of those filled)
+    // into a single card, so one multi-item reservation batch doesn't repeat the same header 3-4 times.
+    const groups = [];
+    const groupMap = new Map();
+    activeRes.forEach(r=>{
+      const hasSharedInfo = r.svso || r.quotation || r.customer || r.requestedBy;
+      const key = hasSharedInfo ? ['g', r.svso||'', r.quotation||'', r.customer||'', r.requestedBy||''].join('␟') : ('s'+r.id);
+      let g = groupMap.get(key);
+      if(!g){ g = {items:[], maxTs:r.ts}; groupMap.set(key, g); groups.push(g); }
+      g.items.push(r);
+      if(r.ts > g.maxTs) g.maxTs = r.ts;
+    });
+    groups.sort((a,b)=> b.maxTs - a.maxTs);
 
-      const isEditing = editingReservationId===r.id;
-      const editForm = !isEditing ? '' : `
-        <div class="iv-detail-edit-form">
-          <div class="iv-form-row two">
-            <div><label class="iv-label">จำนวน</label><input class="iv-input" type="number" min="1" id="editResQty_${r.id}" value="${r.qty}"></div>
-            <div><label class="iv-label">SVSO No.</label><input class="iv-input" type="text" id="editResSvso_${r.id}" value="${r.svso||''}"></div>
-          </div>
-          <div class="iv-form-row two">
-            <div><label class="iv-label">Quotation No.</label><input class="iv-input" type="text" id="editResQuotation_${r.id}" value="${r.quotation||''}"></div>
-            <div><label class="iv-label">Customer Name</label><input class="iv-input" type="text" id="editResCustomer_${r.id}" value="${r.customer||''}"></div>
-          </div>
-          <div class="iv-form-row two">
-            <div><label class="iv-label">ผู้จอง</label><input class="iv-input" type="text" id="editResRequestedBy_${r.id}" value="${r.requestedBy||''}"></div>
-            <div><label class="iv-label">หมายเหตุ</label><input class="iv-input" type="text" id="editResNote_${r.id}" value="${r.note||''}"></div>
+    rList.innerHTML = groups.map(g=>{
+      const lines = g.items.map(r=>{
+        const item = findItemRef(r.itemId, r.source);
+        const isExternal = r.source==='external';
+        const isShort = !isExternal && item && availableQty(item.id) < 0;
+        const isEditing = editingReservationId===r.id;
+        return `<div class="iv-group-line">
+          <div class="iv-detail-head">
+            <div>
+              <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
+              <div class="iv-detail-item-name">${item?item.name:t('item_deleted')}
+                ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">${t('badge_off_stock')}</span>` : ''}
+                ${isShort ? `<span class="iv-tag warn" style="margin-left:6px;" title="${t('title_backorder')}">⚠ ${t('tag_backorder')}</span>` : ''}
+              </div>
+            </div>
+            <span class="iv-odo reserve">${r.qty} ${item?item.unit:''}</span>
           </div>
           <div class="iv-detail-actions">
-            <button class="iv-btn-sm pos" onclick="saveReservationEdit('${r.id}')">บันทึกการแก้ไข</button>
-            <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">ยกเลิก</button>
+            <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">${t('btn_fulfill')}</button>
+            <button class="iv-btn-sm neg" onclick="releaseReservation('${r.id}')">${t('btn_release_reservation')}</button>
+            <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+          </div>
+          ${isEditing ? resEditForm(r) : ''}
+        </div>`;
+      }).join('');
+
+      if(g.items.length===1){
+        const r = g.items[0];
+        const fields = resFieldsFor(r);
+        if(r.note) fields.push([t('note_optional'), r.note]);
+        fields.push([t('lbl_reserved_on'), fmtDate(r.ts)]);
+        return `<div class="iv-detail-card reserve">
+          ${lines}
+          <div class="iv-detail-grid">
+            ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
           </div>
         </div>`;
+      }
 
-      return `<div class="iv-detail-card reserve">
-        <div class="iv-detail-head">
-          <div>
-            <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
-            <div class="iv-detail-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}
-              ${isExternal ? '<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">นอกสต็อก</span>' : ''}
-              ${isShort ? '<span class="iv-tag warn" style="margin-left:6px;" title="สต๊อกไม่พอ ยังรอสินค้าเข้า">⚠ รอสินค้าเข้า</span>' : ''}
-            </div>
-          </div>
-          <span class="iv-odo reserve">${r.qty} ${item?item.unit:''}</span>
+      const first = g.items[0];
+      const sharedFields = resFieldsFor(first);
+      sharedFields.push([t('lbl_reserved_on'), fmtDate(g.maxTs)]);
+      return `<div class="iv-detail-card reserve group">
+        <div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>
+        <div class="iv-detail-grid" style="margin-bottom:12px;">
+          ${sharedFields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
         </div>
-        <div class="iv-detail-grid">
-          ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-        </div>
-        <div class="iv-detail-actions">
-          <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">ตัดนำออก</button>
-          <button class="iv-btn-sm neg" onclick="releaseReservation('${r.id}')">ยกเลิกจอง</button>
-          <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">${isEditing?'ปิดฟอร์มแก้ไข':'แก้ไข'}</button>
-        </div>
-        ${editForm}
+        ${lines}
       </div>`;
     }).join('');
   }
@@ -3071,36 +3150,36 @@ function renderPending(){
     return hay.includes(q);
   });
   if(activeBorrow.length===0){
-    bList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">ไม่มีของค้างยืม</div><div class="iv-empty-sub">บันทึกการยืมได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"</div></div>`;
+    bList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_borrows_title')}</div><div class="iv-empty-sub">${t('empty_no_reservations_sub')}</div></div>`;
   }else{
     bList.innerHTML = activeBorrow.map(b=>{
       const item = findItemRef(b.itemId, b.source);
       const isExternal = b.source==='external';
       const overdue = isOverdue(b);
       const fields = [
-        ['ผู้ยืม', b.borrower],
-        ['วันที่ยืม', b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)],
-        ['กำหนดคืน', b.dueDate?fmtDay(b.dueDate)+(overdue?' (เกินกำหนด!)':''):'—'],
+        [t('lbl_borrower'), b.borrower],
+        [t('lbl_borrow_date'), b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)],
+        [t('lbl_due_date_plain'), b.dueDate?fmtDay(b.dueDate)+(overdue?' ('+t('tag_overdue')+'!)':''):'—'],
       ];
-      if(b.note) fields.push(['หมายเหตุ', b.note]);
+      if(b.note) fields.push([t('note_optional'), b.note]);
 
       const isEditing = editingBorrowId===b.id;
       const editForm = !isEditing ? '' : `
         <div class="iv-detail-edit-form">
           <div class="iv-form-row two">
-            <div><label class="iv-label">จำนวน</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
-            <div><label class="iv-label">ผู้ยืม</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
+            <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
+            <div><label class="iv-label">${t('lbl_borrower')}</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
           </div>
           <div class="iv-form-row two">
-            <div><label class="iv-label">วันที่ยืม</label><input class="iv-input" type="date" id="editBorBorrowDate_${b.id}" value="${b.borrowDate||''}"></div>
-            <div><label class="iv-label">กำหนดคืน</label><input class="iv-input" type="date" id="editBorDueDate_${b.id}" value="${b.dueDate||''}"></div>
+            <div><label class="iv-label">${t('lbl_borrow_date')}</label><input class="iv-input" type="date" id="editBorBorrowDate_${b.id}" value="${b.borrowDate||''}"></div>
+            <div><label class="iv-label">${t('lbl_due_date_plain')}</label><input class="iv-input" type="date" id="editBorDueDate_${b.id}" value="${b.dueDate||''}"></div>
           </div>
           <div class="iv-form-row">
-            <div><label class="iv-label">หมายเหตุ</label><input class="iv-input" type="text" id="editBorNote_${b.id}" value="${b.note||''}"></div>
+            <div><label class="iv-label">${t('note_optional')}</label><input class="iv-input" type="text" id="editBorNote_${b.id}" value="${b.note||''}"></div>
           </div>
           <div class="iv-detail-actions">
-            <button class="iv-btn-sm pos" onclick="saveBorrowEdit('${b.id}')">บันทึกการแก้ไข</button>
-            <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">ยกเลิก</button>
+            <button class="iv-btn-sm pos" onclick="saveBorrowEdit('${b.id}')">${t('btn_save_edit')}</button>
+            <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">${t('btn_cancel')}</button>
           </div>
         </div>`;
 
@@ -3108,8 +3187,8 @@ function renderPending(){
         <div class="iv-detail-head">
           <div>
             <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
-            <div class="iv-detail-item-name">${item?item.name:'(สินค้าถูกลบแล้ว)'}
-              ${isExternal ? '<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">นอกสต็อก</span>' : ''}
+            <div class="iv-detail-item-name">${item?item.name:t('item_deleted')}
+              ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">${t('badge_off_stock')}</span>` : ''}
             </div>
           </div>
           <span class="iv-odo borrow">${b.qty} ${item?item.unit:''}</span>
@@ -3118,8 +3197,8 @@ function renderPending(){
           ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
         </div>
         <div class="iv-detail-actions">
-          <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">คืนของ</button>
-          <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">${isEditing?'ปิดฟอร์มแก้ไข':'แก้ไข'}</button>
+          <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
+          <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
         </div>
         ${editForm}
       </div>`;
