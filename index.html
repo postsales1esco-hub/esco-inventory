@@ -1799,8 +1799,8 @@ function renderTxCart(){
     if(!item) return '';
     return `<div class="iv-item">
       <div class="iv-item-main">
-        <div class="iv-item-name">${item.name}${c.source==='external' ? ` <span class="iv-badge" style="font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}</div>
         <div class="iv-item-meta">${item.itemNo}</div>
+        <div class="iv-item-name">${item.name}${c.source==='external' ? ` <span class="iv-badge" style="font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="iv-odo sm">${c.qty} ${item.unit}</span>
