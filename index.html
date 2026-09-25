@@ -120,9 +120,12 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-btn.borrow{background:var(--borrow);}
 .iv-btn.neutral{background:var(--ink);}
 .iv-btn:disabled{background:var(--border);color:var(--ink-soft);cursor:not-allowed;}
-.iv-btn-sm{padding:8px 12px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-family:'Archivo',sans-serif;font-weight:700;font-size:11.5px;cursor:pointer;color:var(--ink-soft);white-space:nowrap;}
+.iv-btn-sm{padding:8px 12px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-family:'Archivo',sans-serif;font-weight:700;font-size:11.5px;cursor:pointer;color:var(--ink-soft);white-space:nowrap;transition:filter .1s ease,background .1s ease;}
+.iv-btn-sm.ghost{border-color:transparent;background:transparent;}
+.iv-btn-sm.ghost:hover{background:var(--border);}
 .iv-btn-sm:hover{filter:brightness(0.97);}
-.iv-btn-sm.pos{border-color:var(--in);color:var(--in);}
+.iv-btn-sm.pos{border-color:var(--in);background:var(--in);color:#fff;}
+.iv-btn-sm.pos:hover{filter:brightness(1.07);}
 .iv-btn-sm.neg{border-color:var(--out);color:var(--out);}
 
 /* ---- Odometer-style qty display ---- */
@@ -155,16 +158,36 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-item-main{min-width:0;flex:1;}
 .iv-item-name{font-weight:600;font-size:14px;}
 .iv-item-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:2px;}
+.iv-cart-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14.5px;color:var(--ink);}
+.iv-cart-name{font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.4;}
 .iv-item-code{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.02em;}
 .iv-scroll-list{max-height:360px;overflow-y:auto;padding-right:6px;margin-right:-6px;}
 
-.iv-detail-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;}
+.iv-detail-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:14px;position:relative;box-shadow:0 1px 4px rgba(0,0,0,.05);}
 .iv-detail-card.reserve{border-left-color:var(--reserve);}
 .iv-detail-card.borrow{border-left-color:var(--borrow);}
-.iv-detail-card.group{padding-top:30px;}
-.iv-group-badge{position:absolute;top:10px;right:14px;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--reserve);background:var(--reserve-soft);padding:3px 8px;border-radius:4px;}
-.iv-group-line{padding:10px 0;border-top:1px dashed var(--border);}
-.iv-group-line:first-of-type{border-top:none;padding-top:0;}
+.iv-detail-card.group{padding-top:32px;}
+.iv-group-badge{position:absolute;top:12px;right:16px;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--reserve);background:var(--reserve-soft);padding:4px 9px;border-radius:20px;}
+.iv-res-header{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.iv-res-header-main{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
+.iv-res-header-svso{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--ink);}
+.iv-res-header-customer{font-size:14px;font-weight:700;color:var(--ink);}
+.iv-res-header-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:4px;letter-spacing:.02em;}
+.iv-group-line{padding:11px 12px;border-radius:9px;background:var(--bg);margin-top:8px;}
+.iv-group-line:first-of-type{margin-top:0;}
+.iv-gl-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;}
+.iv-gl-info{flex:1 1 200px;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.iv-gl-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;}
+.iv-gl-name{font-weight:600;font-size:13.5px;}
+.iv-gl-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto;}
+.iv-gl-note{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-top:6px;}
+.iv-btn-xs{padding:7px 11px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;cursor:pointer;color:var(--ink-soft);white-space:nowrap;transition:filter .1s ease,background .1s ease;}
+.iv-btn-xs:hover{filter:brightness(0.97);}
+.iv-btn-xs.pos{border-color:var(--in);background:var(--in);color:#fff;}
+.iv-btn-xs.pos:hover{filter:brightness(1.07);}
+.iv-btn-xs.neg{border-color:var(--out);color:var(--out);background:#fff;}
+.iv-btn-xs.ghost{border-color:transparent;background:transparent;color:var(--ink-soft);padding:7px 8px;}
+.iv-btn-xs.ghost:hover{background:var(--border);filter:none;}
 .iv-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
 .iv-detail-item-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14.5px;color:var(--ink);}
 .iv-detail-item-name{font-size:13.5px;color:var(--ink-soft);margin-top:2px;}
@@ -632,7 +655,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
               <div><label class="iv-label" data-i18n="lbl_initial_qty">จำนวนเริ่มต้น</label><select class="iv-input" id="mapQty"></select></div>
             </div>
             <div class="iv-form-row">
-              <div><label class="iv-label" data-i18n="lbl_reorder_opt">จุดสั่งซื้อ (ไม่บังคับ)</label><select class="iv-input" id="mapReorder"></select></div>
+              <div><label class="iv-label" data-i18n="lbl_reorder_opt">จำนวนขั้นต่ำในสต็อก (ไม่บังคับ)</label><select class="iv-input" id="mapReorder"></select></div>
             </div>
             <div id="importPreviewTable" style="overflow-x:auto;margin:12px 0;"></div>
             <p class="iv-hint" id="importSummaryHint"></p>
@@ -669,7 +692,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
               <input class="iv-input" type="number" min="0" id="newItemQty" placeholder="0">
             </div>
             <div>
-              <label class="iv-label" data-i18n="lbl_reorder_alert">จุดสั่งซื้อ (แจ้งเตือนเมื่อต่ำกว่านี้)</label>
+              <label class="iv-label" data-i18n="lbl_reorder_alert">จำนวนขั้นต่ำในสต็อก (แจ้งเตือนเมื่อสินค้าคงเหลือต่ำกว่าที่กำหนด)</label>
               <input class="iv-input" type="number" min="0" id="newItemReorder" placeholder="0">
             </div>
           </div>
@@ -988,7 +1011,7 @@ const I18N = {
   import_card_title: 'นำเข้าอะไหล่จากไฟล์ (Excel/CSV)',
   lbl_item_name_req: 'ชื่อสินค้า *',
   lbl_initial_qty: 'จำนวนเริ่มต้น',
-  lbl_reorder_opt: 'จุดสั่งซื้อ (ไม่บังคับ)',
+  lbl_reorder_opt: 'จำนวนขั้นต่ำในสต็อก (ไม่บังคับ)',
   btn_import_data: 'นำเข้าข้อมูล',
   addone_card_title: 'เพิ่มสินค้าใหม่ (ทีละรายการ)',
   lbl_itemno_field: 'รหัสสินค้า (Item No.)',
@@ -996,7 +1019,7 @@ const I18N = {
   ph_eg_uom: 'เช่น PC, BOX',
   lbl_item_name: 'ชื่อสินค้า',
   ph_item_name_desc: 'ชื่อ / รายละเอียดสินค้า',
-  lbl_reorder_alert: 'จุดสั่งซื้อ (แจ้งเตือนเมื่อต่ำกว่านี้)',
+  lbl_reorder_alert: 'จำนวนขั้นต่ำในสต็อก (แจ้งเตือนเมื่อสินค้าคงเหลือต่ำกว่าที่กำหนด)',
   ext_panel_hint: 'รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน',
   ext_add_title: 'เพิ่มสินค้านอกสต็อก',
   ext_sub_bulk: 'อัปโหลดจากไฟล์ (หลายรายการ)',
@@ -1205,7 +1228,7 @@ const I18N = {
   import_card_title: 'Import Parts from File (Excel/CSV)',
   lbl_item_name_req: 'Item Name *',
   lbl_initial_qty: 'Initial Quantity',
-  lbl_reorder_opt: 'Reorder Point (optional)',
+  lbl_reorder_opt: 'Minimum Stock Level (optional)',
   btn_import_data: 'Import Data',
   addone_card_title: 'Add New Item (One at a Time)',
   lbl_itemno_field: 'Item No.',
@@ -1213,7 +1236,7 @@ const I18N = {
   ph_eg_uom: 'e.g. PC, BOX',
   lbl_item_name: 'Item Name',
   ph_item_name_desc: 'Item name / description',
-  lbl_reorder_alert: 'Reorder Point (alert when below this)',
+  lbl_reorder_alert: 'Minimum Stock Level (alerts when remaining stock falls below this)',
   ext_panel_hint: 'Items not yet in the main stock system (real data will be added separately later). Use them to "Reserve" or "Borrow" just like normal items — the system tracks remaining quantity and blocks over-reserving/borrowing here too',
   ext_add_title: 'Add Off-Stock Item',
   ext_sub_bulk: 'Upload from File (Multiple Items)',
@@ -1799,8 +1822,8 @@ function renderTxCart(){
     if(!item) return '';
     return `<div class="iv-item">
       <div class="iv-item-main">
-        <div class="iv-item-meta">${item.itemNo}</div>
-        <div class="iv-item-name">${item.name}${c.source==='external' ? ` <span class="iv-badge" style="font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}</div>
+        <div class="iv-cart-code">${item.itemNo}</div>
+        <div class="iv-cart-name">${item.name}${c.source==='external' ? ` <span class="iv-badge" style="font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="iv-odo sm">${c.qty} ${item.unit}</span>
@@ -3034,12 +3057,43 @@ async function saveBorrowEdit(id){
   renderAll();
 }
 
-function resFieldsFor(r){
-  const fields = [
-    ['SVSO No.', r.svso], ['Quotation No.', r.quotation],
-    ['Customer', r.customer], [t('lbl_requested_by_reserve'), r.requestedBy],
-  ].filter(([k,v])=>v);
-  return fields;
+function resHeaderHtml(r, count, latestTs){
+  const subParts = [];
+  if(r.quotation) subParts.push('Quotation: '+r.quotation);
+  if(r.requestedBy) subParts.push(t('lbl_requested_by_reserve')+': '+r.requestedBy);
+  subParts.push(t('lbl_reserved_on')+' '+fmtDate(latestTs));
+  return `<div class="iv-res-header">
+    <div class="iv-res-header-main">
+      ${r.svso ? `<span class="iv-res-header-svso">${r.svso}</span>` : ''}
+      ${r.customer ? `<span class="iv-res-header-customer">${r.customer}</span>` : ''}
+    </div>
+    <div class="iv-res-header-sub">${subParts.join(' · ')}</div>
+  </div>`;
+}
+
+function resLineHtml(r){
+  const item = findItemRef(r.itemId, r.source);
+  const isExternal = r.source==='external';
+  const isShort = !isExternal && item && availableQty(item.id) < 0;
+  const isEditing = editingReservationId===r.id;
+  return `<div class="iv-group-line">
+    <div class="iv-gl-row">
+      <div class="iv-gl-info">
+        <span class="iv-gl-code">${item?item.itemNo:''}</span>
+        <span class="iv-gl-name">${item?item.name:t('item_deleted')}</span>
+        ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);">${t('badge_off_stock')}</span>` : ''}
+        ${isShort ? `<span class="iv-tag warn" title="${t('title_backorder')}">⚠ ${t('tag_backorder')}</span>` : ''}
+      </div>
+      <div class="iv-gl-right">
+        <span class="iv-odo reserve sm">${r.qty} ${item?item.unit:''}</span>
+        <button class="iv-btn-xs pos" onclick="fulfillReservation('${r.id}')">${t('btn_fulfill')}</button>
+        <button class="iv-btn-xs neg" onclick="releaseReservation('${r.id}')">${t('btn_release_reservation')}</button>
+        <button class="iv-btn-xs ghost" onclick="toggleEditReservation('${r.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+      </div>
+    </div>
+    ${r.note ? `<div class="iv-gl-note">${r.note}</div>` : ''}
+    ${isEditing ? resEditForm(r) : ''}
+  </div>`;
 }
 
 function resEditForm(r){
@@ -3059,7 +3113,7 @@ function resEditForm(r){
       </div>
       <div class="iv-detail-actions">
         <button class="iv-btn-sm pos" onclick="saveReservationEdit('${r.id}')">${t('btn_save_edit')}</button>
-        <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">${t('btn_cancel')}</button>
+        <button class="iv-btn-sm ghost" onclick="toggleEditReservation('${r.id}')">${t('btn_cancel')}</button>
       </div>
     </div>`;
 }
@@ -3091,52 +3145,14 @@ function renderPending(){
     groups.sort((a,b)=> b.maxTs - a.maxTs);
 
     rList.innerHTML = groups.map(g=>{
-      const lines = g.items.map(r=>{
-        const item = findItemRef(r.itemId, r.source);
-        const isExternal = r.source==='external';
-        const isShort = !isExternal && item && availableQty(item.id) < 0;
-        const isEditing = editingReservationId===r.id;
-        return `<div class="iv-group-line">
-          <div class="iv-detail-head">
-            <div>
-              <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
-              <div class="iv-detail-item-name">${item?item.name:t('item_deleted')}
-                ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">${t('badge_off_stock')}</span>` : ''}
-                ${isShort ? `<span class="iv-tag warn" style="margin-left:6px;" title="${t('title_backorder')}">⚠ ${t('tag_backorder')}</span>` : ''}
-              </div>
-            </div>
-            <span class="iv-odo reserve">${r.qty} ${item?item.unit:''}</span>
-          </div>
-          <div class="iv-detail-actions">
-            <button class="iv-btn-sm pos" onclick="fulfillReservation('${r.id}')">${t('btn_fulfill')}</button>
-            <button class="iv-btn-sm neg" onclick="releaseReservation('${r.id}')">${t('btn_release_reservation')}</button>
-            <button class="iv-btn-sm" onclick="toggleEditReservation('${r.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
-          </div>
-          ${isEditing ? resEditForm(r) : ''}
-        </div>`;
-      }).join('');
-
-      if(g.items.length===1){
-        const r = g.items[0];
-        const fields = resFieldsFor(r);
-        if(r.note) fields.push([t('note_optional'), r.note]);
-        fields.push([t('lbl_reserved_on'), fmtDate(r.ts)]);
-        return `<div class="iv-detail-card reserve">
-          ${lines}
-          <div class="iv-detail-grid">
-            ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-          </div>
-        </div>`;
-      }
-
       const first = g.items[0];
-      const sharedFields = resFieldsFor(first);
-      sharedFields.push([t('lbl_reserved_on'), fmtDate(g.maxTs)]);
-      return `<div class="iv-detail-card reserve group">
-        <div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>
-        <div class="iv-detail-grid" style="margin-bottom:12px;">
-          ${sharedFields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-        </div>
+      const hasSharedInfo = first.svso || first.quotation || first.customer || first.requestedBy;
+      const lines = g.items.map(resLineHtml).join('');
+      const header = hasSharedInfo ? resHeaderHtml(first, g.items.length, g.maxTs) : '';
+      const cls = g.items.length>1 ? 'iv-detail-card reserve group' : 'iv-detail-card reserve';
+      return `<div class="${cls}">
+        ${g.items.length>1 ? `<div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>` : ''}
+        ${header}
         ${lines}
       </div>`;
     }).join('');
@@ -3179,7 +3195,7 @@ function renderPending(){
           </div>
           <div class="iv-detail-actions">
             <button class="iv-btn-sm pos" onclick="saveBorrowEdit('${b.id}')">${t('btn_save_edit')}</button>
-            <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">${t('btn_cancel')}</button>
+            <button class="iv-btn-sm ghost" onclick="toggleEditBorrow('${b.id}')">${t('btn_cancel')}</button>
           </div>
         </div>`;
 
@@ -3198,7 +3214,7 @@ function renderPending(){
         </div>
         <div class="iv-detail-actions">
           <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
-          <button class="iv-btn-sm" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+          <button class="iv-btn-sm ghost" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
         </div>
         ${editForm}
       </div>`;
