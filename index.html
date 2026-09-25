@@ -392,6 +392,12 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
         </div>
         <div class="iv-hint" id="modeHint">รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที</div>
 
+        <div class="iv-form-row two iv-hide" id="inTargetToggle" style="margin-top:-4px;">
+          <div class="iv-toggle-btn sel-in" id="btnInTargetStock" onclick="setInTargetType('stock')">📦 <span data-i18n="target_stock">สต็อกปกติ</span></div>
+          <div class="iv-toggle-btn" id="btnInTargetExternal" onclick="setInTargetType('external')">🏷️ <span data-i18n="target_external">นอกสต็อก</span></div>
+        </div>
+        <p class="iv-hint iv-hide" id="inTargetExternalHint" data-i18n="in_target_external_hint">รับเข้าเป็นสินค้านอกสต็อก — ต้องเป็นรหัสที่มีอยู่ในรายการนอกสต็อกแล้วเท่านั้น (เพิ่มรายการใหม่ได้ที่แท็บ "นำเข้า")</p>
+
         <div class="iv-form-row two iv-hide" id="inSubModeToggle">
           <div class="iv-toggle-btn sel-in" id="btnInSingle" onclick="setInSubMode('single')" data-i18n="in_sub_single">กรอกทีละรายการ</div>
           <div class="iv-toggle-btn" id="btnInBulk" onclick="setInSubMode('bulk')">📄 <span data-i18n="in_sub_bulk">รับเข้าจากไฟล์ (หลายรายการ)</span></div>
@@ -614,6 +620,17 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <!-- ============ IMPORT / ADD ITEM ============ -->
     <div class="iv-panel" id="panel-import">
+      <div class="iv-card" style="padding-bottom:16px;">
+        <p class="iv-card-title" style="margin-bottom:10px;" data-i18n="import_target_label">นำเข้า/เพิ่มสินค้าไปที่</p>
+        <div class="iv-toggle" style="margin-bottom:2px;">
+          <div class="iv-toggle-btn sel-in" id="btnImportTargetStock" onclick="setImportTarget('stock')">📦 <span data-i18n="target_stock">สต็อกปกติ</span></div>
+          <div class="iv-toggle-btn" id="btnImportTargetExternal" onclick="setImportTarget('external')">🏷️ <span data-i18n="target_external">นอกสต็อก</span></div>
+        </div>
+        <p class="iv-hint" id="importTargetHintStock" style="margin-bottom:0;" data-i18n="import_target_hint_stock">สินค้าในคลังหลักที่ระบบติดตามยอดรับ/นำออกแบบเต็มรูปแบบ (รับเข้า, นำออก, จอง, ยืม)</p>
+        <p class="iv-hint iv-hide" id="importTargetHintExternal" style="margin-bottom:0;" data-i18n="import_target_hint_external">สินค้าที่ยังไม่มีในระบบสต็อกหลัก ใช้สำหรับ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ แต่ไม่มีการรับเข้า/นำออกแบบสต็อกจริง</p>
+      </div>
+
+      <div id="importTargetStockSection">
       <div class="iv-card">
         <div class="iv-add-toggle" onclick="toggleImport()">
           <p class="iv-card-title" style="margin:0;" data-i18n="import_card_title">นำเข้าอะไหล่จากไฟล์ (Excel/CSV)</p>
@@ -699,12 +716,9 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <button class="iv-btn neutral" onclick="addItem()" data-i18n="btn_add_item">เพิ่มสินค้า</button>
         </div>
       </div>
-    </div>
+      </div>
 
-    <!-- ============ EXTERNAL / OFF-STOCK ITEMS ============ -->
-    <div class="iv-panel" id="panel-external">
-      <p class="iv-hint" style="margin-bottom:12px;" data-i18n="ext_panel_hint">รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน</p>
-
+      <div id="importTargetExternalSection" class="iv-hide">
       <div class="iv-card">
         <p class="iv-card-title" data-i18n="ext_add_title">เพิ่มสินค้านอกสต็อก</p>
 
@@ -782,9 +796,18 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           </div>
         </div>
       </div>
+      </div>
+    </div>
+
+    <!-- ============ EXTERNAL / OFF-STOCK ITEMS (list & manage) ============ -->
+    <div class="iv-panel" id="panel-external">
+      <p class="iv-hint" style="margin-bottom:12px;" data-i18n="ext_panel_hint">รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน · เพิ่มสินค้านอกสต็อกใหม่ได้ที่แท็บ "นำเข้า"</p>
 
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="ext_list_title">รายการสินค้านอกสต็อกทั้งหมด</p>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;">
+          <p class="iv-card-title" style="margin:0;" data-i18n="ext_list_title">รายการสินค้านอกสต็อกทั้งหมด</p>
+          <button class="iv-btn-sm" onclick="goToImportTarget('external')">+ <span data-i18n="btn_add_ext_item">เพิ่มสินค้านอกสต็อก</span></button>
+        </div>
         <input class="iv-input iv-search" type="text" id="extItemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderExternalItems()" data-i18n-ph="ph_item_search_plain">
         <div class="iv-table-wrap">
           <table class="iv-item-table">
@@ -972,6 +995,8 @@ const I18N = {
   mode_borrow: 'ยืม',
   in_sub_single: 'กรอกทีละรายการ',
   in_sub_bulk: 'รับเข้าจากไฟล์ (หลายรายการ)',
+  in_target_external_hint: 'รับเข้าเป็นสินค้านอกสต็อก — ต้องเป็นรหัสที่มีอยู่ในรายการนอกสต็อกแล้วเท่านั้น (เพิ่มรายการใหม่ได้ที่แท็บ "นำเข้า")',
+  ph_item_search_ext_only: 'พิมพ์รหัสหรือชื่อสินค้านอกสต็อกเพื่อค้นหา...',
   lbl_item: 'สินค้า',
   lbl_qty: 'จำนวน',
   cart_add_line: 'เพิ่มรายการนี้ลงตะกร้า',
@@ -1008,6 +1033,11 @@ const I18N = {
   ph_item_search_plain: 'ค้นหาด้วยรหัสหรือชื่อสินค้า...',
   btn_add_item: 'เพิ่มสินค้า',
   th_description: 'Description',
+  import_target_label: 'นำเข้า/เพิ่มสินค้าไปที่',
+  target_stock: 'สต็อกปกติ',
+  target_external: 'นอกสต็อก',
+  import_target_hint_stock: 'สินค้าในคลังหลักที่ระบบติดตามยอดรับ/นำออกแบบเต็มรูปแบบ (รับเข้า, นำออก, จอง, ยืม)',
+  import_target_hint_external: 'สินค้าที่ยังไม่มีในระบบสต็อกหลัก ใช้สำหรับ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ แต่ไม่มีการรับเข้า/นำออกแบบสต็อกจริง',
   import_card_title: 'นำเข้าอะไหล่จากไฟล์ (Excel/CSV)',
   lbl_item_name_req: 'ชื่อสินค้า *',
   lbl_initial_qty: 'จำนวนเริ่มต้น',
@@ -1189,6 +1219,8 @@ const I18N = {
   mode_borrow: 'Borrow',
   in_sub_single: 'Enter one at a time',
   in_sub_bulk: 'Receive from file (multiple items)',
+  in_target_external_hint: 'Receiving into an off-stock item — the code must already exist in the off-stock list (add new ones from the "Import" tab)',
+  ph_item_search_ext_only: 'Type an off-stock item code or name to search...',
   lbl_item: 'Item',
   lbl_qty: 'Quantity',
   cart_add_line: 'Add This Line to Cart',
@@ -1225,6 +1257,11 @@ const I18N = {
   ph_item_search_plain: 'Search by item code or name...',
   btn_add_item: 'Add Item',
   th_description: 'Description',
+  import_target_label: 'Import / Add Item To',
+  target_stock: 'Normal Stock',
+  target_external: 'Off-Stock',
+  import_target_hint_stock: 'Main stock items the system tracks in full — receive in, take out, reserve and borrow',
+  import_target_hint_external: 'Items not yet in the main stock system. Usable for "Reserve" or "Borrow" like normal items, but with no real stock in/out tracking',
   import_card_title: 'Import Parts from File (Excel/CSV)',
   lbl_item_name_req: 'Item Name *',
   lbl_initial_qty: 'Initial Quantity',
@@ -1425,8 +1462,11 @@ function findItemRef(itemId, source){
   return source==='external' ? externalItems.find(i=>i.id===itemId) : items.find(i=>i.id===itemId);
 }
 // which item pool the transaction form is currently working against
+let inTargetType = 'stock'; // destination for IN mode: 'stock' (normal) or 'external' (off-stock catalog)
 function activePool(){
-  return ['RESERVE','BORROW'].includes(currentMode) ? [...items, ...externalItems] : items;
+  if(['RESERVE','BORROW'].includes(currentMode)) return [...items, ...externalItems];
+  if(currentMode==='IN' && inTargetType==='external') return externalItems;
+  return items;
 }
 function isExternalItemId(itemId){
   return externalItems.some(i=>i.id===itemId);
@@ -1510,6 +1550,7 @@ async function loadData(){
   }
   applyI18n();
   setMode(currentMode);
+  setImportTarget(importTarget);
   renderAll();
   showLoadErrorBanner(loadErrors);
 }
@@ -1649,8 +1690,9 @@ function setMode(mode){
     document.getElementById('txInDate').value = new Date().toISOString().slice(0,10);
   }
   document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? t('note_optional_cart') : (mode==='BORROW' ? t('note_optional_cart') : t('note_optional'));
-  document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
+  document.getElementById('inTargetToggle').classList.toggle('iv-hide', mode!=='IN');
   if(mode!=='IN') setInSubMode('single');
+  if(mode==='IN') setInTargetType('stock'); else { inTargetType='stock'; document.getElementById('inSubModeToggle').classList.add('iv-hide'); }
   populateItemSelect();
   renderTxCart();
   updateTxCurrentQty();
@@ -1663,6 +1705,21 @@ function setInSubMode(sub){
   document.getElementById('btnInBulk').classList.toggle('sel-in', sub==='bulk');
   document.getElementById('singleEntrySection').classList.toggle('iv-hide', sub!=='single');
   document.getElementById('bulkReceiveSection').classList.toggle('iv-hide', sub!=='bulk');
+}
+
+// destination for IN mode (รับเข้า): normal stock item vs an existing off-stock catalog item
+function setInTargetType(target){
+  inTargetType = target;
+  document.getElementById('btnInTargetStock').classList.toggle('sel-in', target==='stock');
+  document.getElementById('btnInTargetExternal').classList.toggle('sel-in', target==='external');
+  document.getElementById('inTargetExternalHint').classList.toggle('iv-hide', target!=='external');
+  // bulk-file receiving only applies to normal stock; force single entry for off-stock
+  document.getElementById('inSubModeToggle').classList.toggle('iv-hide', target==='external');
+  if(target==='external') setInSubMode('single');
+  document.getElementById('txItemSelect').value = '';
+  document.getElementById('txItemSearchInput').value = '';
+  populateItemSelect();
+  validateTxForm();
 }
 
 function populateItemSelect(){
@@ -1680,7 +1737,8 @@ function syncItemSearchDisplay(){
   const item = activePool().find(i=>i.id===hidden.value);
   const input = document.getElementById('txItemSearchInput');
   input.value = item ? `${item.itemNo} — ${item.name}` : '';
-  input.placeholder = ['RESERVE','BORROW'].includes(currentMode) ? t('ph_item_search_wide') : t('ph_item_search');
+  input.placeholder = ['RESERVE','BORROW'].includes(currentMode) ? t('ph_item_search_wide')
+    : (currentMode==='IN' && inTargetType==='external') ? t('ph_item_search_ext_only') : t('ph_item_search');
 }
 
 function filterItemOptions(){
@@ -1920,7 +1978,8 @@ async function submitTransaction(){
   }
   const sel = document.getElementById('txItemSelect');
   const itemId = sel.value;
-  const item = items.find(i=>i.id===itemId);
+  const isExtTarget = currentMode==='IN' && inTargetType==='external';
+  const item = isExtTarget ? externalItems.find(i=>i.id===itemId) : items.find(i=>i.id===itemId);
   if(!item){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('txQty').value);
   if(!(qty>0)) return;
@@ -1938,8 +1997,14 @@ async function submitTransaction(){
     const dateInput = document.getElementById('txInDate').value;
     const customer = document.getElementById('txInCustomer').value.trim();
     const ts = dateInput ? (new Date(dateInput+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now()) : Date.now();
-    const composedNote = [customer ? t('note_prefix_customer_ref')+customer : '', note].filter(Boolean).join(' · ');
-    ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts});
+    const composedNote = [customer ? t('note_prefix_customer_ref')+customer : '', isExtTarget ? t('note_off_stock_item') : '', note].filter(Boolean).join(' · ');
+    if(isExtTarget){
+      item.qty = (item.qty||0) + qty;
+      await saveExternalItems();
+      ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts, source:'external'});
+    }else{
+      ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts});
+    }
     await saveLedger();
     showToast(t('toast_received', {qty, unit:item.unit}));
     document.getElementById('txInCustomer').value='';
@@ -3363,6 +3428,24 @@ function exportToExcel(){
 function goToTab(tabName){
   document.querySelectorAll('.iv-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tabName));
   document.querySelectorAll('.iv-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tabName));
+}
+
+// jump to the Import tab with a specific destination (stock / external) already selected
+function goToImportTarget(target){
+  goToTab('import');
+  setImportTarget(target);
+}
+
+// destination toggle inside the Import tab: normal stock vs off-stock catalog
+let importTarget = 'stock';
+function setImportTarget(target){
+  importTarget = target;
+  document.getElementById('btnImportTargetStock').classList.toggle('sel-in', target==='stock');
+  document.getElementById('btnImportTargetExternal').classList.toggle('sel-in', target==='external');
+  document.getElementById('importTargetStockSection').classList.toggle('iv-hide', target!=='stock');
+  document.getElementById('importTargetExternalSection').classList.toggle('iv-hide', target!=='external');
+  document.getElementById('importTargetHintStock').classList.toggle('iv-hide', target!=='stock');
+  document.getElementById('importTargetHintExternal').classList.toggle('iv-hide', target!=='external');
 }
 
 document.querySelectorAll('.iv-tab').forEach(tab=>{
