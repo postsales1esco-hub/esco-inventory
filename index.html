@@ -309,7 +309,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <div class="iv-header">
       <div>
         <p class="iv-title">Esco Inventory Stock</p>
-        <p class="iv-sub" id="ivDateLine">— IN OUT RESERVED BORROW —</p>
+        <p class="iv-sub" id="ivDateLine">— IN · OUT · RESERVED · BORROW —</p>
       </div>
       <div class="iv-header-right">
         <div class="iv-badge" id="ivSyncBadge">SYNCED</div>
@@ -321,9 +321,9 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <div class="iv-tabs-outer"><div class="iv-tabs">
       <div class="iv-tab active" data-tab="items"><span class="iv-tab-ic">📦</span><span data-i18n="tab_items">สินค้า</span></div>
       <div class="iv-tab" data-tab="dash"><span class="iv-tab-ic">📊</span><span data-i18n="tab_dash">ภาพรวม</span></div>
-      <div class="iv-tab" data-tab="move"><span class="iv-tab-ic">🔄</span><span data-i18n="tab_move">รับเข้า-นำออก</span></div>
+      <div class="iv-tab" data-tab="move"><span class="iv-tab-ic">🔄</span><span data-i18n="tab_move">รับ-จ่าย</span></div>
       <div class="iv-tab" data-tab="pending"><span class="iv-tab-ic">📌</span><span data-i18n="tab_pending">จอง/ยืม</span></div>
-      <div class="iv-tab" data-tab="import"><span class="iv-tab-ic">📥</span><span data-i18n="tab_import">อัปโหลดข้อมูล</span></div>
+      <div class="iv-tab" data-tab="import"><span class="iv-tab-ic">📥</span><span data-i18n="tab_import">นำเข้า</span></div>
       <div class="iv-tab" data-tab="external"><span class="iv-tab-ic">🏷️</span><span data-i18n="tab_external">นอกสต็อก</span></div>
       <div class="iv-tab" data-tab="recount"><span class="iv-tab-ic">🔢</span><span data-i18n="tab_recount">นับสต็อก</span></div>
       <div class="iv-tab" data-tab="history"><span class="iv-tab-ic">🕘</span><span data-i18n="tab_history">ประวัติ</span></div>
@@ -391,12 +391,6 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-toggle-btn" id="btnModeBorrow" onclick="setMode('BORROW')">↷ <span data-i18n="mode_borrow">ยืม</span></div>
         </div>
         <div class="iv-hint" id="modeHint">รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที</div>
-
-        <div class="iv-form-row two iv-hide" id="inTargetToggle" style="margin-top:-4px;">
-          <div class="iv-toggle-btn sel-in" id="btnInTargetStock" onclick="setInTargetType('stock')">📦 <span data-i18n="target_stock">สต็อกปกติ</span></div>
-          <div class="iv-toggle-btn" id="btnInTargetExternal" onclick="setInTargetType('external')">🏷️ <span data-i18n="target_external">นอกสต็อก</span></div>
-        </div>
-        <p class="iv-hint iv-hide" id="inTargetExternalHint" data-i18n="in_target_external_hint">รับเข้าเป็นสินค้านอกสต็อก — ต้องเป็นรหัสที่มีอยู่ในรายการนอกสต็อกแล้วเท่านั้น (เพิ่มรายการใหม่ได้ที่แท็บ "นำเข้า")</p>
 
         <div class="iv-form-row two iv-hide" id="inSubModeToggle">
           <div class="iv-toggle-btn sel-in" id="btnInSingle" onclick="setInSubMode('single')" data-i18n="in_sub_single">กรอกทีละรายการ</div>
@@ -620,17 +614,6 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <!-- ============ IMPORT / ADD ITEM ============ -->
     <div class="iv-panel" id="panel-import">
-      <div class="iv-card" style="padding-bottom:16px;">
-        <p class="iv-card-title" style="margin-bottom:10px;" data-i18n="import_target_label">นำเข้า/เพิ่มสินค้าไปที่</p>
-        <div class="iv-toggle" style="margin-bottom:2px;">
-          <div class="iv-toggle-btn sel-in" id="btnImportTargetStock" onclick="setImportTarget('stock')">📦 <span data-i18n="target_stock">สต็อกปกติ</span></div>
-          <div class="iv-toggle-btn" id="btnImportTargetExternal" onclick="setImportTarget('external')">🏷️ <span data-i18n="target_external">นอกสต็อก</span></div>
-        </div>
-        <p class="iv-hint" id="importTargetHintStock" style="margin-bottom:0;" data-i18n="import_target_hint_stock">สินค้าในคลังหลักที่ระบบติดตามยอดรับ/นำออกแบบเต็มรูปแบบ (รับเข้า, นำออก, จอง, ยืม)</p>
-        <p class="iv-hint iv-hide" id="importTargetHintExternal" style="margin-bottom:0;" data-i18n="import_target_hint_external">สินค้าที่ยังไม่มีในระบบสต็อกหลัก ใช้สำหรับ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ แต่ไม่มีการรับเข้า/นำออกแบบสต็อกจริง</p>
-      </div>
-
-      <div id="importTargetStockSection">
       <div class="iv-card">
         <div class="iv-add-toggle" onclick="toggleImport()">
           <p class="iv-card-title" style="margin:0;" data-i18n="import_card_title">นำเข้าอะไหล่จากไฟล์ (Excel/CSV)</p>
@@ -716,9 +699,12 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <button class="iv-btn neutral" onclick="addItem()" data-i18n="btn_add_item">เพิ่มสินค้า</button>
         </div>
       </div>
-      </div>
+    </div>
 
-      <div id="importTargetExternalSection" class="iv-hide">
+    <!-- ============ EXTERNAL / OFF-STOCK ITEMS ============ -->
+    <div class="iv-panel" id="panel-external">
+      <p class="iv-hint" style="margin-bottom:12px;" data-i18n="ext_panel_hint">รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน</p>
+
       <div class="iv-card">
         <p class="iv-card-title" data-i18n="ext_add_title">เพิ่มสินค้านอกสต็อก</p>
 
@@ -796,18 +782,9 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           </div>
         </div>
       </div>
-      </div>
-    </div>
-
-    <!-- ============ EXTERNAL / OFF-STOCK ITEMS (list & manage) ============ -->
-    <div class="iv-panel" id="panel-external">
-      <p class="iv-hint" style="margin-bottom:12px;" data-i18n="ext_panel_hint">รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน · เพิ่มสินค้านอกสต็อกใหม่ได้ที่แท็บ "นำเข้า"</p>
 
       <div class="iv-card">
-        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;">
-          <p class="iv-card-title" style="margin:0;" data-i18n="ext_list_title">รายการสินค้านอกสต็อกทั้งหมด</p>
-          <button class="iv-btn-sm" onclick="goToImportTarget('external')">+ <span data-i18n="btn_add_ext_item">เพิ่มสินค้านอกสต็อก</span></button>
-        </div>
+        <p class="iv-card-title" data-i18n="ext_list_title">รายการสินค้านอกสต็อกทั้งหมด</p>
         <input class="iv-input iv-search" type="text" id="extItemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderExternalItems()" data-i18n-ph="ph_item_search_plain">
         <div class="iv-table-wrap">
           <table class="iv-item-table">
@@ -880,8 +857,15 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <!-- ============ HISTORY ============ -->
     <div class="iv-panel" id="panel-history">
-      <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="renderHistory()" data-i18n-ph="ph_history_search">
+      <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="onHistoryFilterChange()" data-i18n-ph="ph_history_search">
+      <div class="iv-form-row two" style="margin-bottom:12px;">
+        <div><label class="iv-label" data-i18n="lbl_history_from">ตั้งแต่วันที่</label><input class="iv-input" type="date" id="txDateFrom" onchange="onHistoryFilterChange()"></div>
+        <div><label class="iv-label" data-i18n="lbl_history_to">ถึงวันที่</label><input class="iv-input" type="date" id="txDateTo" onchange="onHistoryFilterChange()"></div>
+      </div>
       <div class="iv-tx-list" id="fullTxList"></div>
+      <div id="historyLoadMoreWrap" class="iv-hide" style="text-align:center;margin-top:6px;">
+        <button class="iv-btn-sm" onclick="loadMoreHistory()" id="historyLoadMoreBtn"></button>
+      </div>
     </div>
 
     <!-- ============ SETTINGS ============ -->
@@ -890,6 +874,19 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
         <p class="iv-card-title" data-i18n="settings_backup_title">สำรองข้อมูล</p>
         <p class="iv-hint" style="margin-bottom:12px;" data-i18n="settings_backup_hint">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
         <button class="iv-btn neutral" onclick="exportToExcel()" data-i18n="btn_download_backup">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title" data-i18n="settings_archive_title">เก็บถาวรข้อมูลเก่า</p>
+        <p class="iv-hint" style="margin-bottom:12px;" data-i18n="settings_archive_hint">ข้อมูลยิ่งเยอะ แอปยิ่งโหลด/บันทึกช้าลง — เลือกวันที่แล้วระบบจะดาวน์โหลดประวัติ/รายการจอง-ยืมที่เสร็จสิ้นแล้วซึ่งเก่ากว่าวันนั้นเป็นไฟล์ Excel ให้ก่อน แล้วค่อยลบออกจากระบบที่ใช้งานจริง (รายการจองที่ยังค้างอยู่และของที่ยังไม่คืนจะไม่ถูกลบ)</p>
+        <div class="iv-form-row">
+          <div>
+            <label class="iv-label" data-i18n="lbl_archive_before">เก็บถาวรรายการที่เก่ากว่าวันที่</label>
+            <input class="iv-input" type="date" id="archiveBeforeDate" oninput="updateArchivePreview()">
+          </div>
+        </div>
+        <p class="iv-hint" id="archivePreviewHint" style="margin-bottom:12px;"></p>
+        <button class="iv-btn out" onclick="archiveOldData()" data-i18n="btn_archive_now">ดาวน์โหลด + เก็บถาวรข้อมูลเก่า</button>
       </div>
 
       <div class="iv-card">
@@ -995,8 +992,6 @@ const I18N = {
   mode_borrow: 'ยืม',
   in_sub_single: 'กรอกทีละรายการ',
   in_sub_bulk: 'รับเข้าจากไฟล์ (หลายรายการ)',
-  in_target_external_hint: 'รับเข้าเป็นสินค้านอกสต็อก — ต้องเป็นรหัสที่มีอยู่ในรายการนอกสต็อกแล้วเท่านั้น (เพิ่มรายการใหม่ได้ที่แท็บ "นำเข้า")',
-  ph_item_search_ext_only: 'พิมพ์รหัสหรือชื่อสินค้านอกสต็อกเพื่อค้นหา...',
   lbl_item: 'สินค้า',
   lbl_qty: 'จำนวน',
   cart_add_line: 'เพิ่มรายการนี้ลงตะกร้า',
@@ -1033,11 +1028,6 @@ const I18N = {
   ph_item_search_plain: 'ค้นหาด้วยรหัสหรือชื่อสินค้า...',
   btn_add_item: 'เพิ่มสินค้า',
   th_description: 'Description',
-  import_target_label: 'นำเข้า/เพิ่มสินค้าไปที่',
-  target_stock: 'สต็อกปกติ',
-  target_external: 'นอกสต็อก',
-  import_target_hint_stock: 'สินค้าในคลังหลักที่ระบบติดตามยอดรับ/นำออกแบบเต็มรูปแบบ (รับเข้า, นำออก, จอง, ยืม)',
-  import_target_hint_external: 'สินค้าที่ยังไม่มีในระบบสต็อกหลัก ใช้สำหรับ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ แต่ไม่มีการรับเข้า/นำออกแบบสต็อกจริง',
   import_card_title: 'นำเข้าอะไหล่จากไฟล์ (Excel/CSV)',
   lbl_item_name_req: 'ชื่อสินค้า *',
   lbl_initial_qty: 'จำนวนเริ่มต้น',
@@ -1181,7 +1171,21 @@ const I18N = {
   lbl_due_date_plain: 'กำหนดคืน',
   toast_qty_must_be_positive: 'จำนวนต้องมากกว่า 0',
   toast_reservation_edited: 'แก้ไขรายการจองแล้ว',
-  toast_borrow_edited: 'แก้ไขรายการยืมแล้ว'
+  toast_borrow_edited: 'แก้ไขรายการยืมแล้ว',
+  lbl_history_from: 'ตั้งแต่วันที่',
+  lbl_history_to: 'ถึงวันที่',
+  btn_load_more_history: 'โหลดเพิ่มอีก {count} รายการ',
+  settings_archive_title: 'เก็บถาวรข้อมูลเก่า',
+  settings_archive_hint: 'ข้อมูลยิ่งเยอะ แอปยิ่งโหลด/บันทึกช้าลง — เลือกวันที่แล้วระบบจะดาวน์โหลดประวัติ/รายการจอง-ยืมที่เสร็จสิ้นแล้วซึ่งเก่ากว่าวันนั้นเป็นไฟล์ Excel ให้ก่อน แล้วค่อยลบออกจากระบบที่ใช้งานจริง (รายการจองที่ยังค้างอยู่และของที่ยังไม่คืนจะไม่ถูกลบ)',
+  lbl_archive_before: 'เก็บถาวรรายการที่เก่ากว่าวันที่',
+  btn_archive_now: 'ดาวน์โหลด + เก็บถาวรข้อมูลเก่า',
+  archive_preview_none: 'ไม่มีรายการเก่ากว่าวันที่เลือก',
+  archive_preview_count: 'พบ {total} รายการที่จะเก็บถาวร (ประวัติ {ledger} · รายการจอง {res} · รายการยืม {bor})',
+  toast_pick_archive_date: 'กรุณาเลือกวันที่ก่อน',
+  toast_nothing_to_archive: 'ไม่มีรายการเก่ากว่าวันที่เลือก ไม่มีอะไรให้เก็บถาวร',
+  confirm_archive: 'จะดาวน์โหลด Excel แล้วลบ {count} รายการที่เก่ากว่า {date} ออกจากระบบที่ใช้งานจริง (ยอดคงเหลือปัจจุบันจะไม่เปลี่ยน) ยืนยันหรือไม่?',
+  note_archive_carry_forward: 'ยอดยกมาจากประวัติที่เก็บถาวรแล้ว (ก่อนวันที่ {date})',
+  toast_archived: 'เก็บถาวร {count} รายการเรียบร้อยแล้ว'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1219,8 +1223,6 @@ const I18N = {
   mode_borrow: 'Borrow',
   in_sub_single: 'Enter one at a time',
   in_sub_bulk: 'Receive from file (multiple items)',
-  in_target_external_hint: 'Receiving into an off-stock item — the code must already exist in the off-stock list (add new ones from the "Import" tab)',
-  ph_item_search_ext_only: 'Type an off-stock item code or name to search...',
   lbl_item: 'Item',
   lbl_qty: 'Quantity',
   cart_add_line: 'Add This Line to Cart',
@@ -1257,11 +1259,6 @@ const I18N = {
   ph_item_search_plain: 'Search by item code or name...',
   btn_add_item: 'Add Item',
   th_description: 'Description',
-  import_target_label: 'Import / Add Item To',
-  target_stock: 'Normal Stock',
-  target_external: 'Off-Stock',
-  import_target_hint_stock: 'Main stock items the system tracks in full — receive in, take out, reserve and borrow',
-  import_target_hint_external: 'Items not yet in the main stock system. Usable for "Reserve" or "Borrow" like normal items, but with no real stock in/out tracking',
   import_card_title: 'Import Parts from File (Excel/CSV)',
   lbl_item_name_req: 'Item Name *',
   lbl_initial_qty: 'Initial Quantity',
@@ -1405,7 +1402,21 @@ const I18N = {
   lbl_due_date_plain: 'Due Date',
   toast_qty_must_be_positive: 'Quantity must be greater than 0',
   toast_reservation_edited: 'Reservation updated',
-  toast_borrow_edited: 'Borrow updated'
+  toast_borrow_edited: 'Borrow updated',
+  lbl_history_from: 'From Date',
+  lbl_history_to: 'To Date',
+  btn_load_more_history: 'Load {count} more',
+  settings_archive_title: 'Archive Old Data',
+  settings_archive_hint: 'More data means slower loading/saving — pick a date and the system will download the history and completed reservations/borrows older than it as an Excel file first, then remove them from the live app (open reservations and unreturned borrows are never removed)',
+  lbl_archive_before: 'Archive Items Older Than',
+  btn_archive_now: 'Download + Archive Old Data',
+  archive_preview_none: 'No items older than the selected date',
+  archive_preview_count: 'Found {total} items to archive (history {ledger} · reservations {res} · borrows {bor})',
+  toast_pick_archive_date: 'Please pick a date first',
+  toast_nothing_to_archive: 'Nothing older than the selected date — nothing to archive',
+  confirm_archive: 'This will download an Excel file and remove {count} items older than {date} from the live app (current balances won\'t change). Continue?',
+  note_archive_carry_forward: 'Carried-forward balance from archived history (before {date})',
+  toast_archived: 'Archived {count} items'
 }
 };
 function t(key, vars){
@@ -1462,11 +1473,8 @@ function findItemRef(itemId, source){
   return source==='external' ? externalItems.find(i=>i.id===itemId) : items.find(i=>i.id===itemId);
 }
 // which item pool the transaction form is currently working against
-let inTargetType = 'stock'; // destination for IN mode: 'stock' (normal) or 'external' (off-stock catalog)
 function activePool(){
-  if(['RESERVE','BORROW'].includes(currentMode)) return [...items, ...externalItems];
-  if(currentMode==='IN' && inTargetType==='external') return externalItems;
-  return items;
+  return ['RESERVE','BORROW'].includes(currentMode) ? [...items, ...externalItems] : items;
 }
 function isExternalItemId(itemId){
   return externalItems.some(i=>i.id===itemId);
@@ -1497,21 +1505,43 @@ function fmtDay(dateStr){
 }
 
 // ---- stock math ----
+// Balance lookups (onHand/reservedQty/borrowedOutQty) used to re-scan the entire ledger/reservations/borrows
+// arrays on every single call — fine for a small dataset, but with hundreds of items and a growing transaction
+// history that becomes an O(items × transactions) scan on every render, which is what was making the app feel
+// slower over time. These caches build one lookup table per array in a single pass, and are invalidated
+// whenever the underlying array is saved (see saveLedger/saveReservations/saveBorrows), so callers always see
+// current data but repeated lookups within the same render are O(1) instead of O(n).
+let _balanceCacheDirty = true;
+let _onHandCache = {};
+let _reservedCache = {};
+let _borrowedCache = {};
+function invalidateBalanceCache(){ _balanceCacheDirty = true; }
+function rebuildBalanceCache(){
+  const oh = {};
+  for(const tx of ledger){
+    if(tx.type==='IN' || tx.type==='RETURN' || tx.type==='ADJUST_IN') oh[tx.itemId] = (oh[tx.itemId]||0) + tx.qty;
+    else if(tx.type==='OUT' || tx.type==='BORROW' || tx.type==='ADJUST_OUT') oh[tx.itemId] = (oh[tx.itemId]||0) - tx.qty;
+  }
+  const rq = {};
+  for(const r of reservations){ if(r.status==='active') rq[r.itemId] = (rq[r.itemId]||0) + r.qty; }
+  const bq = {};
+  for(const b of borrows){ if(b.status==='out') bq[b.itemId] = (bq[b.itemId]||0) + b.qty; }
+  _onHandCache = oh; _reservedCache = rq; _borrowedCache = bq;
+  _balanceCacheDirty = false;
+}
 function onHand(itemId){
   const ext = externalItems.find(i=>i.id===itemId);
   if(ext) return ext.qty || 0;
-  return ledger.reduce((sum,t)=>{
-    if(t.itemId!==itemId) return sum;
-    if(t.type==='IN' || t.type==='RETURN' || t.type==='ADJUST_IN') return sum + t.qty;
-    if(t.type==='OUT' || t.type==='BORROW' || t.type==='ADJUST_OUT') return sum - t.qty;
-    return sum;
-  }, 0);
+  if(_balanceCacheDirty) rebuildBalanceCache();
+  return _onHandCache[itemId] || 0;
 }
 function reservedQty(itemId){
-  return reservations.filter(r=>r.itemId===itemId && r.status==='active').reduce((s,r)=>s+r.qty,0);
+  if(_balanceCacheDirty) rebuildBalanceCache();
+  return _reservedCache[itemId] || 0;
 }
 function borrowedOutQty(itemId){
-  return borrows.filter(b=>b.itemId===itemId && b.status==='out').reduce((s,b)=>s+b.qty,0);
+  if(_balanceCacheDirty) rebuildBalanceCache();
+  return _borrowedCache[itemId] || 0;
 }
 function availableQty(itemId){
   return onHand(itemId) - reservedQty(itemId);
@@ -1522,11 +1552,18 @@ function totalStock(it){ return (it.baseQty||0) + onHand(it.id); }
 async function loadData(){
   try{ const r = await window.storage.get('inv:lang', false); if(r && (r.value==='th'||r.value==='en')) LANG = r.value; }catch(e){}
   const loadErrors = [];
-  try{ const r = await window.storage.get(KEY_ITEMS, true); items = r ? JSON.parse(r.value) : []; }catch(e){ items = []; loadErrors.push(t('err_items')); }
-  try{ const r = await window.storage.get(KEY_EXTERNAL_ITEMS, true); externalItems = r ? JSON.parse(r.value) : []; }catch(e){ externalItems = []; loadErrors.push(t('err_ext_items')); }
-  try{ const r = await window.storage.get(KEY_LEDGER, true); ledger = r ? JSON.parse(r.value) : []; }catch(e){ ledger = []; loadErrors.push(t('err_ledger')); }
-  try{ const r = await window.storage.get(KEY_RESERVATIONS, true); reservations = r ? JSON.parse(r.value) : []; }catch(e){ reservations = []; loadErrors.push(t('err_reservations')); }
-  try{ const r = await window.storage.get(KEY_BORROWS, true); borrows = r ? JSON.parse(r.value) : []; }catch(e){ borrows = []; loadErrors.push(t('err_borrows')); }
+  const [itemsRes, extRes, ledgerRes, resvRes, borrowRes] = await Promise.all([
+    window.storage.get(KEY_ITEMS, true).catch(()=>null),
+    window.storage.get(KEY_EXTERNAL_ITEMS, true).catch(()=>null),
+    window.storage.get(KEY_LEDGER, true).catch(()=>null),
+    window.storage.get(KEY_RESERVATIONS, true).catch(()=>null),
+    window.storage.get(KEY_BORROWS, true).catch(()=>null)
+  ]);
+  try{ items = itemsRes ? JSON.parse(itemsRes.value) : []; }catch(e){ items = []; loadErrors.push(t('err_items')); }
+  try{ externalItems = extRes ? JSON.parse(extRes.value) : []; }catch(e){ externalItems = []; loadErrors.push(t('err_ext_items')); }
+  try{ ledger = ledgerRes ? JSON.parse(ledgerRes.value) : []; }catch(e){ ledger = []; loadErrors.push(t('err_ledger')); }
+  try{ reservations = resvRes ? JSON.parse(resvRes.value) : []; }catch(e){ reservations = []; loadErrors.push(t('err_reservations')); }
+  try{ borrows = borrowRes ? JSON.parse(borrowRes.value) : []; }catch(e){ borrows = []; loadErrors.push(t('err_borrows')); }
 
   if(items.length===0 && ledger.length===0){
     const seedId = uid();
@@ -1550,7 +1587,6 @@ async function loadData(){
   }
   applyI18n();
   setMode(currentMode);
-  setImportTarget(importTarget);
   renderAll();
   showLoadErrorBanner(loadErrors);
 }
@@ -1649,9 +1685,9 @@ function renderAccessUI(){
 
 async function saveItems(){ await window.storage.set(KEY_ITEMS, JSON.stringify(items), true); }
 async function saveExternalItems(){ await window.storage.set(KEY_EXTERNAL_ITEMS, JSON.stringify(externalItems), true); }
-async function saveLedger(){ await window.storage.set(KEY_LEDGER, JSON.stringify(ledger), true); }
-async function saveReservations(){ await window.storage.set(KEY_RESERVATIONS, JSON.stringify(reservations), true); }
-async function saveBorrows(){ await window.storage.set(KEY_BORROWS, JSON.stringify(borrows), true); }
+async function saveLedger(){ invalidateBalanceCache(); await window.storage.set(KEY_LEDGER, JSON.stringify(ledger), true); }
+async function saveReservations(){ invalidateBalanceCache(); await window.storage.set(KEY_RESERVATIONS, JSON.stringify(reservations), true); }
+async function saveBorrows(){ invalidateBalanceCache(); await window.storage.set(KEY_BORROWS, JSON.stringify(borrows), true); }
 
 function showToast(msg){
   const t = document.getElementById('ivToast');
@@ -1690,9 +1726,8 @@ function setMode(mode){
     document.getElementById('txInDate').value = new Date().toISOString().slice(0,10);
   }
   document.getElementById('txNoteLabel').textContent = mode==='RESERVE' ? t('note_optional_cart') : (mode==='BORROW' ? t('note_optional_cart') : t('note_optional'));
-  document.getElementById('inTargetToggle').classList.toggle('iv-hide', mode!=='IN');
+  document.getElementById('inSubModeToggle').classList.toggle('iv-hide', mode!=='IN');
   if(mode!=='IN') setInSubMode('single');
-  if(mode==='IN') setInTargetType('stock'); else { inTargetType='stock'; document.getElementById('inSubModeToggle').classList.add('iv-hide'); }
   populateItemSelect();
   renderTxCart();
   updateTxCurrentQty();
@@ -1705,21 +1740,6 @@ function setInSubMode(sub){
   document.getElementById('btnInBulk').classList.toggle('sel-in', sub==='bulk');
   document.getElementById('singleEntrySection').classList.toggle('iv-hide', sub!=='single');
   document.getElementById('bulkReceiveSection').classList.toggle('iv-hide', sub!=='bulk');
-}
-
-// destination for IN mode (รับเข้า): normal stock item vs an existing off-stock catalog item
-function setInTargetType(target){
-  inTargetType = target;
-  document.getElementById('btnInTargetStock').classList.toggle('sel-in', target==='stock');
-  document.getElementById('btnInTargetExternal').classList.toggle('sel-in', target==='external');
-  document.getElementById('inTargetExternalHint').classList.toggle('iv-hide', target!=='external');
-  // bulk-file receiving only applies to normal stock; force single entry for off-stock
-  document.getElementById('inSubModeToggle').classList.toggle('iv-hide', target==='external');
-  if(target==='external') setInSubMode('single');
-  document.getElementById('txItemSelect').value = '';
-  document.getElementById('txItemSearchInput').value = '';
-  populateItemSelect();
-  validateTxForm();
 }
 
 function populateItemSelect(){
@@ -1737,8 +1757,7 @@ function syncItemSearchDisplay(){
   const item = activePool().find(i=>i.id===hidden.value);
   const input = document.getElementById('txItemSearchInput');
   input.value = item ? `${item.itemNo} — ${item.name}` : '';
-  input.placeholder = ['RESERVE','BORROW'].includes(currentMode) ? t('ph_item_search_wide')
-    : (currentMode==='IN' && inTargetType==='external') ? t('ph_item_search_ext_only') : t('ph_item_search');
+  input.placeholder = ['RESERVE','BORROW'].includes(currentMode) ? t('ph_item_search_wide') : t('ph_item_search');
 }
 
 function filterItemOptions(){
@@ -1978,8 +1997,7 @@ async function submitTransaction(){
   }
   const sel = document.getElementById('txItemSelect');
   const itemId = sel.value;
-  const isExtTarget = currentMode==='IN' && inTargetType==='external';
-  const item = isExtTarget ? externalItems.find(i=>i.id===itemId) : items.find(i=>i.id===itemId);
+  const item = items.find(i=>i.id===itemId);
   if(!item){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('txQty').value);
   if(!(qty>0)) return;
@@ -1997,14 +2015,8 @@ async function submitTransaction(){
     const dateInput = document.getElementById('txInDate').value;
     const customer = document.getElementById('txInCustomer').value.trim();
     const ts = dateInput ? (new Date(dateInput+'T'+new Date().toTimeString().slice(0,8)).getTime() || Date.now()) : Date.now();
-    const composedNote = [customer ? t('note_prefix_customer_ref')+customer : '', isExtTarget ? t('note_off_stock_item') : '', note].filter(Boolean).join(' · ');
-    if(isExtTarget){
-      item.qty = (item.qty||0) + qty;
-      await saveExternalItems();
-      ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts, source:'external'});
-    }else{
-      ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts});
-    }
+    const composedNote = [customer ? t('note_prefix_customer_ref')+customer : '', note].filter(Boolean).join(' · ');
+    ledger.push({id:uid(), itemId, type:'IN', qty, note:composedNote, customer, receiveDate:dateInput, ts});
     await saveLedger();
     showToast(t('toast_received', {qty, unit:item.unit}));
     document.getElementById('txInCustomer').value='';
@@ -3315,19 +3327,51 @@ function renderItems(){
   }).join('');
 }
 
+const HISTORY_PAGE_SIZE = 50;
+let historyShown = HISTORY_PAGE_SIZE;
+
+function onHistoryFilterChange(){
+  historyShown = HISTORY_PAGE_SIZE;
+  renderHistory();
+}
+
+function loadMoreHistory(){
+  historyShown += HISTORY_PAGE_SIZE;
+  renderHistory();
+}
+
 function renderHistory(){
   const q = (document.getElementById('txSearch').value||'').toLowerCase();
+  const fromVal = document.getElementById('txDateFrom').value;
+  const toVal = document.getElementById('txDateTo').value;
+  const fromTs = fromVal ? new Date(fromVal+'T00:00:00').getTime() : null;
+  const toTs = toVal ? new Date(toVal+'T23:59:59').getTime() : null;
   const list = document.getElementById('fullTxList');
-  const sorted = [...ledger].sort((a,b)=>b.ts-a.ts).filter(t=>{
-    const item = findItemRef(t.itemId, t.source);
-    const hay = ((item?item.name:'')+' '+(item?item.itemNo:'')+' '+(t.note||'')).toLowerCase();
+  const wrap = document.getElementById('historyLoadMoreWrap');
+  const btn = document.getElementById('historyLoadMoreBtn');
+
+  const filtered = [...ledger].sort((a,b)=>b.ts-a.ts).filter(tx=>{
+    if(fromTs!==null && tx.ts < fromTs) return false;
+    if(toTs!==null && tx.ts > toTs) return false;
+    const item = findItemRef(tx.itemId, tx.source);
+    const hay = ((item?item.name:'')+' '+(item?item.itemNo:'')+' '+(tx.note||'')).toLowerCase();
     return hay.includes(q);
   });
-  if(sorted.length===0){
+
+  if(filtered.length===0){
     list.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_history_title')}</div><div class="iv-empty-sub">${t('empty_no_history_sub')}</div></div>`;
+    wrap.classList.add('iv-hide');
     return;
   }
-  list.innerHTML = sorted.map(txHtml).join('');
+  const page = filtered.slice(0, historyShown);
+  list.innerHTML = page.map(txHtml).join('');
+  const remaining = filtered.length - page.length;
+  if(remaining > 0){
+    wrap.classList.remove('iv-hide');
+    btn.textContent = t('btn_load_more_history', {count: Math.min(remaining, HISTORY_PAGE_SIZE)});
+  }else{
+    wrap.classList.add('iv-hide');
+  }
 }
 
 function renderAll(){
@@ -3341,6 +3385,91 @@ function renderAll(){
   renderItems();
   renderExternalItems();
   renderHistory();
+}
+
+function updateArchivePreview(){
+  const dateVal = document.getElementById('archiveBeforeDate').value;
+  const hint = document.getElementById('archivePreviewHint');
+  if(!dateVal){ hint.textContent = ''; return; }
+  const cutoff = new Date(dateVal+'T00:00:00').getTime();
+  const ledgerCount = ledger.filter(tx=>tx.ts < cutoff).length;
+  const resCount = reservations.filter(r=>r.status!=='active' && r.ts < cutoff).length;
+  const borCount = borrows.filter(b=>b.status!=='out' && (b.returnedTs||b.ts) < cutoff).length;
+  const total = ledgerCount + resCount + borCount;
+  hint.textContent = total===0 ? t('archive_preview_none') : t('archive_preview_count', {total, ledger:ledgerCount, res:resCount, bor:borCount});
+}
+
+async function archiveOldData(){
+  if(!requireEdit()) return;
+  const dateVal = document.getElementById('archiveBeforeDate').value;
+  if(!dateVal){ showToast(t('toast_pick_archive_date')); return; }
+  const cutoff = new Date(dateVal+'T00:00:00').getTime();
+
+  const oldLedger = ledger.filter(tx=>tx.ts < cutoff);
+  const oldRes = reservations.filter(r=>r.status!=='active' && r.ts < cutoff);
+  const oldBor = borrows.filter(b=>b.status!=='out' && (b.returnedTs||b.ts) < cutoff);
+  const totalCount = oldLedger.length + oldRes.length + oldBor.length;
+
+  if(totalCount===0){ showToast(t('toast_nothing_to_archive')); return; }
+  if(!confirm(t('confirm_archive', {count: totalCount, date: fmtDay(dateVal)}))) return;
+
+  // 1. export exactly what's about to be removed, so it's never actually lost — just moved out of the live app
+  const historyRows = [...oldLedger].sort((a,b)=>a.ts-b.ts).map(tx=>{
+    const item = findItemRef(tx.itemId, tx.source);
+    return {
+      'Date': fmtDate(tx.ts), 'Item No.': item?item.itemNo:'', 'Description': item?item.name:t('item_deleted'),
+      'Type': tx.type, 'Qty': tx.qty, 'Note': tx.note||'', 'Source': tx.source==='external'?'Off-stock':'Stock'
+    };
+  });
+  const reserveRows = oldRes.map(r=>{
+    const item = findItemRef(r.itemId, r.source);
+    return {'Item No.': item?item.itemNo:'', 'Description': item?item.name:t('item_deleted'), 'Qty': r.qty, 'SVSO No.': r.svso||'', 'Quotation No.': r.quotation||'', 'Customer Name': r.customer||'', 'Requested By': r.requestedBy||'', 'Note': r.note||'', 'Status': r.status, 'Reserved On': fmtDate(r.ts)};
+  });
+  const borrowRows = oldBor.map(b=>{
+    const item = findItemRef(b.itemId, b.source);
+    return {'Item No.': item?item.itemNo:'', 'Description': item?item.name:t('item_deleted'), 'Qty': b.qty, 'Borrower': b.borrower, 'Note': b.note||'', 'Due Date': b.dueDate||'', 'Status': b.status, 'Borrowed On': fmtDate(b.ts), 'Returned On': b.returnedTs?fmtDate(b.returnedTs):''};
+  });
+
+  const wb = XLSX.utils.book_new();
+  if(historyRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(historyRows), 'History');
+  if(reserveRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(reserveRows), 'Reservations');
+  if(borrowRows.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(borrowRows), 'Borrows');
+  XLSX.writeFile(wb, `esco-inventory-archive-before-${dateVal}.xlsx`);
+
+  // 2. collapse the removed ledger rows into one carry-forward entry per item so the running balance stays exactly correct
+  //    (off-stock items track their qty directly, not via the ledger, so they're skipped here)
+  const netByItem = {};
+  oldLedger.forEach(tx=>{
+    if(isExternalItemId(tx.itemId)) return;
+    const sign = (tx.type==='IN'||tx.type==='RETURN'||tx.type==='ADJUST_IN') ? 1 : (tx.type==='OUT'||tx.type==='BORROW'||tx.type==='ADJUST_OUT' ? -1 : 0);
+    if(sign===0) return; // RESERVE/RELEASE never affect on-hand balance
+    netByItem[tx.itemId] = (netByItem[tx.itemId]||0) + sign*tx.qty;
+  });
+
+  const oldLedgerIds = new Set(oldLedger.map(tx=>tx.id));
+  ledger = ledger.filter(tx=>!oldLedgerIds.has(tx.id));
+  Object.keys(netByItem).forEach(itemId=>{
+    const net = netByItem[itemId];
+    if(net===0) return;
+    ledger.push({
+      id: uid(), itemId, type: net>0 ? 'ADJUST_IN' : 'ADJUST_OUT', qty: Math.abs(net),
+      note: t('note_archive_carry_forward', {date: fmtDay(dateVal)}), ts: cutoff
+    });
+  });
+
+  const oldResIds = new Set(oldRes.map(r=>r.id));
+  reservations = reservations.filter(r=>!oldResIds.has(r.id));
+  const oldBorIds = new Set(oldBor.map(b=>b.id));
+  borrows = borrows.filter(b=>!oldBorIds.has(b.id));
+
+  await saveLedger();
+  await saveReservations();
+  await saveBorrows();
+
+  document.getElementById('archiveBeforeDate').value = '';
+  updateArchivePreview();
+  showToast(t('toast_archived', {count: totalCount}));
+  renderAll();
 }
 
 function exportToExcel(){
@@ -3428,24 +3557,6 @@ function exportToExcel(){
 function goToTab(tabName){
   document.querySelectorAll('.iv-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tabName));
   document.querySelectorAll('.iv-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tabName));
-}
-
-// jump to the Import tab with a specific destination (stock / external) already selected
-function goToImportTarget(target){
-  goToTab('import');
-  setImportTarget(target);
-}
-
-// destination toggle inside the Import tab: normal stock vs off-stock catalog
-let importTarget = 'stock';
-function setImportTarget(target){
-  importTarget = target;
-  document.getElementById('btnImportTargetStock').classList.toggle('sel-in', target==='stock');
-  document.getElementById('btnImportTargetExternal').classList.toggle('sel-in', target==='external');
-  document.getElementById('importTargetStockSection').classList.toggle('iv-hide', target!=='stock');
-  document.getElementById('importTargetExternalSection').classList.toggle('iv-hide', target!=='external');
-  document.getElementById('importTargetHintStock').classList.toggle('iv-hide', target!=='stock');
-  document.getElementById('importTargetHintExternal').classList.toggle('iv-hide', target!=='external');
 }
 
 document.querySelectorAll('.iv-tab').forEach(tab=>{
