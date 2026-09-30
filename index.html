@@ -1185,13 +1185,7 @@ const I18N = {
   toast_nothing_to_archive: 'ไม่มีรายการเก่ากว่าวันที่เลือก ไม่มีอะไรให้เก็บถาวร',
   confirm_archive: 'จะดาวน์โหลด Excel แล้วลบ {count} รายการที่เก่ากว่า {date} ออกจากระบบที่ใช้งานจริง (ยอดคงเหลือปัจจุบันจะไม่เปลี่ยน) ยืนยันหรือไม่?',
   note_archive_carry_forward: 'ยอดยกมาจากประวัติที่เก็บถาวรแล้ว (ก่อนวันที่ {date})',
-  toast_archived: 'เก็บถาวร {count} รายการเรียบร้อยแล้ว',
-  note_ext_qty_adjusted: 'ปรับจำนวนสินค้านอกสต็อก (จาก {from} เป็น {to})',
-  toast_qty_updated: 'อัปเดตจำนวนแล้ว',
-  btn_fulfill_all: 'ตัดสต๊อกทั้งหมด',
-  confirm_fulfill_group: 'ตัดนำออกทั้ง {count} รายการในกลุ่มนี้เลยหรือไม่?',
-  toast_fulfilled_group: 'ตัดนำออกครบ {count} รายการแล้ว',
-  toast_fulfilled_group_partial: 'ตัดนำออกแล้ว {done} รายการ ข้าม {skipped} รายการเพราะของจริงในคลังไม่พอ'
+  toast_archived: 'เก็บถาวร {count} รายการเรียบร้อยแล้ว'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1422,13 +1416,7 @@ const I18N = {
   toast_nothing_to_archive: 'Nothing older than the selected date — nothing to archive',
   confirm_archive: 'This will download an Excel file and remove {count} items older than {date} from the live app (current balances won\'t change). Continue?',
   note_archive_carry_forward: 'Carried-forward balance from archived history (before {date})',
-  toast_archived: 'Archived {count} items',
-  note_ext_qty_adjusted: 'Off-stock quantity adjusted (from {from} to {to})',
-  toast_qty_updated: 'Quantity updated',
-  btn_fulfill_all: 'Fulfill All',
-  confirm_fulfill_group: 'Fulfill all {count} lines in this group?',
-  toast_fulfilled_group: 'Fulfilled all {count} lines',
-  toast_fulfilled_group_partial: 'Fulfilled {done} lines, skipped {skipped} — not enough actual stock'
+  toast_archived: 'Archived {count} items'
 }
 };
 function t(key, vars){
@@ -2075,32 +2063,6 @@ async function fulfillReservation(id){
   await saveReservations();
   await saveLedger();
   showToast(t('toast_fulfilled', {qty:r.qty, unit:item?item.unit:''}));
-  renderAll();
-}
-
-async function fulfillReservationGroup(idsStr){
-  if(!requireEdit()) return;
-  const ids = idsStr.split(',');
-  const targets = ids.map(id=>reservations.find(x=>x.id===id)).filter(r=>r && r.status==='active');
-  if(targets.length===0) return;
-  if(!confirm(t('confirm_fulfill_group', {count: targets.length}))) return;
-
-  let doneCount = 0, skippedCount = 0;
-  for(const r of targets){
-    if(r.source!=='external' && onHand(r.itemId) < r.qty){
-      skippedCount++;
-      continue;
-    }
-    r.status = 'fulfilled';
-    ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:t('note_fulfilled_from_reservation')+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
-    invalidateBalanceCache();
-    doneCount++;
-  }
-  await saveReservations();
-  await saveLedger();
-  showToast(skippedCount>0
-    ? t('toast_fulfilled_group_partial', {done:doneCount, skipped:skippedCount})
-    : t('toast_fulfilled_group', {count:doneCount}));
   renderAll();
 }
 
@@ -2798,23 +2760,10 @@ async function updateExternalItemQty(id, val){
   if(!requireEdit()){ renderExternalItems(); return; }
   const it = externalItems.find(i=>i.id===id);
   if(!it) return;
-  const newQty = parseFloat(val);
-  const cleanQty = isNaN(newQty) || newQty<0 ? 0 : newQty;
-  const oldQty = it.qty || 0;
-  const delta = cleanQty - oldQty;
-  it.qty = cleanQty;
-  if(delta !== 0){
-    ledger.push({
-      id: uid(), itemId: id, source: 'external',
-      type: delta>0 ? 'ADJUST_IN' : 'ADJUST_OUT',
-      qty: Math.abs(delta),
-      note: t('note_ext_qty_adjusted', {from: oldQty, to: cleanQty}),
-      ts: Date.now()
-    });
-    await saveLedger();
-  }
+  const qty = parseFloat(val);
+  it.qty = isNaN(qty) || qty<0 ? 0 : qty;
   await saveExternalItems();
-  showToast(t('toast_qty_updated'));
+  showToast('อัปเดตจำนวนแล้ว');
   renderAll();
 }
 
@@ -3153,25 +3102,8 @@ async function saveReservationEdit(id){
   if(!requireEdit()) return;
   const r = reservations.find(x=>x.id===id);
   if(!r) return;
-  const newItemId = document.getElementById('editResItemSelect_'+id).value;
-  const pool = [...items, ...externalItems];
-  const newItem = pool.find(i=>i.id===newItemId);
-  if(!newItem){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('editResQty_'+id).value);
   if(!(qty>0)){ showToast(t('toast_qty_must_be_positive')); return; }
-  const newSource = isExternalItemId(newItemId) ? 'external' : 'stock';
-
-  // if switching item (or raising qty on the same item), re-check availability — off-stock items can never be over-reserved,
-  // regular stock items can still go to backorder same as a brand-new reservation would.
-  const alreadyHeldByThisRes = (r.itemId===newItemId) ? r.qty : 0;
-  const avail = availableQty(newItemId) + alreadyHeldByThisRes;
-  if(newSource==='external' && qty > avail){
-    showToast(t('toast_avail_only_reserve', {name:newItem.name, avail:Math.max(avail,0), unit:newItem.unit}));
-    return;
-  }
-
-  r.itemId = newItemId;
-  r.source = newSource;
   r.qty = qty;
   r.svso = document.getElementById('editResSvso_'+id).value.trim();
   r.quotation = document.getElementById('editResQuotation_'+id).value.trim();
@@ -3188,23 +3120,8 @@ async function saveBorrowEdit(id){
   if(!requireEdit()) return;
   const b = borrows.find(x=>x.id===id);
   if(!b) return;
-  const newItemId = document.getElementById('editBorItemSelect_'+id).value;
-  const pool = [...items, ...externalItems];
-  const newItem = pool.find(i=>i.id===newItemId);
-  if(!newItem){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('editBorQty_'+id).value);
   if(!(qty>0)){ showToast(t('toast_qty_must_be_positive')); return; }
-  const newSource = isExternalItemId(newItemId) ? 'external' : 'stock';
-
-  const alreadyHeldByThisBor = (b.itemId===newItemId) ? b.qty : 0;
-  const avail = availableQty(newItemId) + alreadyHeldByThisBor;
-  if(qty > avail){
-    showToast(t('toast_avail_only_borrow', {name:newItem.name, avail:Math.max(avail,0), unit:newItem.unit}));
-    return;
-  }
-
-  b.itemId = newItemId;
-  b.source = newSource;
   b.qty = qty;
   b.borrower = document.getElementById('editBorBorrower_'+id).value.trim();
   b.borrowDate = document.getElementById('editBorBorrowDate_'+id).value;
@@ -3215,39 +3132,6 @@ async function saveBorrowEdit(id){
   editingBorrowId = null;
   showToast(t('toast_borrow_edited'));
   renderAll();
-}
-
-function filterEditBorItemOptions(borId){
-  const input = document.getElementById('editBorItemSearch_'+borId);
-  const hidden = document.getElementById('editBorItemSelect_'+borId);
-  const dropdown = document.getElementById('editBorItemDropdown_'+borId);
-  const pool = [...items, ...externalItems];
-  const selectedItem = pool.find(i=>i.id===hidden.value);
-  const raw = input.value;
-  const q = (selectedItem && raw === `${selectedItem.itemNo} — ${selectedItem.name}`) ? '' : raw.toLowerCase();
-  const filtered = pool.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
-
-  if(filtered.length===0){
-    dropdown.innerHTML = `<div class="iv-combo-empty">${t('no_items_match', {q: raw})}</div>`;
-  }else{
-    dropdown.innerHTML = filtered.map(it=>{
-      const isExt = isExternalItemId(it.id);
-      return `<div class="iv-combo-item" onmousedown="selectEditBorItemOption('${borId}','${it.id}')">
-      <span class="iv-combo-item-no">${it.itemNo}</span>
-      <span class="iv-combo-item-name">${it.name}</span>
-      ${isExt ? `<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}
-    </div>`;
-    }).join('');
-  }
-  dropdown.classList.remove('iv-hide');
-}
-
-function selectEditBorItemOption(borId, itemId){
-  const pool = [...items, ...externalItems];
-  const item = pool.find(i=>i.id===itemId);
-  document.getElementById('editBorItemSelect_'+borId).value = itemId;
-  document.getElementById('editBorItemSearch_'+borId).value = item ? `${item.itemNo} — ${item.name}` : '';
-  document.getElementById('editBorItemDropdown_'+borId).classList.add('iv-hide');
 }
 
 function resHeaderHtml(r, count, latestTs){
@@ -3290,22 +3174,8 @@ function resLineHtml(r){
 }
 
 function resEditForm(r){
-  const item = findItemRef(r.itemId, r.source);
-  const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
   return `
     <div class="iv-detail-edit-form">
-      <div class="iv-form-row">
-        <div>
-          <label class="iv-label">${t('lbl_item')}</label>
-          <div class="iv-combo">
-            <input class="iv-input" type="text" id="editResItemSearch_${r.id}" value="${curLabel}" autocomplete="off"
-                   oninput="filterEditResItemOptions('${r.id}')" onfocus="filterEditResItemOptions('${r.id}')"
-                   onblur="setTimeout(()=>document.getElementById('editResItemDropdown_${r.id}').classList.add('iv-hide'),150)">
-            <input type="hidden" id="editResItemSelect_${r.id}" value="${r.itemId}">
-            <div id="editResItemDropdown_${r.id}" class="iv-combo-dropdown iv-hide"></div>
-          </div>
-        </div>
-      </div>
       <div class="iv-form-row two">
         <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editResQty_${r.id}" value="${r.qty}"></div>
         <div><label class="iv-label">SVSO No.</label><input class="iv-input" type="text" id="editResSvso_${r.id}" value="${r.svso||''}"></div>
@@ -3323,39 +3193,6 @@ function resEditForm(r){
         <button class="iv-btn-sm ghost" onclick="toggleEditReservation('${r.id}')">${t('btn_cancel')}</button>
       </div>
     </div>`;
-}
-
-function filterEditResItemOptions(resId){
-  const input = document.getElementById('editResItemSearch_'+resId);
-  const hidden = document.getElementById('editResItemSelect_'+resId);
-  const dropdown = document.getElementById('editResItemDropdown_'+resId);
-  const pool = [...items, ...externalItems];
-  const selectedItem = pool.find(i=>i.id===hidden.value);
-  const raw = input.value;
-  const q = (selectedItem && raw === `${selectedItem.itemNo} — ${selectedItem.name}`) ? '' : raw.toLowerCase();
-  const filtered = pool.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
-
-  if(filtered.length===0){
-    dropdown.innerHTML = `<div class="iv-combo-empty">${t('no_items_match', {q: raw})}</div>`;
-  }else{
-    dropdown.innerHTML = filtered.map(it=>{
-      const isExt = isExternalItemId(it.id);
-      return `<div class="iv-combo-item" onmousedown="selectEditResItemOption('${resId}','${it.id}')">
-      <span class="iv-combo-item-no">${it.itemNo}</span>
-      <span class="iv-combo-item-name">${it.name}</span>
-      ${isExt ? `<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}
-    </div>`;
-    }).join('');
-  }
-  dropdown.classList.remove('iv-hide');
-}
-
-function selectEditResItemOption(resId, itemId){
-  const pool = [...items, ...externalItems];
-  const item = pool.find(i=>i.id===itemId);
-  document.getElementById('editResItemSelect_'+resId).value = itemId;
-  document.getElementById('editResItemSearch_'+resId).value = item ? `${item.itemNo} — ${item.name}` : '';
-  document.getElementById('editResItemDropdown_'+resId).classList.add('iv-hide');
 }
 
 function renderPending(){
@@ -3390,12 +3227,9 @@ function renderPending(){
       const lines = g.items.map(resLineHtml).join('');
       const header = hasSharedInfo ? resHeaderHtml(first, g.items.length, g.maxTs) : '';
       const cls = g.items.length>1 ? 'iv-detail-card reserve group' : 'iv-detail-card reserve';
-      const idsStr = g.items.map(x=>x.id).join(',');
-      const bulkAction = g.items.length>1 ? `<div style="margin:0 0 12px;"><button class="iv-btn-sm pos" onclick="fulfillReservationGroup('${idsStr}')">${t('btn_fulfill_all')}</button></div>` : '';
       return `<div class="${cls}">
         ${g.items.length>1 ? `<div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>` : ''}
         ${header}
-        ${bulkAction}
         ${lines}
       </div>`;
     }).join('');
@@ -3423,21 +3257,8 @@ function renderPending(){
       if(b.note) fields.push([t('note_optional'), b.note]);
 
       const isEditing = editingBorrowId===b.id;
-      const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
       const editForm = !isEditing ? '' : `
         <div class="iv-detail-edit-form">
-          <div class="iv-form-row">
-            <div>
-              <label class="iv-label">${t('lbl_item')}</label>
-              <div class="iv-combo">
-                <input class="iv-input" type="text" id="editBorItemSearch_${b.id}" value="${curLabel}" autocomplete="off"
-                       oninput="filterEditBorItemOptions('${b.id}')" onfocus="filterEditBorItemOptions('${b.id}')"
-                       onblur="setTimeout(()=>document.getElementById('editBorItemDropdown_${b.id}').classList.add('iv-hide'),150)">
-                <input type="hidden" id="editBorItemSelect_${b.id}" value="${b.itemId}">
-                <div id="editBorItemDropdown_${b.id}" class="iv-combo-dropdown iv-hide"></div>
-              </div>
-            </div>
-          </div>
           <div class="iv-form-row two">
             <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
             <div><label class="iv-label">${t('lbl_borrower')}</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
