@@ -78,6 +78,7 @@
 /* ---- Quick entry (stock in/out) ---- */
 .iv-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
 .iv-card-title{font-family:'Archivo',sans-serif;font-weight:700;font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+.iv-card-title .ic{font-size:16px;line-height:1;}
 .iv-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .iv-dot.in{background:var(--in);}
 .iv-dot.out{background:var(--out);}
@@ -85,7 +86,7 @@
 .iv-dot.borrow{background:var(--borrow);}
 
 .iv-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
-.iv-toggle-btn{padding:11px 6px;border-radius:8px;border:1.5px solid var(--border);background:var(--panel);font-family:'Archivo',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;text-align:center;transition:all .12s ease;color:var(--ink-soft);}
+.iv-toggle-btn{padding:12px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--panel);font-family:'Archivo',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;text-align:center;transition:all .12s ease;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;gap:6px;line-height:1.3;min-height:44px;}
 .iv-toggle-btn.sel-in{border-color:var(--in);background:var(--in-soft);color:var(--in);}
 .iv-toggle-btn.sel-out{border-color:var(--out);background:var(--out-soft);color:var(--out);}
 .iv-toggle-btn.sel-reserve{border-color:var(--reserve);background:var(--reserve-soft);color:var(--reserve);}
@@ -382,7 +383,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ STOCK IN/OUT/RESERVE/BORROW ============ -->
     <div class="iv-panel" id="panel-move">
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="move_card_title">บันทึกรายการ</p>
+        <p class="iv-card-title"><span class="ic">🔄</span><span data-i18n="move_card_title">บันทึกรายการ</span></p>
 
         <div class="iv-toggle">
           <div class="iv-toggle-btn sel-in" id="btnModeIn" onclick="setMode('IN')">▲ <span data-i18n="mode_in">รับเข้า</span></div>
@@ -616,7 +617,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <div class="iv-panel" id="panel-import">
       <div class="iv-card">
         <div class="iv-add-toggle" onclick="toggleImport()">
-          <p class="iv-card-title" style="margin:0;" data-i18n="import_card_title">นำเข้าอะไหล่จากไฟล์ (Excel/CSV)</p>
+          <p class="iv-card-title" style="margin:0;"><span class="ic">📥</span><span data-i18n="import_card_title">นำเข้าอะไหล่จากไฟล์ (Excel/CSV)</span></p>
           <div class="iv-plus" id="importPlus">+</div>
         </div>
         <div id="importPanel" class="iv-hide" style="margin-top:14px;">
@@ -666,7 +667,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
       <div class="iv-card">
         <div class="iv-add-toggle" onclick="toggleAddItem()">
-          <p class="iv-card-title" style="margin:0;" data-i18n="addone_card_title">เพิ่มสินค้าใหม่ (ทีละรายการ)</p>
+          <p class="iv-card-title" style="margin:0;"><span class="ic">➕</span><span data-i18n="addone_card_title">เพิ่มสินค้าใหม่ (ทีละรายการ)</span></p>
           <div class="iv-plus" id="addItemPlus">+</div>
         </div>
         <div id="addItemForm" class="iv-hide" style="margin-top:14px;">
@@ -706,7 +707,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <p class="iv-hint" style="margin-bottom:12px;" data-i18n="ext_panel_hint">รายการสินค้าที่ยังไม่มีในระบบสต็อกหลัก (จะอัปข้อมูลจริงแยกทีหลัง) ใช้ไว้เพื่อ "จอง" หรือ "ยืม" ได้เหมือนสินค้าปกติ — ระบบนับจำนวนคงเหลือและกันไม่ให้จอง/ยืมเกินจำนวนที่มีเช่นกัน</p>
 
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="ext_add_title">เพิ่มสินค้านอกสต็อก</p>
+        <p class="iv-card-title"><span class="ic">🏷️</span><span data-i18n="ext_add_title">เพิ่มสินค้านอกสต็อก</span></p>
 
         <div class="iv-form-row two" style="margin-top:10px;">
           <div class="iv-toggle-btn sel-in" id="btnExtSingle" onclick="setExtSubMode('single')" data-i18n="in_sub_single">กรอกทีละรายการ</div>
@@ -784,7 +785,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
 
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="ext_list_title">รายการสินค้านอกสต็อกทั้งหมด</p>
+        <p class="iv-card-title"><span class="ic">📋</span><span data-i18n="ext_list_title">รายการสินค้านอกสต็อกทั้งหมด</span></p>
         <input class="iv-input iv-search" type="text" id="extItemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderExternalItems()" data-i18n-ph="ph_item_search_plain">
         <div class="iv-table-wrap">
           <table class="iv-item-table">
@@ -798,7 +799,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ STOCK COUNT RECONCILIATION ============ -->
     <div class="iv-panel" id="panel-recount">
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="recount_card_title">ปรับสต็อกจากการนับประจำเดือน</p>
+        <p class="iv-card-title"><span class="ic">🔢</span><span data-i18n="recount_card_title">ปรับสต็อกจากการนับประจำเดือน</span></p>
         <p class="iv-hint" style="margin-bottom:12px;" data-i18n="recount_hint">อัปโหลดไฟล์ผลนับสต็อกจริง (เช่น ไฟล์จากทางบัญชี) ระบบจะเทียบกับยอดในระบบตอนนี้ แล้วคำนวณส่วนต่างให้อัตโนมัติ — ถ้านับได้มากกว่าจะรับเข้าส่วนต่าง ถ้านับได้น้อยกว่าจะนำออกส่วนต่าง พร้อมบันทึกเป็นประวัติ "นับสต็อกรายเดือน" แยกจากรายการปกติให้ตรวจสอบย้อนหลังได้ง่าย</p>
 
         <div class="iv-form-row">
@@ -871,13 +872,13 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ SETTINGS ============ -->
     <div class="iv-panel" id="panel-settings">
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="settings_backup_title">สำรองข้อมูล</p>
+        <p class="iv-card-title"><span class="ic">💾</span><span data-i18n="settings_backup_title">สำรองข้อมูล</span></p>
         <p class="iv-hint" style="margin-bottom:12px;" data-i18n="settings_backup_hint">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
         <button class="iv-btn neutral" onclick="exportToExcel()" data-i18n="btn_download_backup">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
       </div>
 
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="settings_archive_title">เก็บถาวรข้อมูลเก่า</p>
+        <p class="iv-card-title"><span class="ic">🗄️</span><span data-i18n="settings_archive_title">เก็บถาวรข้อมูลเก่า</span></p>
         <p class="iv-hint" style="margin-bottom:12px;" data-i18n="settings_archive_hint">ข้อมูลยิ่งเยอะ แอปยิ่งโหลด/บันทึกช้าลง — เลือกวันที่แล้วระบบจะดาวน์โหลดประวัติ/รายการจอง-ยืมที่เสร็จสิ้นแล้วซึ่งเก่ากว่าวันนั้นเป็นไฟล์ Excel ให้ก่อน แล้วค่อยลบออกจากระบบที่ใช้งานจริง (รายการจองที่ยังค้างอยู่และของที่ยังไม่คืนจะไม่ถูกลบ)</p>
         <div class="iv-form-row">
           <div>
@@ -890,7 +891,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
 
       <div class="iv-card">
-        <p class="iv-card-title" data-i18n="settings_access_title">สิทธิ์การเข้าถึง</p>
+        <p class="iv-card-title"><span class="ic">🔒</span><span data-i18n="settings_access_title">สิทธิ์การเข้าถึง</span></p>
         <div id="accessBox"></div>
       </div>
     </div>
@@ -1185,7 +1186,13 @@ const I18N = {
   toast_nothing_to_archive: 'ไม่มีรายการเก่ากว่าวันที่เลือก ไม่มีอะไรให้เก็บถาวร',
   confirm_archive: 'จะดาวน์โหลด Excel แล้วลบ {count} รายการที่เก่ากว่า {date} ออกจากระบบที่ใช้งานจริง (ยอดคงเหลือปัจจุบันจะไม่เปลี่ยน) ยืนยันหรือไม่?',
   note_archive_carry_forward: 'ยอดยกมาจากประวัติที่เก็บถาวรแล้ว (ก่อนวันที่ {date})',
-  toast_archived: 'เก็บถาวร {count} รายการเรียบร้อยแล้ว'
+  toast_archived: 'เก็บถาวร {count} รายการเรียบร้อยแล้ว',
+  note_ext_qty_adjusted: 'ปรับจำนวนสินค้านอกสต็อก (จาก {from} เป็น {to})',
+  toast_qty_updated: 'อัปเดตจำนวนแล้ว',
+  btn_fulfill_all: 'ตัดสต๊อกทั้งหมด',
+  confirm_fulfill_group: 'ตัดนำออกทั้ง {count} รายการในกลุ่มนี้เลยหรือไม่?',
+  toast_fulfilled_group: 'ตัดนำออกครบ {count} รายการแล้ว',
+  toast_fulfilled_group_partial: 'ตัดนำออกแล้ว {done} รายการ ข้าม {skipped} รายการเพราะของจริงในคลังไม่พอ'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1416,7 +1423,13 @@ const I18N = {
   toast_nothing_to_archive: 'Nothing older than the selected date — nothing to archive',
   confirm_archive: 'This will download an Excel file and remove {count} items older than {date} from the live app (current balances won\'t change). Continue?',
   note_archive_carry_forward: 'Carried-forward balance from archived history (before {date})',
-  toast_archived: 'Archived {count} items'
+  toast_archived: 'Archived {count} items',
+  note_ext_qty_adjusted: 'Off-stock quantity adjusted (from {from} to {to})',
+  toast_qty_updated: 'Quantity updated',
+  btn_fulfill_all: 'Fulfill All',
+  confirm_fulfill_group: 'Fulfill all {count} lines in this group?',
+  toast_fulfilled_group: 'Fulfilled all {count} lines',
+  toast_fulfilled_group_partial: 'Fulfilled {done} lines, skipped {skipped} — not enough actual stock'
 }
 };
 function t(key, vars){
@@ -2063,6 +2076,32 @@ async function fulfillReservation(id){
   await saveReservations();
   await saveLedger();
   showToast(t('toast_fulfilled', {qty:r.qty, unit:item?item.unit:''}));
+  renderAll();
+}
+
+async function fulfillReservationGroup(idsStr){
+  if(!requireEdit()) return;
+  const ids = idsStr.split(',');
+  const targets = ids.map(id=>reservations.find(x=>x.id===id)).filter(r=>r && r.status==='active');
+  if(targets.length===0) return;
+  if(!confirm(t('confirm_fulfill_group', {count: targets.length}))) return;
+
+  let doneCount = 0, skippedCount = 0;
+  for(const r of targets){
+    if(r.source!=='external' && onHand(r.itemId) < r.qty){
+      skippedCount++;
+      continue;
+    }
+    r.status = 'fulfilled';
+    ledger.push({id:uid(), itemId:r.itemId, type:'OUT', qty:r.qty, note:t('note_fulfilled_from_reservation')+(reservationSummary(r)?': '+reservationSummary(r):''), ts:Date.now(), source:r.source});
+    invalidateBalanceCache();
+    doneCount++;
+  }
+  await saveReservations();
+  await saveLedger();
+  showToast(skippedCount>0
+    ? t('toast_fulfilled_group_partial', {done:doneCount, skipped:skippedCount})
+    : t('toast_fulfilled_group', {count:doneCount}));
   renderAll();
 }
 
@@ -2760,10 +2799,23 @@ async function updateExternalItemQty(id, val){
   if(!requireEdit()){ renderExternalItems(); return; }
   const it = externalItems.find(i=>i.id===id);
   if(!it) return;
-  const qty = parseFloat(val);
-  it.qty = isNaN(qty) || qty<0 ? 0 : qty;
+  const newQty = parseFloat(val);
+  const cleanQty = isNaN(newQty) || newQty<0 ? 0 : newQty;
+  const oldQty = it.qty || 0;
+  const delta = cleanQty - oldQty;
+  it.qty = cleanQty;
+  if(delta !== 0){
+    ledger.push({
+      id: uid(), itemId: id, source: 'external',
+      type: delta>0 ? 'ADJUST_IN' : 'ADJUST_OUT',
+      qty: Math.abs(delta),
+      note: t('note_ext_qty_adjusted', {from: oldQty, to: cleanQty}),
+      ts: Date.now()
+    });
+    await saveLedger();
+  }
   await saveExternalItems();
-  showToast('อัปเดตจำนวนแล้ว');
+  showToast(t('toast_qty_updated'));
   renderAll();
 }
 
@@ -3102,8 +3154,25 @@ async function saveReservationEdit(id){
   if(!requireEdit()) return;
   const r = reservations.find(x=>x.id===id);
   if(!r) return;
+  const newItemId = document.getElementById('editResItemSelect_'+id).value;
+  const pool = [...items, ...externalItems];
+  const newItem = pool.find(i=>i.id===newItemId);
+  if(!newItem){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('editResQty_'+id).value);
   if(!(qty>0)){ showToast(t('toast_qty_must_be_positive')); return; }
+  const newSource = isExternalItemId(newItemId) ? 'external' : 'stock';
+
+  // if switching item (or raising qty on the same item), re-check availability — off-stock items can never be over-reserved,
+  // regular stock items can still go to backorder same as a brand-new reservation would.
+  const alreadyHeldByThisRes = (r.itemId===newItemId) ? r.qty : 0;
+  const avail = availableQty(newItemId) + alreadyHeldByThisRes;
+  if(newSource==='external' && qty > avail){
+    showToast(t('toast_avail_only_reserve', {name:newItem.name, avail:Math.max(avail,0), unit:newItem.unit}));
+    return;
+  }
+
+  r.itemId = newItemId;
+  r.source = newSource;
   r.qty = qty;
   r.svso = document.getElementById('editResSvso_'+id).value.trim();
   r.quotation = document.getElementById('editResQuotation_'+id).value.trim();
@@ -3120,8 +3189,23 @@ async function saveBorrowEdit(id){
   if(!requireEdit()) return;
   const b = borrows.find(x=>x.id===id);
   if(!b) return;
+  const newItemId = document.getElementById('editBorItemSelect_'+id).value;
+  const pool = [...items, ...externalItems];
+  const newItem = pool.find(i=>i.id===newItemId);
+  if(!newItem){ showToast(t('toast_pick_item_first')); return; }
   const qty = parseFloat(document.getElementById('editBorQty_'+id).value);
   if(!(qty>0)){ showToast(t('toast_qty_must_be_positive')); return; }
+  const newSource = isExternalItemId(newItemId) ? 'external' : 'stock';
+
+  const alreadyHeldByThisBor = (b.itemId===newItemId) ? b.qty : 0;
+  const avail = availableQty(newItemId) + alreadyHeldByThisBor;
+  if(qty > avail){
+    showToast(t('toast_avail_only_borrow', {name:newItem.name, avail:Math.max(avail,0), unit:newItem.unit}));
+    return;
+  }
+
+  b.itemId = newItemId;
+  b.source = newSource;
   b.qty = qty;
   b.borrower = document.getElementById('editBorBorrower_'+id).value.trim();
   b.borrowDate = document.getElementById('editBorBorrowDate_'+id).value;
@@ -3134,21 +3218,56 @@ async function saveBorrowEdit(id){
   renderAll();
 }
 
-function resHeaderHtml(r, count, latestTs){
+function filterEditBorItemOptions(borId){
+  const input = document.getElementById('editBorItemSearch_'+borId);
+  const hidden = document.getElementById('editBorItemSelect_'+borId);
+  const dropdown = document.getElementById('editBorItemDropdown_'+borId);
+  const pool = [...items, ...externalItems];
+  const selectedItem = pool.find(i=>i.id===hidden.value);
+  const raw = input.value;
+  const q = (selectedItem && raw === `${selectedItem.itemNo} — ${selectedItem.name}`) ? '' : raw.toLowerCase();
+  const filtered = pool.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
+
+  if(filtered.length===0){
+    dropdown.innerHTML = `<div class="iv-combo-empty">${t('no_items_match', {q: raw})}</div>`;
+  }else{
+    dropdown.innerHTML = filtered.map(it=>{
+      const isExt = isExternalItemId(it.id);
+      return `<div class="iv-combo-item" onmousedown="selectEditBorItemOption('${borId}','${it.id}')">
+      <span class="iv-combo-item-no">${it.itemNo}</span>
+      <span class="iv-combo-item-name">${it.name}</span>
+      ${isExt ? `<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}
+    </div>`;
+    }).join('');
+  }
+  dropdown.classList.remove('iv-hide');
+}
+
+function selectEditBorItemOption(borId, itemId){
+  const pool = [...items, ...externalItems];
+  const item = pool.find(i=>i.id===itemId);
+  document.getElementById('editBorItemSelect_'+borId).value = itemId;
+  document.getElementById('editBorItemSearch_'+borId).value = item ? `${item.itemNo} — ${item.name}` : '';
+  document.getElementById('editBorItemDropdown_'+borId).classList.add('iv-hide');
+}
+
+function resHeaderHtml(r, count, latestTs, notes){
   const subParts = [];
   if(r.quotation) subParts.push('Quotation: '+r.quotation);
   if(r.requestedBy) subParts.push(t('lbl_requested_by_reserve')+': '+r.requestedBy);
   subParts.push(t('lbl_reserved_on')+' '+fmtDate(latestTs));
+  const notesHtml = (notes && notes.length) ? notes.map(n=>`<div class="iv-gl-note" style="margin-top:6px;">${n}</div>`).join('') : '';
   return `<div class="iv-res-header">
     <div class="iv-res-header-main">
       ${r.svso ? `<span class="iv-res-header-svso">${r.svso}</span>` : ''}
       ${r.customer ? `<span class="iv-res-header-customer">${r.customer}</span>` : ''}
     </div>
     <div class="iv-res-header-sub">${subParts.join(' · ')}</div>
+    ${notesHtml}
   </div>`;
 }
 
-function resLineHtml(r){
+function resLineHtml(r, suppressNote){
   const item = findItemRef(r.itemId, r.source);
   const isExternal = r.source==='external';
   const isShort = !isExternal && item && availableQty(item.id) < 0;
@@ -3168,14 +3287,28 @@ function resLineHtml(r){
         <button class="iv-btn-xs ghost" onclick="toggleEditReservation('${r.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
       </div>
     </div>
-    ${r.note ? `<div class="iv-gl-note">${r.note}</div>` : ''}
+    ${(!suppressNote && r.note) ? `<div class="iv-gl-note">${r.note}</div>` : ''}
     ${isEditing ? resEditForm(r) : ''}
   </div>`;
 }
 
 function resEditForm(r){
+  const item = findItemRef(r.itemId, r.source);
+  const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
   return `
     <div class="iv-detail-edit-form">
+      <div class="iv-form-row">
+        <div>
+          <label class="iv-label">${t('lbl_item')}</label>
+          <div class="iv-combo">
+            <input class="iv-input" type="text" id="editResItemSearch_${r.id}" value="${curLabel}" autocomplete="off"
+                   oninput="filterEditResItemOptions('${r.id}')" onfocus="filterEditResItemOptions('${r.id}')"
+                   onblur="setTimeout(()=>document.getElementById('editResItemDropdown_${r.id}').classList.add('iv-hide'),150)">
+            <input type="hidden" id="editResItemSelect_${r.id}" value="${r.itemId}">
+            <div id="editResItemDropdown_${r.id}" class="iv-combo-dropdown iv-hide"></div>
+          </div>
+        </div>
+      </div>
       <div class="iv-form-row two">
         <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editResQty_${r.id}" value="${r.qty}"></div>
         <div><label class="iv-label">SVSO No.</label><input class="iv-input" type="text" id="editResSvso_${r.id}" value="${r.svso||''}"></div>
@@ -3193,6 +3326,39 @@ function resEditForm(r){
         <button class="iv-btn-sm ghost" onclick="toggleEditReservation('${r.id}')">${t('btn_cancel')}</button>
       </div>
     </div>`;
+}
+
+function filterEditResItemOptions(resId){
+  const input = document.getElementById('editResItemSearch_'+resId);
+  const hidden = document.getElementById('editResItemSelect_'+resId);
+  const dropdown = document.getElementById('editResItemDropdown_'+resId);
+  const pool = [...items, ...externalItems];
+  const selectedItem = pool.find(i=>i.id===hidden.value);
+  const raw = input.value;
+  const q = (selectedItem && raw === `${selectedItem.itemNo} — ${selectedItem.name}`) ? '' : raw.toLowerCase();
+  const filtered = pool.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
+
+  if(filtered.length===0){
+    dropdown.innerHTML = `<div class="iv-combo-empty">${t('no_items_match', {q: raw})}</div>`;
+  }else{
+    dropdown.innerHTML = filtered.map(it=>{
+      const isExt = isExternalItemId(it.id);
+      return `<div class="iv-combo-item" onmousedown="selectEditResItemOption('${resId}','${it.id}')">
+      <span class="iv-combo-item-no">${it.itemNo}</span>
+      <span class="iv-combo-item-name">${it.name}</span>
+      ${isExt ? `<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}
+    </div>`;
+    }).join('');
+  }
+  dropdown.classList.remove('iv-hide');
+}
+
+function selectEditResItemOption(resId, itemId){
+  const pool = [...items, ...externalItems];
+  const item = pool.find(i=>i.id===itemId);
+  document.getElementById('editResItemSelect_'+resId).value = itemId;
+  document.getElementById('editResItemSearch_'+resId).value = item ? `${item.itemNo} — ${item.name}` : '';
+  document.getElementById('editResItemDropdown_'+resId).classList.add('iv-hide');
 }
 
 function renderPending(){
@@ -3224,12 +3390,18 @@ function renderPending(){
     rList.innerHTML = groups.map(g=>{
       const first = g.items[0];
       const hasSharedInfo = first.svso || first.quotation || first.customer || first.requestedBy;
-      const lines = g.items.map(resLineHtml).join('');
-      const header = hasSharedInfo ? resHeaderHtml(first, g.items.length, g.maxTs) : '';
-      const cls = g.items.length>1 ? 'iv-detail-card reserve group' : 'iv-detail-card reserve';
+      const isGroup = g.items.length>1;
+      // in a multi-item group, show each distinct note once up top instead of repeating it under every line
+      const notes = isGroup ? [...new Set(g.items.map(it=>(it.note||'').trim()).filter(Boolean))] : [];
+      const lines = g.items.map(r=>resLineHtml(r, isGroup)).join('');
+      const header = (hasSharedInfo || notes.length) ? resHeaderHtml(first, g.items.length, g.maxTs, notes) : '';
+      const cls = isGroup ? 'iv-detail-card reserve group' : 'iv-detail-card reserve';
+      const idsStr = g.items.map(x=>x.id).join(',');
+      const bulkAction = isGroup ? `<div style="margin:0 0 12px;"><button class="iv-btn-sm pos" onclick="fulfillReservationGroup('${idsStr}')">${t('btn_fulfill_all')}</button></div>` : '';
       return `<div class="${cls}">
-        ${g.items.length>1 ? `<div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>` : ''}
+        ${isGroup ? `<div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>` : ''}
         ${header}
+        ${bulkAction}
         ${lines}
       </div>`;
     }).join('');
@@ -3257,8 +3429,21 @@ function renderPending(){
       if(b.note) fields.push([t('note_optional'), b.note]);
 
       const isEditing = editingBorrowId===b.id;
+      const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
       const editForm = !isEditing ? '' : `
         <div class="iv-detail-edit-form">
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label">${t('lbl_item')}</label>
+              <div class="iv-combo">
+                <input class="iv-input" type="text" id="editBorItemSearch_${b.id}" value="${curLabel}" autocomplete="off"
+                       oninput="filterEditBorItemOptions('${b.id}')" onfocus="filterEditBorItemOptions('${b.id}')"
+                       onblur="setTimeout(()=>document.getElementById('editBorItemDropdown_${b.id}').classList.add('iv-hide'),150)">
+                <input type="hidden" id="editBorItemSelect_${b.id}" value="${b.itemId}">
+                <div id="editBorItemDropdown_${b.id}" class="iv-combo-dropdown iv-hide"></div>
+              </div>
+            </div>
+          </div>
           <div class="iv-form-row two">
             <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
             <div><label class="iv-label">${t('lbl_borrower')}</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
