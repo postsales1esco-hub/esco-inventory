@@ -1192,7 +1192,8 @@ const I18N = {
   btn_fulfill_all: 'ตัดสต๊อกทั้งหมด',
   confirm_fulfill_group: 'ตัดนำออกทั้ง {count} รายการในกลุ่มนี้เลยหรือไม่?',
   toast_fulfilled_group: 'ตัดนำออกครบ {count} รายการแล้ว',
-  toast_fulfilled_group_partial: 'ตัดนำออกแล้ว {done} รายการ ข้าม {skipped} รายการเพราะของจริงในคลังไม่พอ'
+  toast_fulfilled_group_partial: 'ตัดนำออกแล้ว {done} รายการ ข้าม {skipped} รายการเพราะของจริงในคลังไม่พอ',
+  note_optional_label: 'หมายเหตุ'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1429,7 +1430,8 @@ const I18N = {
   btn_fulfill_all: 'Fulfill All',
   confirm_fulfill_group: 'Fulfill all {count} lines in this group?',
   toast_fulfilled_group: 'Fulfilled all {count} lines',
-  toast_fulfilled_group_partial: 'Fulfilled {done} lines, skipped {skipped} — not enough actual stock'
+  toast_fulfilled_group_partial: 'Fulfilled {done} lines, skipped {skipped} — not enough actual stock',
+  note_optional_label: 'Note'
 }
 };
 function t(key, vars){
@@ -3256,7 +3258,7 @@ function resHeaderHtml(r, count, latestTs, notes){
   if(r.quotation) subParts.push('Quotation: '+r.quotation);
   if(r.requestedBy) subParts.push(t('lbl_requested_by_reserve')+': '+r.requestedBy);
   subParts.push(t('lbl_reserved_on')+' '+fmtDate(latestTs));
-  const notesHtml = (notes && notes.length) ? notes.map(n=>`<div class="iv-gl-note" style="margin-top:6px;">${n}</div>`).join('') : '';
+  const notesHtml = (notes && notes.length) ? notes.map(n=>`<div class="iv-gl-note" style="margin-top:6px;"><strong>${t('note_optional_label')}:</strong> ${n}</div>`).join('') : '';
   return `<div class="iv-res-header">
     <div class="iv-res-header-main">
       ${r.svso ? `<span class="iv-res-header-svso">${r.svso}</span>` : ''}
@@ -3391,9 +3393,9 @@ function renderPending(){
       const first = g.items[0];
       const hasSharedInfo = first.svso || first.quotation || first.customer || first.requestedBy;
       const isGroup = g.items.length>1;
-      // in a multi-item group, show each distinct note once up top instead of repeating it under every line
-      const notes = isGroup ? [...new Set(g.items.map(it=>(it.note||'').trim()).filter(Boolean))] : [];
-      const lines = g.items.map(r=>resLineHtml(r, isGroup)).join('');
+      // always show each distinct note once up top (next to SVSO/customer) instead of repeating it under every line
+      const notes = [...new Set(g.items.map(it=>(it.note||'').trim()).filter(Boolean))];
+      const lines = g.items.map(r=>resLineHtml(r, true)).join('');
       const header = (hasSharedInfo || notes.length) ? resHeaderHtml(first, g.items.length, g.maxTs, notes) : '';
       const cls = isGroup ? 'iv-detail-card reserve group' : 'iv-detail-card reserve';
       const idsStr = g.items.map(x=>x.id).join(',');
