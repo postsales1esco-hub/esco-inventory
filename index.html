@@ -269,6 +269,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
 .iv-toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);font-family:'Archivo',sans-serif;font-weight:600;font-size:13px;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:all .25s ease;z-index:50;white-space:nowrap;}
 .iv-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.iv-toast.iv-toast-warn{background:var(--out);white-space:normal;max-width:min(92vw,480px);text-align:center;line-height:1.4;}
 
 .iv-section-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:22px 0 8px;}
 .iv-section-title:first-child{margin-top:0;}
@@ -276,6 +277,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 .iv-footnote{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);text-align:center;margin-top:26px;line-height:1.6;}
 #loadErrorBanner{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);border-radius:8px;padding:10px 14px;font-size:12.5px;margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
 #loadErrorBanner.iv-hide{display:none;}
+.iv-badge.warn{background:var(--warn);color:#fff;}
 
 @media (max-width:480px){
   .iv-stats{grid-template-columns:1fr 1fr;}
@@ -362,7 +364,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
 
       <div class="iv-card" id="lowStockCard">
-        <p class="iv-card-title"><span class="iv-dot" style="background:var(--warn)"></span><span data-i18n="dash_low_stock">ต้องเติมสต๊อก</span></p>
+        <p class="iv-card-title"><span class="iv-dot" style="background:var(--warn)"></span><span data-i18n="dash_low_stock">ต้องเติมสต็อก</span></p>
         <div id="lowStockList" class="iv-carousel"></div>
       </div>
 
@@ -391,7 +393,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-toggle-btn" id="btnModeReserve" onclick="setMode('RESERVE')">⚑ <span data-i18n="mode_reserve">จอง</span></div>
           <div class="iv-toggle-btn" id="btnModeBorrow" onclick="setMode('BORROW')">↷ <span data-i18n="mode_borrow">ยืม</span></div>
         </div>
-        <div class="iv-hint" id="modeHint">รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที</div>
+        <div class="iv-hint" id="modeHint">รับสินค้าเข้าสต็อก จะเพิ่มยอดคงเหลือทันที</div>
 
         <div class="iv-form-row two iv-hide" id="inSubModeToggle">
           <div class="iv-toggle-btn sel-in" id="btnInSingle" onclick="setInSubMode('single')" data-i18n="in_sub_single">กรอกทีละรายการ</div>
@@ -500,14 +502,34 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             </div>
             <div class="iv-form-row two">
               <div>
-                <label class="iv-label">Customer Name</label>
-                <input class="iv-input" type="text" id="txCustomer" placeholder="ชื่อลูกค้า" data-i18n-ph="ph_customer_name">
+                <label class="iv-label" data-i18n="lbl_customer_type">ประเภทลูกค้า</label>
+                <select class="iv-input" id="txCustType" onchange="onCustTypeChange()">
+                  <option value="direct">Direct Customer</option>
+                  <option value="dealer">Dealer</option>
+                </select>
               </div>
               <div>
                 <label class="iv-label" data-i18n="lbl_requested_by_reserve">ผู้จอง</label>
                 <input class="iv-input" type="text" id="txRequestedBy" placeholder="ชื่อผู้จอง" data-i18n-ph="ph_requester_reserve">
               </div>
             </div>
+            <div class="iv-form-row" id="txDirectFields">
+              <div>
+                <label class="iv-label">Customer Name</label>
+                <input class="iv-input" type="text" id="txCustomer" list="dlCustomers" autocomplete="off" placeholder="ชื่อลูกค้า" data-i18n-ph="ph_customer_name">
+              </div>
+            </div>
+            <div class="iv-form-row two iv-hide" id="txDealerFields">
+              <div>
+                <label class="iv-label">Dealer Name</label>
+                <input class="iv-input" type="text" id="txDealer" list="dlDealers" autocomplete="off" placeholder="ชื่อ Dealer" data-i18n-ph="ph_dealer_name">
+              </div>
+              <div>
+                <label class="iv-label">End-user Name</label>
+                <input class="iv-input" type="text" id="txEndUser" list="dlEndUsers" autocomplete="off" placeholder="ชื่อ End-user" data-i18n-ph="ph_end_user_name">
+              </div>
+            </div>
+            <datalist id="dlCustomers"></datalist><datalist id="dlDealers"></datalist><datalist id="dlEndUsers"></datalist>
           </div>
 
           <div class="iv-form-row">
@@ -522,7 +544,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
         <!-- ===== BULK RECEIVE (IN mode only) ===== -->
         <div id="bulkReceiveSection" class="iv-hide">
-          <p class="iv-hint" data-i18n="bulk_in_hint">อัปโหลดไฟล์ใบรับของ / ใบนับสต๊อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)</p>
+          <p class="iv-hint" data-i18n="bulk_in_hint">อัปโหลดไฟล์ใบรับของ / ใบนับสต็อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)</p>
           <div class="iv-form-row">
             <div>
               <label class="iv-label" data-i18n="lbl_upload_file">อัปโหลดไฟล์ (.xlsx / .xls / .csv)</label>
@@ -583,7 +605,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       <input class="iv-input iv-search" type="text" id="pendingSearch" placeholder="ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม..." oninput="renderPending()" data-i18n-ph="ph_pending_search">
       <div class="iv-card">
         <p class="iv-card-title"><span class="iv-dot reserve"></span><span data-i18n="pending_reserve_title">รายการจองที่ยังไม่ตัดนำออก</span></p>
-      <p class="iv-hint" style="margin-top:-6px;margin-bottom:10px;" data-i18n="pending_reserve_hint">รายการที่มี ⚠ สต๊อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต๊อกไว้ให้อยู่</p>
+      <p class="iv-hint" style="margin-top:-6px;margin-bottom:10px;" data-i18n="pending_reserve_hint">รายการที่มี ⚠ สต็อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต็อกไว้ให้อยู่</p>
         <div id="reserveList"></div>
       </div>
       <div class="iv-card">
@@ -872,6 +894,11 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <!-- ============ SETTINGS ============ -->
     <div class="iv-panel" id="panel-settings">
       <div class="iv-card">
+        <p class="iv-card-title"><span class="ic">📡</span><span data-i18n="settings_sync_title">สถานะการเชื่อมต่อข้อมูล</span></p>
+        <div id="syncStatusBox"></div>
+      </div>
+
+      <div class="iv-card">
         <p class="iv-card-title"><span class="ic">💾</span><span data-i18n="settings_backup_title">สำรองข้อมูล</span></p>
         <p class="iv-hint" style="margin-bottom:12px;" data-i18n="settings_backup_hint">ดาวน์โหลดข้อมูลทั้งหมด (รายการสินค้า, ประวัติ, รายการจอง/ยืม) เป็นไฟล์ Excel เก็บไว้ได้ทุกเมื่อ ไม่กระทบข้อมูลในแอป</p>
         <button class="iv-btn neutral" onclick="exportToExcel()" data-i18n="btn_download_backup">ดาวน์โหลดสำรองข้อมูล (.xlsx)</button>
@@ -926,7 +953,7 @@ window.storage = {
         return {key: data.key, value: data.value, shared:true};
       }catch(e){
         console.error('storage.get failed (attempt '+(attempt+1)+')', e);
-        if(attempt===1){ window.__gasOffline = true; return null; }
+        if(attempt===1){ window.__gasOffline = true; throw e; }
       }
     }
   },
@@ -937,12 +964,23 @@ window.storage = {
     }
     for(let attempt=0; attempt<2; attempt++){
       try{
-        await fetch(GAS_API_URL, {
+        const res = await fetch(GAS_API_URL, {
           method:'POST',
           cache: 'no-store',
           headers:{'Content-Type':'text/plain;charset=utf-8'},
           body: JSON.stringify({key, value})
         });
+        if(!res.ok) throw new Error('storage.set got HTTP '+res.status);
+        // some Apps Script deployments return 200 with an error payload instead of an HTTP error code — catch that too
+        try{
+          const text = await res.text();
+          if(text){
+            const data = JSON.parse(text);
+            if(data && (data.error || data.success===false)) throw new Error('storage.set reported failure: '+(data.error||'unknown'));
+          }
+        }catch(parseErr){
+          // response wasn't JSON (e.g. plain "OK") — that's fine, treat the OK HTTP status as success
+        }
         return {key, value, shared:true};
       }catch(e){
         console.error('storage.set failed (attempt '+(attempt+1)+')', e);
@@ -973,7 +1011,7 @@ const I18N = {
   dash_stat_reserved: 'จองอยู่ (รายการ)',
   dash_stat_borrowed: 'ยืม',
   dash_top_movers: 'สินค้าขายดี',
-  dash_low_stock: 'ต้องเติมสต๊อก',
+  dash_low_stock: 'ต้องเติมสต็อก',
   dash_overdue: 'ยืมเกินกำหนดคืน',
   dash_recent: 'เคลื่อนไหวล่าสุด',
   dash_view_all: 'ดูทั้งหมด →',
@@ -1013,7 +1051,7 @@ const I18N = {
   lbl_header_row_at: 'หัวตารางอยู่แถวที่ (ในไฟล์)',
   lbl_map_itemno: 'รหัสสินค้า (Item No.) *',
   lbl_uom: 'หน่วยนับ',
-  bulk_in_hint: 'อัปโหลดไฟล์ใบรับของ / ใบนับสต๊อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)',
+  bulk_in_hint: 'อัปโหลดไฟล์ใบรับของ / ใบนับสต็อก แล้วระบบจะรับเข้าให้ทุกรายการในไฟล์ทีเดียว (จับคู่ด้วยรหัสสินค้าที่มีอยู่แล้วในระบบเท่านั้น)',
   lbl_map_name_opt: 'ชื่อสินค้า (ไม่บังคับ — ใช้ตรวจสอบ/อัปเดตชื่อ)',
   lbl_map_qty_in: 'จำนวนที่รับเข้า *',
   lbl_map_uom_opt: 'หน่วยนับ / UOM (ไม่บังคับ — ใช้ตอนเพิ่มสินค้าใหม่)',
@@ -1024,7 +1062,7 @@ const I18N = {
   btn_receive_all: 'รับเข้าทั้งหมด',
   ph_pending_search: 'ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม...',
   pending_reserve_title: 'รายการจองที่ยังไม่ตัดนำออก',
-  pending_reserve_hint: 'รายการที่มี ⚠ สต๊อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต๊อกไว้ให้อยู่',
+  pending_reserve_hint: 'รายการที่มี ⚠ สต็อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต็อกไว้ให้อยู่',
   pending_borrow_title: 'รายการยืมที่ยังไม่คืน',
   ph_item_search_plain: 'ค้นหาด้วยรหัสหรือชื่อสินค้า...',
   btn_add_item: 'เพิ่มสินค้า',
@@ -1079,9 +1117,9 @@ const I18N = {
   submit_out: 'บันทึกนำออก',
   submit_reserve: 'บันทึกการจอง',
   submit_borrow: 'บันทึกการยืม',
-  hint_in: 'รับสินค้าเข้าสต๊อก จะเพิ่มยอดคงเหลือทันที',
+  hint_in: 'รับสินค้าเข้าสต็อก จะเพิ่มยอดคงเหลือทันที',
   hint_out: 'นำสินค้าออกแบบถาวร (เบิกใช้งาน) จะตัดจากยอดพร้อมใช้งานทันที',
-  hint_reserve: 'กันสต๊อกไว้ล่วงหน้า ยังไม่ตัดของออกจากคลัง แต่จะไม่นับรวมในยอด "พร้อมใช้งาน" ของคนอื่น',
+  hint_reserve: 'กันสต็อกไว้ล่วงหน้า ยังไม่ตัดของออกจากคลัง แต่จะไม่นับรวมในยอด "พร้อมใช้งาน" ของคนอื่น',
   hint_borrow: 'ของออกจากคลังชั่วคราว ต้องนำมาคืน — ระบบจะติดตามจนกว่าจะคืน',
   note_optional_cart: 'หมายเหตุ (ไม่บังคับ, ใช้กับทุกรายการในตะกร้า)',
   ph_item_search_wide: 'พิมพ์รหัสหรือชื่อสินค้า (รวมนอกสต็อก) เพื่อค้นหา...',
@@ -1106,7 +1144,7 @@ const I18N = {
   note_prefix_reserved_by: 'ผู้จอง: ',
   note_off_stock_item: 'สินค้านอกสต็อก',
   toast_reserve_saved: 'บันทึกการจอง {count} รายการแล้ว',
-  toast_backorder_note: '(บางรายการจองล่วงหน้า สต๊อกไม่พอตอนนี้)',
+  toast_backorder_note: '(บางรายการจองล่วงหน้า สต็อกไม่พอตอนนี้)',
   toast_enter_borrower: 'กรอกชื่อผู้ยืม',
   toast_borrow_saved: 'บันทึกการยืม {count} รายการให้ {borrower} แล้ว',
   toast_avail_only_out: 'พร้อมใช้งานแค่ {avail} {unit} — ทำรายการนี้ไม่ได้',
@@ -1114,7 +1152,7 @@ const I18N = {
   toast_received: 'รับเข้า {qty} {unit} แล้ว',
   note_prefix_issued_by: 'ผู้เบิก: ',
   toast_issued: 'นำออก {qty} {unit} แล้ว',
-  toast_view_only: 'โหมดดูอย่างเดียว — ปลดล็อกที่แท็บ "ภาพรวม" ก่อน',
+  toast_view_only: 'โหมดดูอย่างเดียว — ปลดล็อกที่แท็บ "ตั้งค่า" ก่อน',
   toast_enter_password: 'กรุณาใส่รหัสผ่าน',
   toast_pin_set: 'ตั้งรหัสผ่านแล้ว คนอื่นที่เปิดแอปนี้ต้องกรอกรหัสก่อนแก้ไขข้อมูล',
   toast_pin_removed: 'ยกเลิกรหัสผ่านแล้ว ทุกคนแก้ไขข้อมูลได้',
@@ -1140,7 +1178,7 @@ const I18N = {
   tag_overdue: 'เกินกำหนด',
   btn_return_item: 'คืนของ',
   empty_no_tx_title: 'ยังไม่มีรายการ',
-  empty_no_tx_sub: 'เริ่มบันทึกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"',
+  empty_no_tx_sub: 'เริ่มบันทึกได้ที่แท็บ "รับ-จ่าย"',
   word_year: 'ปี',
   top_movers_none: 'ยังไม่มีข้อมูลนำออกในปี {year}',
   empty_no_data_title: 'ไม่มีข้อมูล',
@@ -1162,12 +1200,12 @@ const I18N = {
   btn_release_reservation: 'ยกเลิกจอง',
   btn_close_edit: 'ปิดฟอร์มแก้ไข',
   btn_edit: 'แก้ไข',
-  title_backorder: 'สต๊อกไม่พอ ยังรอสินค้าเข้า',
+  title_backorder: 'สต็อกไม่พอ ยังรอสินค้าเข้า',
   tag_backorder: 'รอสินค้าเข้า',
   lbl_reserved_on: 'จองเมื่อ',
   word_items: 'รายการ',
   empty_no_reservations_title: 'ไม่มีรายการจอง',
-  empty_no_reservations_sub: 'จองสต๊อกได้ที่แท็บ "รับ-จ่าย-จอง-ยืม"',
+  empty_no_reservations_sub: 'จองสต็อกได้ที่แท็บ "รับ-จ่าย"',
   empty_no_borrows_title: 'ไม่มีของค้างยืม',
   lbl_due_date_plain: 'กำหนดคืน',
   toast_qty_must_be_positive: 'จำนวนต้องมากกว่า 0',
@@ -1189,13 +1227,25 @@ const I18N = {
   toast_archived: 'เก็บถาวร {count} รายการเรียบร้อยแล้ว',
   note_ext_qty_adjusted: 'ปรับจำนวนสินค้านอกสต็อก (จาก {from} เป็น {to})',
   toast_qty_updated: 'อัปเดตจำนวนแล้ว',
-  btn_fulfill_all: 'ตัดสต๊อกทั้งหมด',
+  btn_fulfill_all: 'ตัดสต็อกทั้งหมด',
   confirm_fulfill_group: 'ตัดนำออกทั้ง {count} รายการในกลุ่มนี้เลยหรือไม่?',
   toast_fulfilled_group: 'ตัดนำออกครบ {count} รายการแล้ว',
   toast_fulfilled_group_partial: 'ตัดนำออกแล้ว {done} รายการ ข้าม {skipped} รายการเพราะของจริงในคลังไม่พอ',
   note_optional_label: 'หมายเหตุ',
   tag_fully_booked: 'จองครบพอดี',
-  confirm_ext_qty_change: 'เปลี่ยนจำนวน "{name}" จาก {from} เป็น {to} ใช่หรือไม่?'
+  confirm_ext_qty_change: 'เปลี่ยนจำนวน "{name}" จาก {from} เป็น {to} ใช่หรือไม่?',
+  empty_no_items_title: 'ไม่พบสินค้า',
+  empty_no_items_sub: 'ลองเพิ่มสินค้าใหม่จากแท็บ "นำเข้า"',
+  toast_save_failed: '⚠️ บันทึก{what}ไม่สำเร็จ — การเปลี่ยนแปลงอาจไม่ถูกบันทึกจริง กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองทำรายการนี้ใหม่',
+  lbl_customer_type: 'ประเภทลูกค้า',
+  ph_dealer_name: 'ชื่อ Dealer',
+  ph_end_user_name: 'ชื่อ End-user',
+  settings_sync_title: 'สถานะการเชื่อมต่อข้อมูล',
+  sync_ok: 'เชื่อมต่อและโหลดข้อมูลปกติ',
+  sync_blocked_hint: 'ระหว่างนี้ระบบจะไม่บันทึกข้อมูลที่โหลดไม่สำเร็จ เพื่อกันไม่ให้ข้อมูลจริงถูกเขียนทับ — กด "โหลดใหม่" เมื่อเน็ตพร้อมแล้ว',
+  badge_sync_failed: 'โหลดไม่สำเร็จ',
+  badge_save_failed: 'บันทึกไม่สำเร็จ',
+  toast_save_blocked: '⚠️ ยังโหลด{what}ไม่สำเร็จ จึงไม่บันทึกเพื่อกันข้อมูลจริงถูกเขียนทับ — ไปที่ตั้งค่า แล้วกด "โหลดใหม่" ก่อน'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1435,7 +1485,19 @@ const I18N = {
   toast_fulfilled_group_partial: 'Fulfilled {done} lines, skipped {skipped} — not enough actual stock',
   note_optional_label: 'Note',
   tag_fully_booked: 'Fully Booked',
-  confirm_ext_qty_change: 'Change the quantity of "{name}" from {from} to {to}?'
+  confirm_ext_qty_change: 'Change the quantity of "{name}" from {from} to {to}?',
+  empty_no_items_title: 'No items found',
+  empty_no_items_sub: 'Try adding a new item from the "Stock In" tab',
+  toast_save_failed: '⚠️ Failed to save {what} — this change may not have actually been saved. Check your connection and try again',
+  lbl_customer_type: 'Customer Type',
+  ph_dealer_name: 'Dealer name',
+  ph_end_user_name: 'End-user name',
+  settings_sync_title: 'Data Connection Status',
+  sync_ok: 'Connected — data loaded normally',
+  sync_blocked_hint: 'Until it loads, the app won\'t save that data so the real data can\'t be overwritten — press Reload once your connection is back',
+  badge_sync_failed: 'LOAD FAILED',
+  badge_save_failed: 'SAVE FAILED',
+  toast_save_blocked: '⚠️ {what} hasn\'t loaded yet, so saving is blocked to avoid overwriting real data — open Settings and press Reload first'
 }
 };
 function t(key, vars){
@@ -1568,21 +1630,40 @@ function availableQty(itemId){
 function totalStock(it){ return (it.baseQty||0) + onHand(it.id); }
 // baseQty is folded into ledger IN at creation time (see addItem) — kept simple: onHand already includes base via seed IN entry.
 
+const LOAD_FAILED = Symbol('load_failed');
+let loadFailedKeys = new Set(); // storage keys that did not load cleanly — saving them is blocked so real data can't be overwritten
+function parseLoadResult(res, loadErrors, errKey, storageKey){
+  if(res === LOAD_FAILED){ loadErrors.push(t(errKey)); loadFailedKeys.add(storageKey); return []; }
+  try{ return res ? JSON.parse(res.value) : []; }
+  catch(e){ loadErrors.push(t(errKey)); loadFailedKeys.add(storageKey); return []; }
+}
+
 async function loadData(){
   try{ const r = await window.storage.get('inv:lang', false); if(r && (r.value==='th'||r.value==='en')) LANG = r.value; }catch(e){}
   const loadErrors = [];
+  loadFailedKeys = new Set();
   const [itemsRes, extRes, ledgerRes, resvRes, borrowRes] = await Promise.all([
-    window.storage.get(KEY_ITEMS, true).catch(()=>null),
-    window.storage.get(KEY_EXTERNAL_ITEMS, true).catch(()=>null),
-    window.storage.get(KEY_LEDGER, true).catch(()=>null),
-    window.storage.get(KEY_RESERVATIONS, true).catch(()=>null),
-    window.storage.get(KEY_BORROWS, true).catch(()=>null)
+    window.storage.get(KEY_ITEMS, true).catch(()=>LOAD_FAILED),
+    window.storage.get(KEY_EXTERNAL_ITEMS, true).catch(()=>LOAD_FAILED),
+    window.storage.get(KEY_LEDGER, true).catch(()=>LOAD_FAILED),
+    window.storage.get(KEY_RESERVATIONS, true).catch(()=>LOAD_FAILED),
+    window.storage.get(KEY_BORROWS, true).catch(()=>LOAD_FAILED)
   ]);
-  try{ items = itemsRes ? JSON.parse(itemsRes.value) : []; }catch(e){ items = []; loadErrors.push(t('err_items')); }
-  try{ externalItems = extRes ? JSON.parse(extRes.value) : []; }catch(e){ externalItems = []; loadErrors.push(t('err_ext_items')); }
-  try{ ledger = ledgerRes ? JSON.parse(ledgerRes.value) : []; }catch(e){ ledger = []; loadErrors.push(t('err_ledger')); }
-  try{ reservations = resvRes ? JSON.parse(resvRes.value) : []; }catch(e){ reservations = []; loadErrors.push(t('err_reservations')); }
-  try{ borrows = borrowRes ? JSON.parse(borrowRes.value) : []; }catch(e){ borrows = []; loadErrors.push(t('err_borrows')); }
+  items = parseLoadResult(itemsRes, loadErrors, 'err_items', KEY_ITEMS);
+  externalItems = parseLoadResult(extRes, loadErrors, 'err_ext_items', KEY_EXTERNAL_ITEMS);
+  ledger = parseLoadResult(ledgerRes, loadErrors, 'err_ledger', KEY_LEDGER);
+  reservations = parseLoadResult(resvRes, loadErrors, 'err_reservations', KEY_RESERVATIONS);
+  borrows = parseLoadResult(borrowRes, loadErrors, 'err_borrows', KEY_BORROWS);
+
+  // never auto-seed demo data (or run the old-version migration) on top of a load that may not have actually
+  // succeeded — that demo data could later get saved and clash with real backend data once it's reachable again.
+  if(loadErrors.length > 0){
+    applyI18n();
+    setMode(currentMode);
+    renderAll();
+    showLoadErrorBanner(loadErrors);
+    return;
+  }
 
   if(items.length===0 && ledger.length===0){
     const seedId = uid();
@@ -1610,13 +1691,29 @@ async function loadData(){
   showLoadErrorBanner(loadErrors);
 }
 
+function setSyncBadge(state){
+  // state: 'ok' | 'load' | 'save'
+  const badge = document.getElementById('ivSyncBadge');
+  if(!badge) return;
+  badge.textContent = state==='load' ? t('badge_sync_failed') : (state==='save' ? t('badge_save_failed') : 'SYNCED');
+  badge.classList.toggle('warn', state!=='ok');
+  badge.style.cursor = state!=='ok' ? 'pointer' : '';
+  badge.onclick = state!=='ok' ? ()=>goToTab('settings') : null;
+}
+
+// Load problems are no longer a big banner on every page: a small amber badge in the header (tap to open Settings)
+// plus the full details and a reload button in Settings → connection status.
 function showLoadErrorBanner(errors){
-  const el = document.getElementById('loadErrorBanner');
-  if(!el) return;
-  if(!errors || errors.length===0){ el.classList.add('iv-hide'); el.innerHTML=''; return; }
-  el.classList.remove('iv-hide');
-  el.innerHTML = `⚠️ ${t('err_load_failed', {list: errors.join(', ')})}
-    <button class="iv-btn-sm" style="margin-left:8px;" onclick="reloadAllData()">${t('btn_reload')}</button>`;
+  const has = !!(errors && errors.length);
+  setSyncBadge(has ? 'load' : 'ok');
+  const box = document.getElementById('syncStatusBox');
+  if(box){
+    box.innerHTML = has
+      ? `<p class="iv-hint" style="margin-bottom:10px;">⚠️ ${t('err_load_failed', {list: errors.join(', ')})}</p>
+         <p class="iv-hint" style="margin-bottom:10px;">${t('sync_blocked_hint')}</p>
+         <button class="iv-btn-sm pos" onclick="reloadAllData()">${t('btn_reload')}</button>`
+      : `<p class="iv-hint">✅ ${t('sync_ok')}</p>`;
+  }
 }
 
 async function reloadAllData(){
@@ -1702,17 +1799,37 @@ function renderAccessUI(){
   }
 }
 
-async function saveItems(){ await window.storage.set(KEY_ITEMS, JSON.stringify(items), true); }
-async function saveExternalItems(){ await window.storage.set(KEY_EXTERNAL_ITEMS, JSON.stringify(externalItems), true); }
-async function saveLedger(){ invalidateBalanceCache(); await window.storage.set(KEY_LEDGER, JSON.stringify(ledger), true); }
-async function saveReservations(){ invalidateBalanceCache(); await window.storage.set(KEY_RESERVATIONS, JSON.stringify(reservations), true); }
-async function saveBorrows(){ invalidateBalanceCache(); await window.storage.set(KEY_BORROWS, JSON.stringify(borrows), true); }
+async function saveAndWarn(key, value, label){
+  if(loadFailedKeys.has(key)){
+    // this data never loaded, so what's in memory is empty/partial — saving it would overwrite the real data on the server
+    showToast(t('toast_save_blocked', {what: label}), true);
+    return false;
+  }
+  const res = await window.storage.set(key, value, true);
+  if(!res){
+    showToast(t('toast_save_failed', {what: label}), true);
+    setSyncBadge('save');
+  }else if(loadFailedKeys.size===0){
+    setSyncBadge('ok');
+  }
+  return !!res;
+}
+async function saveItems(){ return await saveAndWarn(KEY_ITEMS, JSON.stringify(items), t('err_items')); }
+async function saveExternalItems(){ return await saveAndWarn(KEY_EXTERNAL_ITEMS, JSON.stringify(externalItems), t('err_ext_items')); }
+async function saveLedger(){ invalidateBalanceCache(); return await saveAndWarn(KEY_LEDGER, JSON.stringify(ledger), t('err_ledger')); }
+async function saveReservations(){ invalidateBalanceCache(); return await saveAndWarn(KEY_RESERVATIONS, JSON.stringify(reservations), t('err_reservations')); }
+async function saveBorrows(){ invalidateBalanceCache(); return await saveAndWarn(KEY_BORROWS, JSON.stringify(borrows), t('err_borrows')); }
 
-function showToast(msg){
+let toastWarningUntil = 0;
+function showToast(msg, isWarning){
   const t = document.getElementById('ivToast');
+  const now = Date.now();
+  if(!isWarning && now < toastWarningUntil) return; // a save-failure warning is still showing — don't let a routine "saved!" message hide it
+  if(isWarning) toastWarningUntil = now + 3500;
   t.textContent = msg;
+  t.classList.toggle('iv-toast-warn', !!isWarning);
   t.classList.add('show');
-  setTimeout(()=> t.classList.remove('show'), 1800);
+  setTimeout(()=> t.classList.remove('show'), isWarning ? 3500 : 1800);
 }
 
 const MODE_META = {
@@ -1929,6 +2046,39 @@ function renderTxCart(){
   }).join('');
 }
 
+// ---- customer type (Direct Customer vs Dealer + End-user) ----
+function onCustTypeChange(){
+  const isDealer = document.getElementById('txCustType').value==='dealer';
+  document.getElementById('txDirectFields').classList.toggle('iv-hide', isDealer);
+  document.getElementById('txDealerFields').classList.toggle('iv-hide', !isDealer);
+}
+function onEditCustTypeChange(id){
+  const isDealer = document.getElementById('editResCustType_'+id).value==='dealer';
+  document.getElementById('editResDirect_'+id).classList.toggle('iv-hide', isDealer);
+  document.getElementById('editResDealerRow_'+id).classList.toggle('iv-hide', !isDealer);
+}
+// `customer` always holds a plain combined string (so search/grouping/old data keep working);
+// dealer/endUser keep the two names separately for display and editing.
+function readCustomerFields(type, direct, dealer, endUser){
+  if(type==='dealer') return {customerType:'dealer', dealer, endUser, customer:[dealer, endUser].filter(Boolean).join(' → ')};
+  return {customerType:'direct', dealer:'', endUser:'', customer:direct};
+}
+function customerLabel(r){
+  if(r.customerType==='dealer') return [r.dealer ? 'Dealer: '+r.dealer : '', r.endUser ? 'End-user: '+r.endUser : ''].filter(Boolean).join(' · ');
+  return r.customer || '';
+}
+function customerNoteText(r){
+  if(r.customerType==='dealer') return customerLabel(r);
+  return r.customer ? t('note_prefix_customer')+r.customer : '';
+}
+function refreshCustomerSuggestions(){
+  const uniq = arr => [...new Set(arr.map(s=>(s||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const fill = (id, list) => { const el = document.getElementById(id); if(el) el.innerHTML = list.map(s=>`<option value="${s.replace(/"/g,'&quot;')}">`).join(''); };
+  fill('dlCustomers', uniq(reservations.filter(r=>r.customerType!=='dealer').map(r=>r.customer)));
+  fill('dlDealers', uniq(reservations.map(r=>r.dealer)));
+  fill('dlEndUsers', uniq(reservations.map(r=>r.endUser)));
+}
+
 async function submitCart(){
   if(txCart.length===0) return;
   const note = document.getElementById('txNote').value.trim();
@@ -1936,7 +2086,11 @@ async function submitCart(){
   if(currentMode==='RESERVE'){
     const svso = document.getElementById('txSvso').value.trim();
     const quotation = document.getElementById('txQuotation').value.trim();
-    const customer = document.getElementById('txCustomer').value.trim();
+    const cf = readCustomerFields(
+      document.getElementById('txCustType').value,
+      document.getElementById('txCustomer').value.trim(),
+      document.getElementById('txDealer').value.trim(),
+      document.getElementById('txEndUser').value.trim());
     const requestedBy = document.getElementById('txRequestedBy').value.trim();
     let anyBackorder = false;
     let savedCount = 0;
@@ -1953,12 +2107,12 @@ async function submitCart(){
       const composedNote = [
         svso ? t('note_prefix_svso')+svso : '',
         quotation ? t('note_prefix_quotation')+quotation : '',
-        customer ? t('note_prefix_customer')+customer : '',
+        customerNoteText(cf),
         requestedBy ? t('note_prefix_reserved_by')+requestedBy : '',
         isExternalSrc ? t('note_off_stock_item') : '',
         note
       ].filter(Boolean).join(' · ');
-      reservations.push({id:uid(), itemId:c.itemId, qty:c.qty, svso, quotation, customer, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
+      reservations.push({id:uid(), itemId:c.itemId, qty:c.qty, svso, quotation, ...cf, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
       ledger.push({id:uid(), itemId:c.itemId, type:'RESERVE', qty:c.qty, note: composedNote, ts:Date.now(), source: isExternalSrc?'external':'stock'});
       savedCount++;
     }
@@ -1970,6 +2124,8 @@ async function submitCart(){
     document.getElementById('txSvso').value='';
     document.getElementById('txQuotation').value='';
     document.getElementById('txCustomer').value='';
+    document.getElementById('txDealer').value='';
+    document.getElementById('txEndUser').value='';
     document.getElementById('txRequestedBy').value='';
   }
   else if(currentMode==='BORROW'){
@@ -2115,7 +2271,7 @@ function reservationSummary(r){
   return [
     r.svso ? t('note_prefix_svso')+r.svso : '',
     r.quotation ? t('note_prefix_quotation')+r.quotation : '',
-    r.customer ? t('note_prefix_customer')+r.customer : '',
+    customerNoteText(r),
     r.requestedBy ? t('note_prefix_reserved_by')+r.requestedBy : '',
     r.note || ''
   ].filter(Boolean).join(' · ');
@@ -2833,9 +2989,15 @@ async function updateExternalItemQty(id, val){
 async function deleteExternalItem(id){
   if(!requireEdit()) return;
   const it = externalItems.find(i=>i.id===id);
-  if(!confirm(`ลบสินค้านอกสต็อก "${it?it.name:''}" ออกจากรายการ?\nการลบไม่สามารถย้อนกลับได้`)) return;
+  if(!confirm(`ลบสินค้านอกสต็อก "${it?it.name:''}" ออกจากรายการ?\nประวัติ รายการจอง และรายการยืมของสินค้านี้จะถูกลบไปด้วย และไม่สามารถย้อนกลับได้`)) return;
   externalItems = externalItems.filter(i=>i.id!==id);
+  ledger = ledger.filter(tx=>tx.itemId!==id);
+  reservations = reservations.filter(r=>r.itemId!==id);
+  borrows = borrows.filter(b=>b.itemId!==id);
   await saveExternalItems();
+  await saveLedger();
+  await saveReservations();
+  await saveBorrows();
   showToast('ลบสินค้านอกสต็อกแล้ว');
   renderAll();
 }
@@ -3187,7 +3349,11 @@ async function saveReservationEdit(id){
   r.qty = qty;
   r.svso = document.getElementById('editResSvso_'+id).value.trim();
   r.quotation = document.getElementById('editResQuotation_'+id).value.trim();
-  r.customer = document.getElementById('editResCustomer_'+id).value.trim();
+  Object.assign(r, readCustomerFields(
+    document.getElementById('editResCustType_'+id).value,
+    document.getElementById('editResCustomer_'+id).value.trim(),
+    document.getElementById('editResDealer_'+id).value.trim(),
+    document.getElementById('editResEndUser_'+id).value.trim()));
   r.requestedBy = document.getElementById('editResRequestedBy_'+id).value.trim();
   r.note = document.getElementById('editResNote_'+id).value.trim();
   await saveReservations();
@@ -3267,11 +3433,15 @@ function resHeaderHtml(r, count, latestTs, notes){
   if(r.quotation) subParts.push('Quotation: '+r.quotation);
   if(r.requestedBy) subParts.push(t('lbl_requested_by_reserve')+': '+r.requestedBy);
   subParts.push(t('lbl_reserved_on')+' '+fmtDate(latestTs));
+  const isDealer = r.customerType==='dealer';
+  if(isDealer && r.endUser) subParts.unshift('End-user: '+r.endUser);
+  const mainName = isDealer ? r.dealer : r.customer;
   const notesHtml = (notes && notes.length) ? notes.map(n=>`<div class="iv-gl-note" style="margin-top:6px;"><strong>${t('note_optional_label')}:</strong> ${n}</div>`).join('') : '';
   return `<div class="iv-res-header">
     <div class="iv-res-header-main">
       ${r.svso ? `<span class="iv-res-header-svso">${r.svso}</span>` : ''}
-      ${r.customer ? `<span class="iv-res-header-customer">${r.customer}</span>` : ''}
+      ${mainName ? `<span class="iv-res-header-customer">${mainName}</span>` : ''}
+      ${isDealer ? `<span class="iv-tag" style="background:var(--reserve-soft);color:var(--reserve);">Dealer</span>` : ''}
     </div>
     <div class="iv-res-header-sub">${subParts.join(' · ')}</div>
     ${notesHtml}
@@ -3305,6 +3475,7 @@ function resLineHtml(r, suppressNote){
 
 function resEditForm(r){
   const item = findItemRef(r.itemId, r.source);
+  const isD = r.customerType==='dealer';
   const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
   return `
     <div class="iv-detail-edit-form">
@@ -3326,7 +3497,18 @@ function resEditForm(r){
       </div>
       <div class="iv-form-row two">
         <div><label class="iv-label">Quotation No.</label><input class="iv-input" type="text" id="editResQuotation_${r.id}" value="${r.quotation||''}"></div>
-        <div><label class="iv-label">Customer Name</label><input class="iv-input" type="text" id="editResCustomer_${r.id}" value="${r.customer||''}"></div>
+        <div><label class="iv-label">${t('lbl_customer_type')}</label>
+          <select class="iv-input" id="editResCustType_${r.id}" onchange="onEditCustTypeChange('${r.id}')">
+            <option value="direct" ${isD?'':'selected'}>Direct Customer</option>
+            <option value="dealer" ${isD?'selected':''}>Dealer</option>
+          </select></div>
+      </div>
+      <div class="iv-form-row ${isD?'iv-hide':''}" id="editResDirect_${r.id}">
+        <div><label class="iv-label">Customer Name</label><input class="iv-input" type="text" id="editResCustomer_${r.id}" list="dlCustomers" autocomplete="off" value="${isD?'':(r.customer||'')}"></div>
+      </div>
+      <div class="iv-form-row two ${isD?'':'iv-hide'}" id="editResDealerRow_${r.id}">
+        <div><label class="iv-label">Dealer Name</label><input class="iv-input" type="text" id="editResDealer_${r.id}" list="dlDealers" autocomplete="off" value="${r.dealer||''}"></div>
+        <div><label class="iv-label">End-user Name</label><input class="iv-input" type="text" id="editResEndUser_${r.id}" list="dlEndUsers" autocomplete="off" value="${r.endUser||''}"></div>
       </div>
       <div class="iv-form-row two">
         <div><label class="iv-label">${t('lbl_requested_by_reserve')}</label><input class="iv-input" type="text" id="editResRequestedBy_${r.id}" value="${r.requestedBy||''}"></div>
@@ -3501,7 +3683,7 @@ function renderItems(){
   const filtered = items.filter(it => it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q));
 
   if(filtered.length===0){
-    list.innerHTML = `<tr><td colspan="4"><div class="iv-empty"><div class="iv-empty-title">ไม่พบสินค้า</div><div class="iv-empty-sub">ลองเพิ่มสินค้าใหม่จากแท็บ "นำเข้า/เพิ่มสินค้า"</div></div></td></tr>`;
+    list.innerHTML = `<tr><td colspan="4"><div class="iv-empty"><div class="iv-empty-title">${t('empty_no_items_title')}</div><div class="iv-empty-sub">${t('empty_no_items_sub')}</div></div></td></tr>`;
     return;
   }
   list.innerHTML = filtered.map(it=>{
@@ -3577,6 +3759,7 @@ function renderHistory(){
 }
 
 function renderAll(){
+  refreshCustomerSuggestions();
   renderStats();
   renderLowStock();
   renderOverdue();
@@ -3625,7 +3808,7 @@ async function archiveOldData(){
   });
   const reserveRows = oldRes.map(r=>{
     const item = findItemRef(r.itemId, r.source);
-    return {'Item No.': item?item.itemNo:'', 'Description': item?item.name:t('item_deleted'), 'Qty': r.qty, 'SVSO No.': r.svso||'', 'Quotation No.': r.quotation||'', 'Customer Name': r.customer||'', 'Requested By': r.requestedBy||'', 'Note': r.note||'', 'Status': r.status, 'Reserved On': fmtDate(r.ts)};
+    return {'Item No.': item?item.itemNo:'', 'Description': item?item.name:t('item_deleted'), 'Qty': r.qty, 'SVSO No.': r.svso||'', 'Quotation No.': r.quotation||'', 'Customer Type': r.customerType==='dealer'?'Dealer':'Direct Customer', 'Customer Name': r.customerType==='dealer'?'':(r.customer||''), 'Dealer': r.dealer||'', 'End-user': r.endUser||'', 'Requested By': r.requestedBy||'', 'Note': r.note||'', 'Status': r.status, 'Reserved On': fmtDate(r.ts)};
   });
   const borrowRows = oldBor.map(b=>{
     const item = findItemRef(b.itemId, b.source);
@@ -3714,7 +3897,10 @@ function exportToExcel(){
       'Qty': r.qty,
       'SVSO No.': r.svso || '',
       'Quotation No.': r.quotation || '',
-      'Customer Name': r.customer || '',
+      'Customer Type': r.customerType==='dealer' ? 'Dealer' : 'Direct Customer',
+      'Customer Name': r.customerType==='dealer' ? '' : (r.customer || ''),
+      'Dealer': r.dealer || '',
+      'End-user': r.endUser || '',
       'Requested By': r.requestedBy || '',
       'Note': r.note || '',
       'Status': r.status,
