@@ -174,6 +174,7 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-res-header-svso{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--ink);}
 .iv-res-header-customer{font-size:14px;font-weight:700;color:var(--ink);}
 .iv-res-header-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:4px;letter-spacing:.02em;}
+.iv-detail-card.borrow .iv-group-badge{color:var(--borrow);background:var(--borrow-soft);}
 .iv-group-line{padding:11px 12px;border-radius:9px;background:var(--bg);margin-top:8px;}
 .iv-group-line:first-of-type{margin-top:0;}
 .iv-gl-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;}
@@ -472,23 +473,6 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             </div>
           </div>
 
-          <div class="iv-form-row iv-hide" id="borrowFields">
-            <div>
-              <label class="iv-label" data-i18n="lbl_borrower">ผู้ยืม</label>
-              <input class="iv-input" type="text" id="txBorrower" placeholder="ชื่อผู้ยืม" data-i18n-ph="ph_borrower_name">
-            </div>
-          </div>
-          <div class="iv-form-row two iv-hide" id="borrowDueField">
-            <div>
-              <label class="iv-label" data-i18n="lbl_borrow_date">วันที่ยืม</label>
-              <input class="iv-input" type="date" id="txBorrowDate">
-            </div>
-            <div>
-              <label class="iv-label" data-i18n="lbl_due_date">กำหนดคืน (ไม่บังคับ)</label>
-              <input class="iv-input" type="date" id="txDueDate">
-            </div>
-          </div>
-
           <div id="reserveFields" class="iv-hide">
             <div class="iv-form-row two">
               <div>
@@ -508,9 +492,13 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
                   <option value="dealer">Dealer</option>
                 </select>
               </div>
-              <div>
+              <div id="txRequesterWrap">
                 <label class="iv-label" data-i18n="lbl_requested_by_reserve">ผู้จอง</label>
                 <input class="iv-input" type="text" id="txRequestedBy" placeholder="ชื่อผู้จอง" data-i18n-ph="ph_requester_reserve">
+              </div>
+              <div id="borrowFields" class="iv-hide">
+                <label class="iv-label" data-i18n="lbl_borrower">ผู้ยืม</label>
+                <input class="iv-input" type="text" id="txBorrower" placeholder="ชื่อผู้ยืม" data-i18n-ph="ph_borrower_name">
               </div>
             </div>
             <div class="iv-form-row" id="txDirectFields">
@@ -530,6 +518,16 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
               </div>
             </div>
             <datalist id="dlCustomers"></datalist><datalist id="dlDealers"></datalist><datalist id="dlEndUsers"></datalist>
+          </div>
+          <div class="iv-form-row two iv-hide" id="borrowDueField">
+            <div>
+              <label class="iv-label" data-i18n="lbl_borrow_date">วันที่ยืม</label>
+              <input class="iv-input" type="date" id="txBorrowDate">
+            </div>
+            <div>
+              <label class="iv-label" data-i18n="lbl_due_date">กำหนดคืน (ไม่บังคับ)</label>
+              <input class="iv-input" type="date" id="txDueDate">
+            </div>
           </div>
 
           <div class="iv-form-row">
@@ -1245,7 +1243,10 @@ const I18N = {
   sync_blocked_hint: 'ระหว่างนี้ระบบจะไม่บันทึกข้อมูลที่โหลดไม่สำเร็จ เพื่อกันไม่ให้ข้อมูลจริงถูกเขียนทับ — กด "โหลดใหม่" เมื่อเน็ตพร้อมแล้ว',
   badge_sync_failed: 'โหลดไม่สำเร็จ',
   badge_save_failed: 'บันทึกไม่สำเร็จ',
-  toast_save_blocked: '⚠️ ยังโหลด{what}ไม่สำเร็จ จึงไม่บันทึกเพื่อกันข้อมูลจริงถูกเขียนทับ — ไปที่ตั้งค่า แล้วกด "โหลดใหม่" ก่อน'
+  toast_save_blocked: '⚠️ ยังโหลด{what}ไม่สำเร็จ จึงไม่บันทึกเพื่อกันข้อมูลจริงถูกเขียนทับ — ไปที่ตั้งค่า แล้วกด "โหลดใหม่" ก่อน',
+  btn_return_all: 'คืนของทั้งหมด',
+  confirm_return_group: 'คืนของทั้ง {count} รายการในกลุ่มนี้เลยหรือไม่?',
+  toast_returned_group: 'รับคืนครบ {count} รายการแล้ว'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1497,7 +1498,10 @@ const I18N = {
   sync_blocked_hint: 'Until it loads, the app won\'t save that data so the real data can\'t be overwritten — press Reload once your connection is back',
   badge_sync_failed: 'LOAD FAILED',
   badge_save_failed: 'SAVE FAILED',
-  toast_save_blocked: '⚠️ {what} hasn\'t loaded yet, so saving is blocked to avoid overwriting real data — open Settings and press Reload first'
+  toast_save_blocked: '⚠️ {what} hasn\'t loaded yet, so saving is blocked to avoid overwriting real data — open Settings and press Reload first',
+  btn_return_all: 'Return All',
+  confirm_return_group: 'Return all {count} lines in this group?',
+  toast_returned_group: 'Returned all {count} lines'
 }
 };
 function t(key, vars){
@@ -1851,7 +1855,8 @@ function setMode(mode){
   document.getElementById('modeHint').textContent = t(meta.hintKey);
   document.getElementById('borrowFields').classList.toggle('iv-hide', mode!=='BORROW');
   document.getElementById('borrowDueField').classList.toggle('iv-hide', mode!=='BORROW');
-  document.getElementById('reserveFields').classList.toggle('iv-hide', mode!=='RESERVE');
+  document.getElementById('reserveFields').classList.toggle('iv-hide', !['RESERVE','BORROW'].includes(mode));
+  document.getElementById('txRequesterWrap').classList.toggle('iv-hide', mode!=='RESERVE');
   document.getElementById('inFields').classList.toggle('iv-hide', mode!=='IN');
   document.getElementById('outFields').classList.toggle('iv-hide', mode!=='OUT');
   document.getElementById('txAddLineWrap').classList.toggle('iv-hide', !['RESERVE','BORROW'].includes(mode));
@@ -2052,6 +2057,11 @@ function onCustTypeChange(){
   document.getElementById('txDirectFields').classList.toggle('iv-hide', isDealer);
   document.getElementById('txDealerFields').classList.toggle('iv-hide', !isDealer);
 }
+function onEditBorCustTypeChange(id){
+  const isDealer = document.getElementById('editBorCustType_'+id).value==='dealer';
+  document.getElementById('editBorDirect_'+id).classList.toggle('iv-hide', isDealer);
+  document.getElementById('editBorDealerRow_'+id).classList.toggle('iv-hide', !isDealer);
+}
 function onEditCustTypeChange(id){
   const isDealer = document.getElementById('editResCustType_'+id).value==='dealer';
   document.getElementById('editResDirect_'+id).classList.toggle('iv-hide', isDealer);
@@ -2131,6 +2141,13 @@ async function submitCart(){
   else if(currentMode==='BORROW'){
     const borrower = document.getElementById('txBorrower').value.trim();
     if(!borrower){ showToast(t('toast_enter_borrower')); return; }
+    const svso = document.getElementById('txSvso').value.trim();
+    const quotation = document.getElementById('txQuotation').value.trim();
+    const cf = readCustomerFields(
+      document.getElementById('txCustType').value,
+      document.getElementById('txCustomer').value.trim(),
+      document.getElementById('txDealer').value.trim(),
+      document.getElementById('txEndUser').value.trim());
     const dueDate = document.getElementById('txDueDate').value;
     const borrowDateInput = document.getElementById('txBorrowDate').value;
     const borrowDate = borrowDateInput || new Date().toISOString().slice(0,10);
@@ -2142,8 +2159,13 @@ async function submitCart(){
       if(!item) continue;
       const avail = availableQty(c.itemId);
       if(c.qty > avail){ showToast(t('toast_skip_avail_only', {name:item.name, avail, unit:item.unit})); continue; }
-      borrows.push({id:uid(), itemId:c.itemId, qty:c.qty, borrower, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
-      ledger.push({id:uid(), itemId:c.itemId, type:'BORROW', qty:c.qty, note:borrower + (note?(' · '+note):'') + (isExternalSrc?' · '+t('note_off_stock_item'):''), ts:borrowTs, source: isExternalSrc?'external':'stock'});
+      borrows.push({id:uid(), itemId:c.itemId, qty:c.qty, borrower, svso, quotation, ...cf, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
+      ledger.push({id:uid(), itemId:c.itemId, type:'BORROW', qty:c.qty, note:[borrower,
+        svso ? t('note_prefix_svso')+svso : '',
+        quotation ? t('note_prefix_quotation')+quotation : '',
+        customerNoteText(cf),
+        isExternalSrc ? t('note_off_stock_item') : '',
+        note].filter(Boolean).join(' · '), ts:borrowTs, source: isExternalSrc?'external':'stock'});
       savedCount++;
     }
     await saveBorrows();
@@ -2152,6 +2174,7 @@ async function submitCart(){
       showToast(t('toast_borrow_saved', {count:savedCount, borrower}));
     }
     document.getElementById('txBorrower').value='';
+    ['txSvso','txQuotation','txCustomer','txDealer','txEndUser'].forEach(i=>{ document.getElementById(i).value=''; });
     document.getElementById('txDueDate').value='';
     document.getElementById('txBorrowDate').value = new Date().toISOString().slice(0,10);
   }
@@ -2289,6 +2312,31 @@ async function releaseReservation(id){
   renderAll();
 }
 
+function borrowSummary(b){
+  return [
+    b.svso ? t('note_prefix_svso')+b.svso : '',
+    b.quotation ? t('note_prefix_quotation')+b.quotation : '',
+    customerNoteText(b)
+  ].filter(Boolean).join(' · ');
+}
+
+async function returnBorrowGroup(idsStr){
+  if(!requireEdit()) return;
+  const targets = idsStr.split(',').map(id=>borrows.find(x=>x.id===id)).filter(b=>b && b.status==='out');
+  if(targets.length===0) return;
+  if(!confirm(t('confirm_return_group', {count: targets.length}))) return;
+  targets.forEach(b=>{
+    b.status = 'returned';
+    b.returnedTs = Date.now();
+    ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:t('note_returned_from')+b.borrower+(borrowSummary(b)?': '+borrowSummary(b):''), ts:Date.now(), source:b.source});
+  });
+  invalidateBalanceCache();
+  await saveBorrows();
+  await saveLedger();
+  showToast(t('toast_returned_group', {count: targets.length}));
+  renderAll();
+}
+
 async function returnBorrow(id){
   if(!requireEdit()) return;
   const b = borrows.find(x=>x.id===id);
@@ -2296,7 +2344,7 @@ async function returnBorrow(id){
   b.status = 'returned';
   b.returnedTs = Date.now();
   const item = findItemRef(b.itemId, b.source);
-  ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:t('note_returned_from')+b.borrower, ts:Date.now(), source:b.source});
+  ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:t('note_returned_from')+b.borrower+(borrowSummary(b)?': '+borrowSummary(b):''), ts:Date.now(), source:b.source});
   await saveBorrows();
   await saveLedger();
   showToast(t('toast_returned', {qty:b.qty, unit:item?item.unit:'', borrower:b.borrower}));
@@ -3385,6 +3433,13 @@ async function saveBorrowEdit(id){
   b.source = newSource;
   b.qty = qty;
   b.borrower = document.getElementById('editBorBorrower_'+id).value.trim();
+  b.svso = document.getElementById('editBorSvso_'+id).value.trim();
+  b.quotation = document.getElementById('editBorQuotation_'+id).value.trim();
+  Object.assign(b, readCustomerFields(
+    document.getElementById('editBorCustType_'+id).value,
+    document.getElementById('editBorCustomer_'+id).value.trim(),
+    document.getElementById('editBorDealer_'+id).value.trim(),
+    document.getElementById('editBorEndUser_'+id).value.trim()));
   b.borrowDate = document.getElementById('editBorBorrowDate_'+id).value;
   b.dueDate = document.getElementById('editBorDueDate_'+id).value;
   b.note = document.getElementById('editBorNote_'+id).value.trim();
@@ -3554,6 +3609,102 @@ function selectEditResItemOption(resId, itemId){
   document.getElementById('editResItemDropdown_'+resId).classList.add('iv-hide');
 }
 
+function borHeaderHtml(b, notes){
+  const isDealer = b.customerType==='dealer';
+  const mainName = isDealer ? b.dealer : b.customer;
+  const hasMain = !!(b.svso || mainName);
+  const subParts = [];
+  if(isDealer && b.endUser) subParts.push('End-user: '+b.endUser);
+  if(b.quotation) subParts.push('Quotation: '+b.quotation);
+  if(hasMain && b.borrower) subParts.push(t('lbl_borrower')+': '+b.borrower);
+  subParts.push(t('lbl_borrow_date')+' '+(b.borrowDate ? fmtDay(b.borrowDate) : fmtDate(b.ts)));
+  subParts.push(t('lbl_due_date_plain')+' '+(b.dueDate ? fmtDay(b.dueDate) : '—'));
+  const notesHtml = (notes && notes.length) ? notes.map(n=>`<div class="iv-gl-note" style="margin-top:6px;"><strong>${t('note_optional_label')}:</strong> ${n}</div>`).join('') : '';
+  return `<div class="iv-res-header">
+    <div class="iv-res-header-main">
+      ${b.svso ? `<span class="iv-res-header-svso">${b.svso}</span>` : ''}
+      ${mainName ? `<span class="iv-res-header-customer">${mainName}</span>` : (!b.svso && b.borrower ? `<span class="iv-res-header-customer">${b.borrower}</span>` : '')}
+      ${isDealer ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);">Dealer</span>` : ''}
+      ${isOverdue(b) ? `<span class="iv-tag overdue">${t('tag_overdue')}</span>` : ''}
+    </div>
+    <div class="iv-res-header-sub">${subParts.join(' · ')}</div>
+    ${notesHtml}
+  </div>`;
+}
+
+function borLineHtml(b){
+  const item = findItemRef(b.itemId, b.source);
+  const isExternal = b.source==='external';
+  const isEditing = editingBorrowId===b.id;
+  return `<div class="iv-group-line">
+    <div class="iv-gl-row">
+      <div class="iv-gl-info">
+        <span class="iv-gl-code">${item?item.itemNo:''}</span>
+        <span class="iv-gl-name">${item?item.name:t('item_deleted')}</span>
+        ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);">${t('badge_off_stock')}</span>` : ''}
+      </div>
+      <div class="iv-gl-right">
+        <span class="iv-odo borrow sm">${b.qty} ${item?item.unit:''}</span>
+        <button class="iv-btn-xs pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
+        <button class="iv-btn-xs ghost" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+      </div>
+    </div>
+    ${isEditing ? borEditForm(b) : ''}
+  </div>`;
+}
+
+function borEditForm(b){
+  const item = findItemRef(b.itemId, b.source);
+  const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
+  const isD = b.customerType==='dealer';
+  return `
+    <div class="iv-detail-edit-form">
+      <div class="iv-form-row">
+        <div>
+          <label class="iv-label">${t('lbl_item')}</label>
+          <div class="iv-combo">
+            <input class="iv-input" type="text" id="editBorItemSearch_${b.id}" value="${curLabel}" autocomplete="off"
+                   oninput="filterEditBorItemOptions('${b.id}')" onfocus="filterEditBorItemOptions('${b.id}')"
+                   onblur="setTimeout(()=>document.getElementById('editBorItemDropdown_${b.id}').classList.add('iv-hide'),150)">
+            <input type="hidden" id="editBorItemSelect_${b.id}" value="${b.itemId}">
+            <div id="editBorItemDropdown_${b.id}" class="iv-combo-dropdown iv-hide"></div>
+          </div>
+        </div>
+      </div>
+      <div class="iv-form-row two">
+        <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
+        <div><label class="iv-label">SVSO No.</label><input class="iv-input" type="text" id="editBorSvso_${b.id}" value="${b.svso||''}"></div>
+      </div>
+      <div class="iv-form-row two">
+        <div><label class="iv-label">Quotation No.</label><input class="iv-input" type="text" id="editBorQuotation_${b.id}" value="${b.quotation||''}"></div>
+        <div><label class="iv-label">${t('lbl_customer_type')}</label>
+          <select class="iv-input" id="editBorCustType_${b.id}" onchange="onEditBorCustTypeChange('${b.id}')">
+            <option value="direct" ${isD?'':'selected'}>Direct Customer</option>
+            <option value="dealer" ${isD?'selected':''}>Dealer</option>
+          </select></div>
+      </div>
+      <div class="iv-form-row ${isD?'iv-hide':''}" id="editBorDirect_${b.id}">
+        <div><label class="iv-label">Customer Name</label><input class="iv-input" type="text" id="editBorCustomer_${b.id}" list="dlCustomers" autocomplete="off" value="${isD?'':(b.customer||'')}"></div>
+      </div>
+      <div class="iv-form-row two ${isD?'':'iv-hide'}" id="editBorDealerRow_${b.id}">
+        <div><label class="iv-label">Dealer Name</label><input class="iv-input" type="text" id="editBorDealer_${b.id}" list="dlDealers" autocomplete="off" value="${b.dealer||''}"></div>
+        <div><label class="iv-label">End-user Name</label><input class="iv-input" type="text" id="editBorEndUser_${b.id}" list="dlEndUsers" autocomplete="off" value="${b.endUser||''}"></div>
+      </div>
+      <div class="iv-form-row two">
+        <div><label class="iv-label">${t('lbl_borrower')}</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
+        <div><label class="iv-label">${t('note_optional')}</label><input class="iv-input" type="text" id="editBorNote_${b.id}" value="${b.note||''}"></div>
+      </div>
+      <div class="iv-form-row two">
+        <div><label class="iv-label">${t('lbl_borrow_date')}</label><input class="iv-input" type="date" id="editBorBorrowDate_${b.id}" value="${b.borrowDate||''}"></div>
+        <div><label class="iv-label">${t('lbl_due_date_plain')}</label><input class="iv-input" type="date" id="editBorDueDate_${b.id}" value="${b.dueDate||''}"></div>
+      </div>
+      <div class="iv-detail-actions">
+        <button class="iv-btn-sm pos" onclick="saveBorrowEdit('${b.id}')">${t('btn_save_edit')}</button>
+        <button class="iv-btn-sm ghost" onclick="toggleEditBorrow('${b.id}')">${t('btn_cancel')}</button>
+      </div>
+    </div>`;
+}
+
 function renderPending(){
   const q = (document.getElementById('pendingSearch').value||'').toLowerCase();
   const rList = document.getElementById('reserveList');
@@ -3604,74 +3755,33 @@ function renderPending(){
   const activeBorrow = borrows.filter(b=>b.status==='out').sort((a,b)=>b.ts-a.ts).filter(b=>{
     if(!q) return true;
     const item = findItemRef(b.itemId, b.source);
-    const hay = [item?item.itemNo:'', item?item.name:'', b.borrower, b.note].join(' ').toLowerCase();
+    const hay = [item?item.itemNo:'', item?item.name:'', b.svso, b.quotation, b.customer, b.borrower, b.note].join(' ').toLowerCase();
     return hay.includes(q);
   });
   if(activeBorrow.length===0){
     bList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_borrows_title')}</div><div class="iv-empty-sub">${t('empty_no_reservations_sub')}</div></div>`;
   }else{
-    bList.innerHTML = activeBorrow.map(b=>{
-      const item = findItemRef(b.itemId, b.source);
-      const isExternal = b.source==='external';
-      const overdue = isOverdue(b);
-      const fields = [
-        [t('lbl_borrower'), b.borrower],
-        [t('lbl_borrow_date'), b.borrowDate?fmtDay(b.borrowDate):fmtDate(b.ts)],
-        [t('lbl_due_date_plain'), b.dueDate?fmtDay(b.dueDate)+(overdue?' ('+t('tag_overdue')+'!)':''):'—'],
-      ];
-      if(b.note) fields.push([t('note_optional'), b.note]);
-
-      const isEditing = editingBorrowId===b.id;
-      const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
-      const editForm = !isEditing ? '' : `
-        <div class="iv-detail-edit-form">
-          <div class="iv-form-row">
-            <div>
-              <label class="iv-label">${t('lbl_item')}</label>
-              <div class="iv-combo">
-                <input class="iv-input" type="text" id="editBorItemSearch_${b.id}" value="${curLabel}" autocomplete="off"
-                       oninput="filterEditBorItemOptions('${b.id}')" onfocus="filterEditBorItemOptions('${b.id}')"
-                       onblur="setTimeout(()=>document.getElementById('editBorItemDropdown_${b.id}').classList.add('iv-hide'),150)">
-                <input type="hidden" id="editBorItemSelect_${b.id}" value="${b.itemId}">
-                <div id="editBorItemDropdown_${b.id}" class="iv-combo-dropdown iv-hide"></div>
-              </div>
-            </div>
-          </div>
-          <div class="iv-form-row two">
-            <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input" type="number" min="1" id="editBorQty_${b.id}" value="${b.qty}"></div>
-            <div><label class="iv-label">${t('lbl_borrower')}</label><input class="iv-input" type="text" id="editBorBorrower_${b.id}" value="${b.borrower||''}"></div>
-          </div>
-          <div class="iv-form-row two">
-            <div><label class="iv-label">${t('lbl_borrow_date')}</label><input class="iv-input" type="date" id="editBorBorrowDate_${b.id}" value="${b.borrowDate||''}"></div>
-            <div><label class="iv-label">${t('lbl_due_date_plain')}</label><input class="iv-input" type="date" id="editBorDueDate_${b.id}" value="${b.dueDate||''}"></div>
-          </div>
-          <div class="iv-form-row">
-            <div><label class="iv-label">${t('note_optional')}</label><input class="iv-input" type="text" id="editBorNote_${b.id}" value="${b.note||''}"></div>
-          </div>
-          <div class="iv-detail-actions">
-            <button class="iv-btn-sm pos" onclick="saveBorrowEdit('${b.id}')">${t('btn_save_edit')}</button>
-            <button class="iv-btn-sm ghost" onclick="toggleEditBorrow('${b.id}')">${t('btn_cancel')}</button>
-          </div>
-        </div>`;
-
-      return `<div class="iv-detail-card borrow">
-        <div class="iv-detail-head">
-          <div>
-            <div class="iv-detail-item-code">${item?item.itemNo:''}</div>
-            <div class="iv-detail-item-name">${item?item.name:t('item_deleted')}
-              ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);margin-left:6px;">${t('badge_off_stock')}</span>` : ''}
-            </div>
-          </div>
-          <span class="iv-odo borrow">${b.qty} ${item?item.unit:''}</span>
-        </div>
-        <div class="iv-detail-grid">
-          ${fields.map(([k,v])=>`<div class="iv-detail-field"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-        </div>
-        <div class="iv-detail-actions">
-          <button class="iv-btn-sm pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
-          <button class="iv-btn-sm ghost" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
-        </div>
-        ${editForm}
+    // same idea as reservations: one card per borrow batch (same SVSO/quotation/customer/borrower/dates)
+    const groups = [];
+    const groupMap = new Map();
+    activeBorrow.forEach(b=>{
+      const key = ['b', b.svso||'', b.quotation||'', b.customer||'', b.borrower||'', b.borrowDate||'', b.dueDate||''].join('␟');
+      let g = groupMap.get(key);
+      if(!g){ g = {items:[], maxTs:b.ts}; groupMap.set(key, g); groups.push(g); }
+      g.items.push(b);
+      if(b.ts > g.maxTs) g.maxTs = b.ts;
+    });
+    groups.sort((a,b)=> b.maxTs - a.maxTs);
+    bList.innerHTML = groups.map(g=>{
+      const isGroup = g.items.length>1;
+      const notes = [...new Set(g.items.map(it=>(it.note||'').trim()).filter(Boolean))];
+      const idsStr = g.items.map(x=>x.id).join(',');
+      const bulkAction = isGroup ? `<div style="margin:0 0 12px;"><button class="iv-btn-sm pos" onclick="returnBorrowGroup('${idsStr}')">${t('btn_return_all')}</button></div>` : '';
+      return `<div class="${isGroup ? 'iv-detail-card borrow group' : 'iv-detail-card borrow'}">
+        ${isGroup ? `<div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>` : ''}
+        ${borHeaderHtml(g.items[0], notes)}
+        ${bulkAction}
+        ${g.items.map(borLineHtml).join('')}
       </div>`;
     }).join('');
   }
@@ -3812,7 +3922,7 @@ async function archiveOldData(){
   });
   const borrowRows = oldBor.map(b=>{
     const item = findItemRef(b.itemId, b.source);
-    return {'Item No.': item?item.itemNo:'', 'Description': item?item.name:t('item_deleted'), 'Qty': b.qty, 'Borrower': b.borrower, 'Note': b.note||'', 'Due Date': b.dueDate||'', 'Status': b.status, 'Borrowed On': fmtDate(b.ts), 'Returned On': b.returnedTs?fmtDate(b.returnedTs):''};
+    return {'Item No.': item?item.itemNo:'', 'Description': item?item.name:t('item_deleted'), 'Qty': b.qty, 'SVSO No.': b.svso||'', 'Quotation No.': b.quotation||'', 'Customer Type': b.customerType==='dealer'?'Dealer':'Direct Customer', 'Customer Name': b.customerType==='dealer'?'':(b.customer||''), 'Dealer': b.dealer||'', 'End-user': b.endUser||'', 'Borrower': b.borrower, 'Note': b.note||'', 'Due Date': b.dueDate||'', 'Status': b.status, 'Borrowed On': fmtDate(b.ts), 'Returned On': b.returnedTs?fmtDate(b.returnedTs):''};
   });
 
   const wb = XLSX.utils.book_new();
@@ -3915,6 +4025,12 @@ function exportToExcel(){
       'Item No.': item ? item.itemNo : '',
       'Description': item ? item.name : '(deleted item)',
       'Qty': b.qty,
+      'SVSO No.': b.svso || '',
+      'Quotation No.': b.quotation || '',
+      'Customer Type': b.customerType==='dealer' ? 'Dealer' : 'Direct Customer',
+      'Customer Name': b.customerType==='dealer' ? '' : (b.customer || ''),
+      'Dealer': b.dealer || '',
+      'End-user': b.endUser || '',
       'Borrower': b.borrower,
       'Note': b.note || '',
       'Due Date': b.dueDate || '',
