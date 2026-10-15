@@ -85,6 +85,14 @@
 .iv-dot.reserve{background:var(--reserve);}
 .iv-dot.borrow{background:var(--borrow);}
 
+.iv-scan-btn{font-size:17px;padding:8px 13px;line-height:1;flex:0 0 auto;}
+.iv-bc-btn{border:none;background:transparent;cursor:pointer;color:var(--ink-soft);font-size:15px;padding:4px 6px;border-radius:5px;display:inline-flex;align-items:center;gap:3px;}
+.iv-bc-btn:hover{background:var(--border);}
+.iv-bc-btn .n{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;background:var(--ink);color:var(--bg);border-radius:10px;padding:1px 6px;}
+.iv-modal-back{position:fixed;inset:0;background:rgba(20,24,22,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;}
+.iv-modal{background:var(--panel);border-radius:14px;max-width:480px;width:100%;max-height:90vh;overflow:auto;padding:18px 18px 16px;box-shadow:0 10px 40px rgba(0,0,0,.25);}
+.iv-scan-video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:10px;display:block;}
+.iv-bc-chip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all;}
 .iv-pend-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
 .iv-pend-btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:12px 10px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel);font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;color:var(--ink-soft);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:all .12s ease;}
 .iv-pend-btn .cnt{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--border);color:var(--ink-soft);}
@@ -412,12 +420,15 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
           <div class="iv-form-row">
             <div>
               <label class="iv-label" data-i18n="lbl_item">สินค้า</label>
-              <div class="iv-combo">
+              <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div class="iv-combo" style="flex:1;min-width:0;">
                 <input class="iv-input" type="text" id="txItemSearchInput" placeholder="พิมพ์รหัสหรือชื่อสินค้าเพื่อค้นหา..." autocomplete="off" data-i18n-ph="ph_item_search"
-                       oninput="filterItemOptions()" onfocus="filterItemOptions()"
+                       onkeydown="onItemSearchKey(event)" oninput="filterItemOptions()" onfocus="filterItemOptions()"
                        onblur="setTimeout(()=>document.getElementById('txItemDropdown').classList.add('iv-hide'),150)">
                 <input type="hidden" id="txItemSelect">
                 <div id="txItemDropdown" class="iv-combo-dropdown iv-hide"></div>
+              </div>
+              <button type="button" class="iv-btn-sm iv-scan-btn" onclick="scanForTx()" title="สแกนบาร์โค้ด / QR">📷</button>
               </div>
             </div>
           </div>
@@ -627,6 +638,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
     <div class="iv-panel active" id="panel-items">
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <input class="iv-input iv-search" style="margin-bottom:0;" type="text" id="itemSearch" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." oninput="renderItems()" data-i18n-ph="ph_item_search_plain">
+        <button type="button" class="iv-btn-sm iv-scan-btn" onclick="scanForItemsTab()" title="สแกนบาร์โค้ด / QR">📷</button>
         <button class="iv-btn-sm" style="white-space:nowrap;" onclick="goToTab('import')">+ <span data-i18n="btn_add_item">เพิ่มสินค้า</span></button>
       </div>
       <div class="iv-table-wrap">
@@ -726,6 +738,15 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
             <div>
               <label class="iv-label" data-i18n="lbl_reorder_alert">จำนวนขั้นต่ำในสต็อก (แจ้งเตือนเมื่อสินค้าคงเหลือต่ำกว่าที่กำหนด)</label>
               <input class="iv-input" type="number" min="0" id="newItemReorder" placeholder="0">
+            </div>
+          </div>
+          <div class="iv-form-row">
+            <div>
+              <label class="iv-label" data-i18n="lbl_barcode_optional">บาร์โค้ด (ไม่บังคับ)</label>
+              <div style="display:flex;gap:8px;">
+                <input class="iv-input" type="text" id="newItemBarcode" autocomplete="off" placeholder="พิมพ์หรือสแกนบาร์โค้ด" data-i18n-ph="ph_barcode_input">
+                <button type="button" class="iv-btn-sm iv-scan-btn" onclick="openScanner(code=>{ document.getElementById('newItemBarcode').value = parseScanned(code); })" title="สแกนบาร์โค้ด / QR">📷</button>
+              </div>
             </div>
           </div>
           <button class="iv-btn neutral" onclick="addItem()" data-i18n="btn_add_item">เพิ่มสินค้า</button>
@@ -936,6 +957,7 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
   </div>
 </div>
 
+<div id="ivModalRoot"></div>
 <div class="iv-toast" id="ivToast"></div>
 
 <script>
@@ -1259,7 +1281,22 @@ const I18N = {
   confirm_return_group: 'คืนของทั้ง {count} รายการในกลุ่มนี้เลยหรือไม่?',
   toast_returned_group: 'รับคืนครบ {count} รายการแล้ว',
   pending_tab_reserve: 'รายการจอง',
-  pending_tab_borrow: 'รายการยืม'
+  pending_tab_borrow: 'รายการยืม',
+  scan_title: 'สแกนบาร์โค้ด / QR',
+  scan_hint: 'เล็งกล้องไปที่บาร์โค้ดหรือ QR ระบบจะอ่านให้อัตโนมัติ',
+  btn_close_dialog: 'ปิด',
+  toast_scan_unsupported: 'เครื่อง/เบราว์เซอร์นี้สแกนด้วยกล้องไม่ได้ — ใช้ Chrome บน Android หรือเครื่องสแกนบาร์โค้ดแทน',
+  toast_camera_denied: 'เปิดกล้องไม่ได้ — กรุณาอนุญาตให้เว็บนี้ใช้กล้อง',
+  toast_scan_only_stock: 'โหมดรับเข้า/นำออกเลือกได้เฉพาะสินค้าในสต็อก (สินค้านอกสต็อกใช้กับจอง/ยืม)',
+  link_title: 'ไม่พบบาร์โค้ดนี้ในระบบ',
+  link_hint: 'เลือกสินค้าที่ตรงกับบาร์โค้ดนี้เพื่อผูกไว้ ครั้งต่อไปสแกนแล้วระบบจะรู้จักทันที',
+  toast_barcode_linked: 'ผูกบาร์โค้ดกับ "{name}" แล้ว',
+  toast_barcode_in_use: 'บาร์โค้ดนี้ผูกกับ "{name}" อยู่แล้ว',
+  title_manage_barcode: 'จัดการบาร์โค้ด',
+  barcode_none: 'ยังไม่มีบาร์โค้ดที่ผูกกับสินค้านี้',
+  ph_barcode_input: 'พิมพ์หรือสแกนบาร์โค้ด',
+  btn_add_barcode: 'เพิ่มบาร์โค้ด',
+  lbl_barcode_optional: 'บาร์โค้ด (ไม่บังคับ)'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1516,7 +1553,22 @@ const I18N = {
   confirm_return_group: 'Return all {count} lines in this group?',
   toast_returned_group: 'Returned all {count} lines',
   pending_tab_reserve: 'Reservations',
-  pending_tab_borrow: 'Borrows'
+  pending_tab_borrow: 'Borrows',
+  scan_title: 'Scan Barcode / QR',
+  scan_hint: 'Point the camera at the barcode or QR — it reads automatically',
+  btn_close_dialog: 'Close',
+  toast_scan_unsupported: 'This browser can\'t scan with the camera — use Chrome on Android or a barcode scanner instead',
+  toast_camera_denied: 'Couldn\'t open the camera — please allow camera access for this site',
+  toast_scan_only_stock: 'Stock In/Out only works with in-stock items (off-stock items work with Reserve/Borrow)',
+  link_title: 'Barcode not found',
+  link_hint: 'Pick the item this barcode belongs to — next time it will be recognized instantly',
+  toast_barcode_linked: 'Barcode linked to "{name}"',
+  toast_barcode_in_use: 'This barcode is already linked to "{name}"',
+  title_manage_barcode: 'Manage Barcodes',
+  barcode_none: 'No barcodes linked to this item yet',
+  ph_barcode_input: 'Type or scan a barcode',
+  btn_add_barcode: 'Add Barcode',
+  lbl_barcode_optional: 'Barcode (optional)'
 }
 };
 function t(key, vars){
@@ -1708,6 +1760,7 @@ async function loadData(){
   setMode(currentMode);
   renderAll();
   showLoadErrorBanner(loadErrors);
+  handleDeepLink();
 }
 
 function setSyncBadge(state){
@@ -2979,16 +3032,21 @@ async function addItem(){
 
   if(!itemNo || !name){ showToast('กรุณากรอกรหัสและชื่อสินค้า'); return; }
   if(items.find(i=>i.itemNo.toLowerCase()===itemNo.toLowerCase())){ showToast('รหัสสินค้านี้มีอยู่แล้ว'); return; }
+  const barcode = parseScanned(document.getElementById('newItemBarcode').value);
+  if(barcode){
+    const clash = findItemByCode(barcode);
+    if(clash){ showToast(t('toast_barcode_in_use', {name: clash.item.name}), true); return; }
+  }
 
   const id = uid();
-  items.push({id, itemNo, name, unit, reorder, baseQty:0});
+  items.push({id, itemNo, name, unit, reorder, baseQty:0, barcodes: barcode ? [barcode] : []});
   await saveItems();
   if(qty>0){
     ledger.push({id:uid(), itemId:id, type:'IN', qty, note:'ยอดเริ่มต้น', ts:Date.now()});
     await saveLedger();
   }
 
-  ['newItemNo','newItemName','newItemUnit','newItemQty','newItemReorder'].forEach(id=>document.getElementById(id).value='');
+  ['newItemNo','newItemName','newItemUnit','newItemQty','newItemReorder','newItemBarcode'].forEach(id=>document.getElementById(id).value='');
   toggleAddItem();
   showToast('เพิ่มสินค้าแล้ว');
   renderAll();
@@ -3845,7 +3903,7 @@ function renderItems(){
       <td class="iv-td-itemno">${it.itemNo}</td>
       <td class="iv-td-desc">${it.name}${subBits.length ? `<div class="iv-td-desc-sub">${subBits.join(' · ')}</div>` : ''}</td>
       <td class="iv-td-qty">${avail}<span class="unit">${it.unit}</span></td>
-      <td class="iv-td-actions"><button class="iv-del" onclick="deleteItem('${it.id}')" title="ลบสินค้า">✕</button></td>
+      <td class="iv-td-actions"><button class="iv-bc-btn" onclick="openBarcodeDialog('${it.id}')" title="${t('title_manage_barcode')}">▮${(it.barcodes&&it.barcodes.length)?`<span class="n">${it.barcodes.length}</span>`:''}</button><button class="iv-del" onclick="deleteItem('${it.id}')" title="ลบสินค้า">✕</button></td>
     </tr>`;
   }).join('');
 }
@@ -3895,6 +3953,211 @@ function renderHistory(){
   }else{
     wrap.classList.add('iv-hide');
   }
+}
+
+// ===== barcode / QR scanning =====
+// A scanned value can be: a barcode saved on an item, an Item No. (own QR labels), or a link like https://site/?item=5090086
+function parseScanned(raw){
+  let s = String(raw||'').trim();
+  try{ const u = new URL(s); const v = u.searchParams.get('item'); if(v) s = v.trim(); }catch(e){}
+  return s;
+}
+function findItemByCode(raw){
+  const code = parseScanned(raw).toLowerCase();
+  if(!code) return null;
+  for(const [pool, source] of [[items,'stock'],[externalItems,'external']]){
+    const hit = pool.find(it=>(it.barcodes||[]).some(b=>String(b).toLowerCase()===code)) || pool.find(it=>String(it.itemNo||'').toLowerCase()===code);
+    if(hit) return {item:hit, source};
+  }
+  return null;
+}
+
+let scanStream = null, scanTimer = null;
+function closeModal(){
+  clearInterval(scanTimer); scanTimer = null;
+  if(scanStream){ scanStream.getTracks().forEach(tr=>tr.stop()); scanStream = null; }
+  const root = document.getElementById('ivModalRoot');
+  if(root) root.innerHTML = '';
+}
+
+async function openScanner(onCode){
+  if(!('BarcodeDetector' in window) || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showToast(t('toast_scan_unsupported'), true); return;
+  }
+  closeModal();
+  document.getElementById('ivModalRoot').innerHTML = `<div class="iv-modal-back"><div class="iv-modal">
+    <p class="iv-card-title"><span class="ic">📷</span>${t('scan_title')}</p>
+    <video id="ivScanVideo" class="iv-scan-video" playsinline muted></video>
+    <p class="iv-hint" style="margin:10px 0;">${t('scan_hint')}</p>
+    <button class="iv-btn neutral" onclick="closeModal()">${t('btn_close_dialog')}</button>
+  </div></div>`;
+  let detector;
+  try{
+    scanStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+    detector = new BarcodeDetector();
+    const video = document.getElementById('ivScanVideo');
+    video.srcObject = scanStream;
+    await video.play();
+    let busy = false;
+    scanTimer = setInterval(async ()=>{
+      if(busy || !video.videoWidth) return;
+      busy = true;
+      try{
+        const found = await detector.detect(video);
+        if(found.length && found[0].rawValue){
+          const val = found[0].rawValue;
+          if(navigator.vibrate) navigator.vibrate(60);
+          closeModal();
+          onCode(val);
+          return;
+        }
+      }catch(e){}
+      busy = false;
+    }, 250);
+  }catch(e){
+    closeModal();
+    showToast(t('toast_camera_denied'), true);
+  }
+}
+
+// -- picking an item in the transaction form by scan / scanner gun (Enter)
+function selectTxItem(id){
+  const it = activePool().find(i=>i.id===id);
+  if(!it){ showToast(t('toast_scan_only_stock'), true); return; }
+  selectItemOption(id);
+  const q = document.getElementById('txQty'); if(q) q.focus();
+  showToast(`${it.itemNo} — ${it.name}`);
+}
+function handleCodeForTx(raw){
+  const found = findItemByCode(raw);
+  if(found) selectTxItem(found.item.id);
+  else openLinkDialog(parseScanned(raw), it=>selectTxItem(it.id));
+}
+function scanForTx(){ openScanner(handleCodeForTx); }
+function onItemSearchKey(e){
+  if(e.key!=='Enter') return;
+  e.preventDefault();
+  const v = e.target.value.trim();
+  if(!v) return;
+  const found = findItemByCode(v);
+  if(found){ selectTxItem(found.item.id); return; }
+  const q = v.toLowerCase();
+  const matches = activePool().filter(it=>it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q));
+  if(matches.length===1) selectTxItem(matches[0].id);
+  else if(matches.length===0) openLinkDialog(parseScanned(v), it=>selectTxItem(it.id));
+}
+
+// -- Items tab
+function showItemFromCode(raw){
+  const found = findItemByCode(raw);
+  if(!found){ openLinkDialog(parseScanned(raw), it=>showItemFromCode(it.itemNo)); return; }
+  if(found.source==='external'){
+    document.getElementById('extItemSearch').value = found.item.itemNo;
+    renderExternalItems(); goToTab('external');
+  }else{
+    document.getElementById('itemSearch').value = found.item.itemNo;
+    renderItems(); goToTab('items');
+  }
+}
+function scanForItemsTab(){ openScanner(showItemFromCode); }
+
+// QR link on the page URL: https://site/?item=5090086 opens that item
+function handleDeepLink(){
+  const code = new URLSearchParams(location.search).get('item');
+  if(code) showItemFromCode(code);
+}
+
+// -- link an unknown code to an item
+let linkCtx = null;
+function openLinkDialog(code, onLinked){
+  linkCtx = {code, onLinked};
+  document.getElementById('ivModalRoot').innerHTML = `<div class="iv-modal-back"><div class="iv-modal">
+    <p class="iv-card-title"><span class="ic">🔗</span>${t('link_title')}</p>
+    <div class="iv-bc-chip">${code.replace(/</g,'&lt;')}</div>
+    <p class="iv-hint" style="margin:8px 0 10px;">${t('link_hint')}</p>
+    <input class="iv-input" type="text" id="linkSearch" autocomplete="off" placeholder="${t('ph_item_search_plain')}" oninput="renderLinkResults()">
+    <div id="linkResults" class="iv-item-list" style="margin:10px 0;max-height:36vh;overflow:auto;"></div>
+    <button class="iv-btn neutral" onclick="closeModal()">${t('btn_cancel')}</button>
+  </div></div>`;
+  renderLinkResults();
+  const si = document.getElementById('linkSearch'); if(si) si.focus();
+}
+function renderLinkResults(){
+  const q = (document.getElementById('linkSearch').value||'').toLowerCase();
+  const rows = [...items.map(i=>({i, ext:false})), ...externalItems.map(i=>({i, ext:true}))]
+    .filter(({i})=>i.itemNo.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)).slice(0,30);
+  document.getElementById('linkResults').innerHTML = rows.length ? rows.map(({i, ext})=>`<div class="iv-item" style="cursor:pointer;" onclick="doLink('${i.id}')">
+      <div class="iv-item-main"><div class="iv-cart-code">${i.itemNo}</div><div class="iv-cart-name">${i.name}${ext?` <span class="iv-badge" style="font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>`:''}</div></div>
+    </div>`).join('') : `<div class="iv-combo-empty">${t('no_items_match', {q})}</div>`;
+}
+async function persistBarcodes(item){
+  if(isExternalItemId(item.id)) return await saveExternalItems();
+  return await saveItems();
+}
+async function addBarcodeTo(itemId, rawCode){
+  const code = parseScanned(rawCode);
+  if(!code) return false;
+  const found = [...items, ...externalItems].find(i=>i.id===itemId);
+  if(!found) return false;
+  const clash = findItemByCode(code);
+  if(clash && clash.item.id!==itemId){ showToast(t('toast_barcode_in_use', {name: clash.item.name}), true); return false; }
+  found.barcodes = found.barcodes || [];
+  if(!found.barcodes.some(b=>String(b).toLowerCase()===code.toLowerCase())) found.barcodes.push(code);
+  await persistBarcodes(found);
+  return true;
+}
+async function doLink(itemId){
+  if(!requireEdit()) return;
+  const ctx = linkCtx; if(!ctx) return;
+  const ok = await addBarcodeTo(itemId, ctx.code);
+  if(!ok) return;
+  const item = [...items, ...externalItems].find(i=>i.id===itemId);
+  closeModal();
+  showToast(t('toast_barcode_linked', {name: item.name}));
+  renderAll();
+  if(ctx.onLinked) ctx.onLinked(item);
+}
+
+// -- manage the barcodes of one item (Items tab ▮ button)
+function openBarcodeDialog(itemId){
+  const item = [...items, ...externalItems].find(i=>i.id===itemId);
+  if(!item) return;
+  const list = (item.barcodes||[]);
+  document.getElementById('ivModalRoot').innerHTML = `<div class="iv-modal-back"><div class="iv-modal">
+    <p class="iv-card-title"><span class="ic">▮</span>${t('title_manage_barcode')}</p>
+    <div class="iv-cart-code">${item.itemNo}</div><div class="iv-cart-name" style="margin-bottom:12px;">${item.name}</div>
+    ${list.length ? list.map((b,idx)=>`<div class="iv-bc-chip"><span>${String(b).replace(/</g,'&lt;')}</span><button class="iv-btn-sm neg" onclick="removeBarcode('${item.id}',${idx})">${t('btn_remove')}</button></div>`).join('') : `<p class="iv-hint">${t('barcode_none')}</p>`}
+    <div style="display:flex;gap:8px;margin:12px 0;">
+      <input class="iv-input" type="text" id="bcAddInput" autocomplete="off" placeholder="${t('ph_barcode_input')}" onkeydown="if(event.key==='Enter'){addBarcodeFromDialog('${item.id}')}">
+      <button type="button" class="iv-btn-sm iv-scan-btn" onclick="scanBarcodeInto('${item.id}')" title="${t('scan_title')}">📷</button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="iv-btn neutral" style="flex:1;" onclick="addBarcodeFromDialog('${item.id}')">${t('btn_add_barcode')}</button>
+      <button class="iv-btn neutral" style="flex:1;" onclick="closeModal()">${t('btn_close_dialog')}</button>
+    </div>
+  </div></div>`;
+}
+async function addBarcodeFromDialog(itemId){
+  if(!requireEdit()) return;
+  const v = document.getElementById('bcAddInput').value;
+  if(await addBarcodeTo(itemId, v)){ renderItems(); renderExternalItems(); }
+  openBarcodeDialog(itemId);
+}
+function scanBarcodeInto(itemId){
+  if(!requireEdit()) return;
+  openScanner(async code=>{
+    if(await addBarcodeTo(itemId, code)){ renderItems(); renderExternalItems(); }
+    openBarcodeDialog(itemId);
+  });
+}
+async function removeBarcode(itemId, idx){
+  if(!requireEdit()) return;
+  const item = [...items, ...externalItems].find(i=>i.id===itemId);
+  if(!item || !item.barcodes) return;
+  item.barcodes.splice(idx, 1);
+  await persistBarcodes(item);
+  renderItems(); renderExternalItems();
+  openBarcodeDialog(itemId);
 }
 
 function renderAll(){
@@ -4011,7 +4274,8 @@ function exportToExcel(){
       'Reserved': res,
       'Borrowed Out': bor,
       'Available': hand - res,
-      'Reorder Point': it.reorder || 0
+      'Reorder Point': it.reorder || 0,
+      'Barcodes': (it.barcodes||[]).join(' | ')
     };
   });
 
