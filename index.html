@@ -85,6 +85,13 @@
 .iv-dot.reserve{background:var(--reserve);}
 .iv-dot.borrow{background:var(--borrow);}
 
+.iv-pend-switch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.iv-pend-btn{display:flex;align-items:center;justify-content:center;gap:8px;min-height:54px;padding:12px 10px;border-radius:12px;border:1.5px solid var(--border);background:var(--panel);font-family:'Archivo',sans-serif;font-weight:700;font-size:14px;color:var(--ink-soft);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:all .12s ease;}
+.iv-pend-btn .cnt{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--border);color:var(--ink-soft);}
+.iv-pend-btn.sel-reserve{border-color:var(--reserve);background:var(--reserve-soft);color:var(--reserve);}
+.iv-pend-btn.sel-reserve .cnt{background:var(--reserve);color:#fff;}
+.iv-pend-btn.sel-borrow{border-color:var(--borrow);background:var(--borrow-soft);color:var(--borrow);}
+.iv-pend-btn.sel-borrow .cnt{background:var(--borrow);color:#fff;}
 .iv-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .iv-toggle-btn{padding:12px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--panel);font-family:'Archivo',sans-serif;font-weight:700;font-size:12.5px;cursor:pointer;text-align:center;transition:all .12s ease;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;gap:6px;line-height:1.3;min-height:44px;}
 .iv-toggle-btn.sel-in{border-color:var(--in);background:var(--in-soft);color:var(--in);}
@@ -600,13 +607,17 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 
     <!-- ============ RESERVE / BORROW PENDING ============ -->
     <div class="iv-panel" id="panel-pending">
+      <div class="iv-pend-switch">
+        <button type="button" class="iv-pend-btn sel-reserve" id="btnPendRes" onclick="setPendingView('reserve')"><span>⚑</span><span data-i18n="pending_tab_reserve">รายการจอง</span><span class="cnt" id="pendResCount">0</span></button>
+        <button type="button" class="iv-pend-btn" id="btnPendBor" onclick="setPendingView('borrow')"><span>↷</span><span data-i18n="pending_tab_borrow">รายการยืม</span><span class="cnt" id="pendBorCount">0</span></button>
+      </div>
       <input class="iv-input iv-search" type="text" id="pendingSearch" placeholder="ค้นหาด้วยชื่อ/รหัสสินค้า, SVSO, ลูกค้า, ผู้จอง/ยืม..." oninput="renderPending()" data-i18n-ph="ph_pending_search">
-      <div class="iv-card">
+      <div class="iv-card" id="reserveCard">
         <p class="iv-card-title"><span class="iv-dot reserve"></span><span data-i18n="pending_reserve_title">รายการจองที่ยังไม่ตัดนำออก</span></p>
       <p class="iv-hint" style="margin-top:-6px;margin-bottom:10px;" data-i18n="pending_reserve_hint">รายการที่มี ⚠ สต็อกไม่พอ คือจองล่วงหน้าไว้รอสินค้าเข้า ยังกันสต็อกไว้ให้อยู่</p>
         <div id="reserveList"></div>
       </div>
-      <div class="iv-card">
+      <div class="iv-card iv-hide" id="borrowCard">
         <p class="iv-card-title"><span class="iv-dot borrow"></span><span data-i18n="pending_borrow_title">รายการยืมที่ยังไม่คืน</span></p>
         <div id="borrowList"></div>
       </div>
@@ -1246,7 +1257,9 @@ const I18N = {
   toast_save_blocked: '⚠️ ยังโหลด{what}ไม่สำเร็จ จึงไม่บันทึกเพื่อกันข้อมูลจริงถูกเขียนทับ — ไปที่ตั้งค่า แล้วกด "โหลดใหม่" ก่อน',
   btn_return_all: 'คืนของทั้งหมด',
   confirm_return_group: 'คืนของทั้ง {count} รายการในกลุ่มนี้เลยหรือไม่?',
-  toast_returned_group: 'รับคืนครบ {count} รายการแล้ว'
+  toast_returned_group: 'รับคืนครบ {count} รายการแล้ว',
+  pending_tab_reserve: 'รายการจอง',
+  pending_tab_borrow: 'รายการยืม'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1501,7 +1514,9 @@ const I18N = {
   toast_save_blocked: '⚠️ {what} hasn\'t loaded yet, so saving is blocked to avoid overwriting real data — open Settings and press Reload first',
   btn_return_all: 'Return All',
   confirm_return_group: 'Return all {count} lines in this group?',
-  toast_returned_group: 'Returned all {count} lines'
+  toast_returned_group: 'Returned all {count} lines',
+  pending_tab_reserve: 'Reservations',
+  pending_tab_borrow: 'Borrows'
 }
 };
 function t(key, vars){
@@ -3705,6 +3720,16 @@ function borEditForm(b){
     </div>`;
 }
 
+let pendingView = 'reserve'; // which list is open on the Reserve/Borrow tab
+function applyPendingView(){
+  const isRes = pendingView==='reserve';
+  document.getElementById('btnPendRes').classList.toggle('sel-reserve', isRes);
+  document.getElementById('btnPendBor').classList.toggle('sel-borrow', !isRes);
+  document.getElementById('reserveCard').classList.toggle('iv-hide', !isRes);
+  document.getElementById('borrowCard').classList.toggle('iv-hide', isRes);
+}
+function setPendingView(v){ pendingView = v; applyPendingView(); }
+
 function renderPending(){
   const q = (document.getElementById('pendingSearch').value||'').toLowerCase();
   const rList = document.getElementById('reserveList');
@@ -3758,6 +3783,10 @@ function renderPending(){
     const hay = [item?item.itemNo:'', item?item.name:'', b.svso, b.quotation, b.customer, b.borrower, b.note].join(' ').toLowerCase();
     return hay.includes(q);
   });
+  // counts follow the search box, so you can see which list a search found matches in
+  document.getElementById('pendResCount').textContent = activeRes.length;
+  document.getElementById('pendBorCount').textContent = activeBorrow.length;
+  applyPendingView();
   if(activeBorrow.length===0){
     bList.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('empty_no_borrows_title')}</div><div class="iv-empty-sub">${t('empty_no_reservations_sub')}</div></div>`;
   }else{
