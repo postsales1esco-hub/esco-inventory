@@ -85,6 +85,34 @@
 .iv-dot.reserve{background:var(--reserve);}
 .iv-dot.borrow{background:var(--borrow);}
 
+
+/* ---- QR labels ---- */
+.iv-lbl-list{max-height:46vh;overflow:auto;border:1px solid var(--border);border-radius:10px;}
+.iv-lbl-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;}
+.iv-lbl-row:last-child{border-bottom:none;}
+.iv-lbl-row input[type=checkbox]{width:18px;height:18px;flex:0 0 auto;}
+.iv-lbl-row .main{flex:1;min-width:0;}
+.iv-lbl-row .code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;}
+.iv-lbl-row .nm{font-size:12px;color:var(--ink-soft);line-height:1.35;}
+.iv-lbl-row .cp{width:64px;padding:6px 8px;font-family:'JetBrains Mono',monospace;text-align:center;}
+.lbl-preview-wrap{background:var(--bg);border-radius:10px;padding:12px;overflow:auto;max-height:60vh;}
+.lbl-sheet{display:flex;flex-wrap:wrap;gap:var(--gap,1.5mm);align-content:flex-start;}
+.lbl{box-sizing:border-box;width:var(--w);height:var(--h);padding:1.5mm;display:flex;align-items:center;gap:1.5mm;overflow:hidden;background:#fff;color:#000;break-inside:avoid;page-break-inside:avoid;}
+.lbl.bordered{outline:.25mm dashed #888;outline-offset:-.25mm;}
+.lbl-qr{flex:0 0 auto;width:calc(var(--h) - 3mm);height:calc(var(--h) - 3mm);}
+.lbl-qr svg{width:100%;height:100%;display:block;}
+.lbl-txt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:.6mm;}
+.lbl-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:var(--fc);line-height:1.1;word-break:break-all;}
+.lbl-name{font-size:var(--fn);line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;}
+.lbl-sheet.roll{display:block;}
+.lbl-sheet.roll .lbl{page-break-after:always;break-after:page;}
+.lbl-sheet.roll .lbl:last-child{page-break-after:auto;break-after:auto;}
+#labelPrintHost{display:none;}
+@media print{
+  body.printing-labels > *:not(#labelPrintHost){display:none !important;}
+  body.printing-labels #labelPrintHost{display:block !important;}
+  body.printing-labels{background:#fff !important;}
+}
 .iv-scan-btn{font-size:17px;padding:8px 13px;line-height:1;flex:0 0 auto;}
 .iv-bc-btn{border:none;background:transparent;cursor:pointer;color:var(--ink-soft);font-size:15px;padding:4px 6px;border-radius:5px;display:inline-flex;align-items:center;gap:3px;}
 .iv-bc-btn:hover{background:var(--border);}
@@ -641,6 +669,9 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
         <button type="button" class="iv-btn-sm iv-scan-btn" onclick="scanForItemsTab()" title="สแกนบาร์โค้ด / QR">📷</button>
         <button class="iv-btn-sm" style="white-space:nowrap;" onclick="goToTab('import')">+ <span data-i18n="btn_add_item">เพิ่มสินค้า</span></button>
       </div>
+      <div style="display:flex;justify-content:flex-end;margin:-4px 0 12px;">
+        <button class="iv-btn-sm" onclick="openLabelsPage()">🏷️ <span data-i18n="btn_print_labels">พิมพ์ป้าย QR</span></button>
+      </div>
       <div class="iv-table-wrap">
         <table class="iv-item-table">
           <thead>
@@ -908,6 +939,80 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
       </div>
     </div>
 
+    <!-- ============ QR LABELS (opened from Items tab) ============ -->
+    <div class="iv-panel" id="panel-labels">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <button class="iv-btn-sm" onclick="goToTab('items')">← <span data-i18n="btn_back_items">กลับ</span></button>
+      </div>
+      <div class="iv-card">
+        <p class="iv-card-title"><span class="ic">🏷️</span><span data-i18n="labels_title">พิมพ์ป้าย QR สินค้า</span></p>
+        <p class="iv-hint" style="margin-bottom:12px;" data-i18n="labels_hint">สร้างป้าย QR จากรหัสสินค้า ใช้ติดของที่ไม่มีบาร์โค้ด สแกนด้วยปุ่ม 📷 ในแอปแล้วระบบจะรู้จักสินค้าทันที ไม่ต้องผูกรหัสก่อน</p>
+        <div class="iv-form-row two">
+          <div>
+            <label class="iv-label" data-i18n="lbl_label_size">ขนาดป้าย</label>
+            <select class="iv-input" id="lblSize" onchange="onLabelSettingChange()">
+              <option value="s" data-i18n="label_size_s">เล็ก · 40×20 มม.</option>
+              <option value="m" data-i18n="label_size_m">กลาง · 50×30 มม.</option>
+              <option value="l" data-i18n="label_size_l">ใหญ่ · 70×40 มม.</option>
+            </select>
+          </div>
+          <div>
+            <label class="iv-label" data-i18n="lbl_label_paper">รูปแบบการพิมพ์</label>
+            <select class="iv-input" id="lblPaper" onchange="onLabelSettingChange()">
+              <option value="sheet" data-i18n="paper_sheet">แผ่น A4 (หลายป้ายต่อหน้า)</option>
+              <option value="roll" data-i18n="paper_roll">ม้วนสติ๊กเกอร์ (1 ป้ายต่อ 1 หน้า)</option>
+            </select>
+          </div>
+        </div>
+        <div class="iv-form-row two">
+          <div>
+            <label class="iv-label" data-i18n="lbl_label_payload">ข้อมูลใน QR</label>
+            <select class="iv-input" id="lblPayload" onchange="onLabelSettingChange()">
+              <option value="code" data-i18n="payload_code">รหัสสินค้า (แนะนำ)</option>
+              <option value="link" data-i18n="payload_link">ลิงก์เปิดเว็บ (สแกนด้วยกล้องมือถือทั่วไปได้)</option>
+            </select>
+          </div>
+          <div>
+            <label class="iv-label" data-i18n="lbl_label_gap">ระยะห่างระหว่างป้าย (มม.)</label>
+            <input class="iv-input" type="number" min="0" max="20" step="0.5" id="lblGap" value="1.5" oninput="onLabelSettingChange()">
+          </div>
+        </div>
+        <div class="iv-form-row iv-hide" id="lblUrlRow">
+          <div>
+            <label class="iv-label" data-i18n="lbl_label_url">ที่อยู่เว็บ (URL)</label>
+            <input class="iv-input" type="text" id="lblUrl" oninput="onLabelSettingChange()" placeholder="https://...">
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin:4px 0;cursor:pointer;">
+          <input type="checkbox" id="lblBorder" checked onchange="onLabelSettingChange()"> <span data-i18n="chk_label_border">แสดงเส้นขอบ (ช่วยในการตัด)</span>
+        </label>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title"><span class="ic">☑️</span><span data-i18n="labels_pick_title">เลือกสินค้าที่จะพิมพ์ป้าย</span></p>
+        <input class="iv-input iv-search" type="text" id="lblSearch" oninput="renderLabelList()" placeholder="ค้นหาด้วยรหัสหรือชื่อสินค้า..." data-i18n-ph="ph_item_search_plain">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin:2px 0 6px;cursor:pointer;">
+          <input type="checkbox" id="lblOnlyNoBc" checked onchange="renderLabelList()"> <span data-i18n="chk_only_no_barcode">เฉพาะสินค้าที่ยังไม่มีบาร์โค้ด</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;margin:2px 0 10px;cursor:pointer;">
+          <input type="checkbox" id="lblIncludeExt" onchange="renderLabelList()"> <span data-i18n="chk_include_ext">รวมสินค้านอกสต็อก</span>
+        </label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="iv-btn-sm" onclick="labelSelectShown(true)" data-i18n="btn_select_all_shown">เลือกทั้งหมดที่แสดง</button>
+          <button class="iv-btn-sm ghost" onclick="labelSelectShown(false)" data-i18n="btn_clear_selection">ล้างที่เลือก</button>
+        </div>
+        <div id="lblList" class="iv-lbl-list"></div>
+      </div>
+
+      <div class="iv-card">
+        <p class="iv-card-title"><span class="ic">👁️</span><span data-i18n="labels_preview_title">ตัวอย่างป้าย</span></p>
+        <p class="iv-hint" id="lblSummary" style="margin-bottom:10px;"></p>
+        <div id="lblPreview" class="lbl-preview-wrap"></div>
+        <p class="iv-hint" id="lblPreviewNote" style="margin:8px 0 12px;"></p>
+        <button class="iv-btn in" id="lblPrintBtn" onclick="printLabels()">🖨️ <span data-i18n="btn_print_now">พิมพ์</span></button>
+      </div>
+    </div>
+
     <!-- ============ HISTORY ============ -->
     <div class="iv-panel" id="panel-history">
       <input class="iv-input iv-search" type="text" id="txSearch" placeholder="ค้นหาประวัติ..." oninput="onHistoryFilterChange()" data-i18n-ph="ph_history_search">
@@ -960,6 +1065,9 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 <div id="ivModalRoot"></div>
 <div class="iv-toast" id="ivToast"></div>
 
+<script id="qrlib">/* qrcode-generator 1.4.4 - Copyright (c) 2009 Kazuhiko Arase - MIT license */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
 <script>
 // ===== Storage backend: Google Sheets via Apps Script (standalone version) =====
 // This replaces Claude.ai's built-in window.storage with calls to your deployed
@@ -1296,7 +1404,44 @@ const I18N = {
   barcode_none: 'ยังไม่มีบาร์โค้ดที่ผูกกับสินค้านี้',
   ph_barcode_input: 'พิมพ์หรือสแกนบาร์โค้ด',
   btn_add_barcode: 'เพิ่มบาร์โค้ด',
-  lbl_barcode_optional: 'บาร์โค้ด (ไม่บังคับ)'
+  lbl_barcode_optional: 'บาร์โค้ด (ไม่บังคับ)',
+  btn_print_labels: 'พิมพ์ป้าย QR',
+  btn_back_items: 'กลับ',
+  labels_title: 'พิมพ์ป้าย QR สินค้า',
+  labels_hint: 'สร้างป้าย QR จากรหัสสินค้า ใช้ติดของที่ไม่มีบาร์โค้ด สแกนด้วยปุ่ม 📷 ในแอปแล้วระบบจะรู้จักสินค้าทันที ไม่ต้องผูกรหัสก่อน',
+  lbl_label_size: 'ขนาดป้าย',
+  label_size_s: 'เล็ก · 40×20 มม.',
+  label_size_m: 'กลาง · 50×30 มม.',
+  label_size_l: 'ใหญ่ · 70×40 มม.',
+  lbl_label_paper: 'รูปแบบการพิมพ์',
+  paper_sheet: 'แผ่น A4 (หลายป้ายต่อหน้า)',
+  paper_roll: 'ม้วนสติ๊กเกอร์ (1 ป้ายต่อ 1 หน้า)',
+  lbl_label_payload: 'ข้อมูลใน QR',
+  payload_code: 'รหัสสินค้า (แนะนำ)',
+  payload_link: 'ลิงก์เปิดเว็บ (สแกนด้วยกล้องมือถือทั่วไปได้)',
+  lbl_label_gap: 'ระยะห่างระหว่างป้าย (มม.)',
+  lbl_label_url: 'ที่อยู่เว็บ (URL)',
+  chk_label_border: 'แสดงเส้นขอบ (ช่วยในการตัด)',
+  labels_pick_title: 'เลือกสินค้าที่จะพิมพ์ป้าย',
+  chk_only_no_barcode: 'เฉพาะสินค้าที่ยังไม่มีบาร์โค้ด',
+  chk_include_ext: 'รวมสินค้านอกสต็อก',
+  btn_select_all_shown: 'เลือกทั้งหมดที่แสดง',
+  btn_clear_selection: 'ล้างที่เลือก',
+  lbl_copies: 'จำนวนป้าย',
+  labels_empty: 'ไม่พบสินค้า',
+  labels_list_capped: 'แสดง {cap} รายการแรกจาก {total} รายการ — ใช้ช่องค้นหาเพื่อจำกัดรายการ',
+  labels_summary: 'เลือกแล้ว {items} รายการ · รวม {labels} ป้าย',
+  labels_preview_title: 'ตัวอย่างป้าย',
+  labels_preview_note: 'แสดงตัวอย่าง {shown} ป้ายแรก จากทั้งหมด {total} ป้าย (ตอนพิมพ์จะพิมพ์ครบทั้งหมด)',
+  btn_print_now: 'พิมพ์',
+  toast_labels_none: 'ยังไม่ได้เลือกสินค้า',
+  toast_labels_lib: 'โหลดตัวสร้าง QR ไม่สำเร็จ',
+  toast_save_conflict: '⚠️ {what}ถูกแก้ไขจากเครื่องอื่นไปแล้ว — ระบบไม่บันทึกเพื่อกันข้อมูลทับกัน กรุณากด "โหลดใหม่" ที่แท็บตั้งค่า แล้วทำรายการอีกครั้ง',
+  sync_conflict_hint: 'ข้อมูล{what}ถูกแก้ไขจากเครื่องอื่นหลังจากที่คุณเปิดหน้านี้ ระบบจึงไม่บันทึกทับ (กันรายการของคนอื่นหาย) — กด "โหลดใหม่" แล้วทำรายการที่เพิ่งทำอีกครั้ง',
+  badge_conflict: 'ข้อมูลไม่ตรงกัน',
+  toast_save_incomplete: '⚠️ เซิร์ฟเวอร์เก็บ{what}ไม่ครบ — รายการที่เพิ่งบันทึกอาจหายตอนรีโหลด กรุณาแจ้งผู้ดูแลระบบ (ขนาดข้อมูลอาจเกินที่ Apps Script/Sheet รับได้)',
+  tag_item_missing: 'ไม่พบสินค้านี้',
+  hint_pick_replacement: 'ไม่พบสินค้านี้ในระบบ (รหัสเดิม: {code}) — เลือกสินค้าที่ถูกต้องในช่องด้านล่างแล้วกดบันทึก'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1568,7 +1713,44 @@ const I18N = {
   barcode_none: 'No barcodes linked to this item yet',
   ph_barcode_input: 'Type or scan a barcode',
   btn_add_barcode: 'Add Barcode',
-  lbl_barcode_optional: 'Barcode (optional)'
+  lbl_barcode_optional: 'Barcode (optional)',
+  btn_print_labels: 'Print QR Labels',
+  btn_back_items: 'Back',
+  labels_title: 'Print Item QR Labels',
+  labels_hint: 'Creates QR labels from item codes for parts without a barcode. Scan them with the 📷 button in the app — the item is recognized right away, no linking needed',
+  lbl_label_size: 'Label Size',
+  label_size_s: 'Small · 40×20 mm',
+  label_size_m: 'Medium · 50×30 mm',
+  label_size_l: 'Large · 70×40 mm',
+  lbl_label_paper: 'Print Layout',
+  paper_sheet: 'A4 sheet (many labels per page)',
+  paper_roll: 'Sticker roll (1 label per page)',
+  lbl_label_payload: 'QR Content',
+  payload_code: 'Item code (recommended)',
+  payload_link: 'Web link (works with any phone camera)',
+  lbl_label_gap: 'Gap Between Labels (mm)',
+  lbl_label_url: 'Web Address (URL)',
+  chk_label_border: 'Show border (helps cutting)',
+  labels_pick_title: 'Choose Items to Label',
+  chk_only_no_barcode: 'Only items without a barcode',
+  chk_include_ext: 'Include off-stock items',
+  btn_select_all_shown: 'Select All Shown',
+  btn_clear_selection: 'Clear Selection',
+  lbl_copies: 'Copies',
+  labels_empty: 'No items found',
+  labels_list_capped: 'Showing the first {cap} of {total} items — use search to narrow down',
+  labels_summary: '{items} items selected · {labels} labels in total',
+  labels_preview_title: 'Label Preview',
+  labels_preview_note: 'Previewing the first {shown} of {total} labels (all are printed)',
+  btn_print_now: 'Print',
+  toast_labels_none: 'No items selected yet',
+  toast_labels_lib: 'Couldn\'t load the QR generator',
+  toast_save_conflict: '⚠️ {what} was changed from another device — not saved so nothing gets overwritten. Press Reload in Settings and repeat the action',
+  sync_conflict_hint: '{what} was changed from another device after you opened this page, so it wasn\'t saved over (to protect the other person\'s entries) — press Reload and repeat what you just did',
+  badge_conflict: 'OUT OF SYNC',
+  toast_save_incomplete: '⚠️ The server stored {what} incompletely — what you just saved may disappear on reload. Tell the administrator (the data may be larger than Apps Script/Sheets accepts)',
+  tag_item_missing: 'Item not found',
+  hint_pick_replacement: 'This item no longer exists (old code: {code}) — pick the correct item below and save'
 }
 };
 function t(key, vars){
@@ -1702,9 +1884,11 @@ function totalStock(it){ return (it.baseQty||0) + onHand(it.id); }
 // baseQty is folded into ledger IN at creation time (see addItem) — kept simple: onHand already includes base via seed IN entry.
 
 const LOAD_FAILED = Symbol('load_failed');
+let serverSnapshot = {}; // raw server value per key as of our last load/save — used to notice if someone else changed it meanwhile
 let loadFailedKeys = new Set(); // storage keys that did not load cleanly — saving them is blocked so real data can't be overwritten
 function parseLoadResult(res, loadErrors, errKey, storageKey){
   if(res === LOAD_FAILED){ loadErrors.push(t(errKey)); loadFailedKeys.add(storageKey); return []; }
+  serverSnapshot[storageKey] = res ? res.value : null;
   try{ return res ? JSON.parse(res.value) : []; }
   catch(e){ loadErrors.push(t(errKey)); loadFailedKeys.add(storageKey); return []; }
 }
@@ -1713,6 +1897,7 @@ async function loadData(){
   try{ const r = await window.storage.get('inv:lang', false); if(r && (r.value==='th'||r.value==='en')) LANG = r.value; }catch(e){}
   const loadErrors = [];
   loadFailedKeys = new Set();
+  serverSnapshot = {};
   const [itemsRes, extRes, ledgerRes, resvRes, borrowRes] = await Promise.all([
     window.storage.get(KEY_ITEMS, true).catch(()=>LOAD_FAILED),
     window.storage.get(KEY_EXTERNAL_ITEMS, true).catch(()=>LOAD_FAILED),
@@ -1767,7 +1952,7 @@ function setSyncBadge(state){
   // state: 'ok' | 'load' | 'save'
   const badge = document.getElementById('ivSyncBadge');
   if(!badge) return;
-  badge.textContent = state==='load' ? t('badge_sync_failed') : (state==='save' ? t('badge_save_failed') : 'SYNCED');
+  badge.textContent = state==='load' ? t('badge_sync_failed') : (state==='save' ? t('badge_save_failed') : (state==='conflict' ? t('badge_conflict') : 'SYNCED'));
   badge.classList.toggle('warn', state!=='ok');
   badge.style.cursor = state!=='ok' ? 'pointer' : '';
   badge.onclick = state!=='ok' ? ()=>goToTab('settings') : null;
@@ -1871,20 +2056,51 @@ function renderAccessUI(){
   }
 }
 
+// Items / off-stock items / reservations / borrows are saved as whole lists, so two devices saving at the same time would
+// silently wipe each other's additions. Before overwriting we re-read the server copy: if it is no longer what we loaded,
+// someone else changed it — we stop and ask for a reload instead of overwriting. (The ledger is too big to re-read on every save.)
+const GUARDED_KEYS = [KEY_ITEMS, KEY_EXTERNAL_ITEMS, KEY_RESERVATIONS, KEY_BORROWS];
+async function getRaw(key){ const r = await window.storage.get(key, true); return r ? r.value : null; }
+function sameJson(a, b){ try{ return JSON.stringify(JSON.parse(a))===JSON.stringify(JSON.parse(b)); }catch(e){ return false; } }
+function markConflict(label){
+  setSyncBadge('conflict');
+  const box = document.getElementById('syncStatusBox');
+  if(box) box.innerHTML = `<p class="iv-hint" style="margin-bottom:10px;">⚠️ ${t('sync_conflict_hint', {what: label})}</p><button class="iv-btn-sm pos" onclick="reloadAllData()">${t('btn_reload')}</button>`;
+  showToast(t('toast_save_conflict', {what: label}), true);
+}
+
 async function saveAndWarn(key, value, label){
   if(loadFailedKeys.has(key)){
-    // this data never loaded, so what's in memory is empty/partial — saving it would overwrite the real data on the server
+    // this data never loaded (or is out of date), so what's in memory is empty/partial — saving it would overwrite the real data on the server
     showToast(t('toast_save_blocked', {what: label}), true);
     return false;
+  }
+  const guarded = GUARDED_KEYS.includes(key);
+  if(guarded && (key in serverSnapshot)){
+    let cur;
+    try{ cur = await getRaw(key); }
+    catch(e){ showToast(t('toast_save_failed', {what: label}), true); setSyncBadge('save'); return false; }
+    if(cur !== serverSnapshot[key]){
+      loadFailedKeys.add(key); // our copy is stale — block further saves of it until reload
+      markConflict(label);
+      return false;
+    }
   }
   const res = await window.storage.set(key, value, true);
   if(!res){
     showToast(t('toast_save_failed', {what: label}), true);
     setSyncBadge('save');
-  }else if(loadFailedKeys.size===0){
-    setSyncBadge('ok');
+    return false;
   }
-  return !!res;
+  if(guarded){
+    try{
+      const after = await getRaw(key);
+      serverSnapshot[key] = after;
+      if(!sameJson(after, value)){ showToast(t('toast_save_incomplete', {what: label}), true); setSyncBadge('save'); return true; }
+    }catch(e){ delete serverSnapshot[key]; }
+  }
+  if(loadFailedKeys.size===0) setSyncBadge('ok');
+  return true;
 }
 async function saveItems(){ return await saveAndWarn(KEY_ITEMS, JSON.stringify(items), t('err_items')); }
 async function saveExternalItems(){ return await saveAndWarn(KEY_EXTERNAL_ITEMS, JSON.stringify(externalItems), t('err_ext_items')); }
@@ -2190,7 +2406,7 @@ async function submitCart(){
         isExternalSrc ? t('note_off_stock_item') : '',
         note
       ].filter(Boolean).join(' · ');
-      reservations.push({id:uid(), itemId:c.itemId, qty:c.qty, svso, quotation, ...cf, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
+      reservations.push({id:uid(), itemId:c.itemId, itemNo:item.itemNo, itemName:item.name, qty:c.qty, svso, quotation, ...cf, requestedBy, note, ts:Date.now(), status:'active', source: isExternalSrc?'external':'stock'});
       ledger.push({id:uid(), itemId:c.itemId, type:'RESERVE', qty:c.qty, note: composedNote, ts:Date.now(), source: isExternalSrc?'external':'stock'});
       savedCount++;
     }
@@ -2227,7 +2443,7 @@ async function submitCart(){
       if(!item) continue;
       const avail = availableQty(c.itemId);
       if(c.qty > avail){ showToast(t('toast_skip_avail_only', {name:item.name, avail, unit:item.unit})); continue; }
-      borrows.push({id:uid(), itemId:c.itemId, qty:c.qty, borrower, svso, quotation, ...cf, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
+      borrows.push({id:uid(), itemId:c.itemId, itemNo:item.itemNo, itemName:item.name, qty:c.qty, borrower, svso, quotation, ...cf, note, dueDate, borrowDate, ts:borrowTs, status:'out', source: isExternalSrc?'external':'stock'});
       ledger.push({id:uid(), itemId:c.itemId, type:'BORROW', qty:c.qty, note:[borrower,
         svso ? t('note_prefix_svso')+svso : '',
         quotation ? t('note_prefix_quotation')+quotation : '',
@@ -3584,8 +3800,9 @@ function resLineHtml(r, suppressNote){
   return `<div class="iv-group-line">
     <div class="iv-gl-row">
       <div class="iv-gl-info">
-        <span class="iv-gl-code">${item?item.itemNo:''}</span>
-        <span class="iv-gl-name">${item?item.name:t('item_deleted')}</span>
+        <span class="iv-gl-code">${item?item.itemNo:(r.itemNo||'')}</span>
+        <span class="iv-gl-name">${item?item.name:(r.itemName||t('item_deleted'))}</span>
+        ${item ? '' : `<span class="iv-tag warn" title="${t('hint_pick_replacement', {code: r.itemNo||'—'})}">⚠ ${t('tag_item_missing')}</span>`}
         ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);">${t('badge_off_stock')}</span>` : ''}
         ${isShort ? `<span class="iv-tag warn" title="${t('title_backorder')}">⚠ ${t('tag_backorder')}</span>` : ''}
       </div>
@@ -3603,10 +3820,12 @@ function resLineHtml(r, suppressNote){
 
 function resEditForm(r){
   const item = findItemRef(r.itemId, r.source);
+  const missingHint = item ? '' : `<p class="iv-hint" style="margin:0 0 10px;color:var(--warn);">⚠ ${t('hint_pick_replacement', {code: r.itemNo||'—'})}</p>`;
   const isD = r.customerType==='dealer';
   const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
   return `
     <div class="iv-detail-edit-form">
+      ${missingHint}
       <div class="iv-form-row">
         <div>
           <label class="iv-label">${t('lbl_item')}</label>
@@ -3712,8 +3931,9 @@ function borLineHtml(b){
   return `<div class="iv-group-line">
     <div class="iv-gl-row">
       <div class="iv-gl-info">
-        <span class="iv-gl-code">${item?item.itemNo:''}</span>
-        <span class="iv-gl-name">${item?item.name:t('item_deleted')}</span>
+        <span class="iv-gl-code">${item?item.itemNo:(b.itemNo||'')}</span>
+        <span class="iv-gl-name">${item?item.name:(b.itemName||t('item_deleted'))}</span>
+        ${item ? '' : `<span class="iv-tag warn" title="${t('hint_pick_replacement', {code: b.itemNo||'—'})}">⚠ ${t('tag_item_missing')}</span>`}
         ${isExternal ? `<span class="iv-tag" style="background:var(--borrow-soft);color:var(--borrow);">${t('badge_off_stock')}</span>` : ''}
       </div>
       <div class="iv-gl-right">
@@ -3728,10 +3948,12 @@ function borLineHtml(b){
 
 function borEditForm(b){
   const item = findItemRef(b.itemId, b.source);
+  const missingHint = item ? '' : `<p class="iv-hint" style="margin:0 0 10px;color:var(--warn);">⚠ ${t('hint_pick_replacement', {code: b.itemNo||'—'})}</p>`;
   const curLabel = item ? `${item.itemNo} — ${item.name}` : '';
   const isD = b.customerType==='dealer';
   return `
     <div class="iv-detail-edit-form">
+      ${missingHint}
       <div class="iv-form-row">
         <div>
           <label class="iv-label">${t('lbl_item')}</label>
@@ -4160,6 +4382,156 @@ async function removeBarcode(itemId, idx){
   openBarcodeDialog(itemId);
 }
 
+// ===== QR label printing =====
+const LABEL_SIZES = {
+  s:{w:40, h:20, fc:6.5, fn:5},
+  m:{w:50, h:30, fc:9,   fn:6.5},
+  l:{w:70, h:40, fc:12,  fn:8.5}
+};
+let labelSel = new Map(); // itemId -> number of labels
+const LABEL_SETTINGS_KEY = 'inv:labelSettings';
+
+function saveLabelSettings(){
+  const g = id=>document.getElementById(id);
+  try{ localStorage.setItem(LABEL_SETTINGS_KEY, JSON.stringify({size:g('lblSize').value, paper:g('lblPaper').value, payload:g('lblPayload').value, gap:g('lblGap').value, url:g('lblUrl').value, border:g('lblBorder').checked})); }catch(e){}
+}
+function restoreLabelSettings(){
+  const g = id=>document.getElementById(id);
+  try{
+    const s = JSON.parse(localStorage.getItem(LABEL_SETTINGS_KEY)||'null');
+    if(s){ g('lblSize').value=s.size||'m'; g('lblPaper').value=s.paper||'sheet'; g('lblPayload').value=s.payload||'code'; g('lblGap').value=s.gap||'1.5'; g('lblUrl').value=s.url||''; g('lblBorder').checked = s.border!==false; }
+  }catch(e){}
+  if(!g('lblUrl').value) g('lblUrl').value = location.href.split('#')[0].split('?')[0];
+}
+function onLabelSettingChange(){
+  document.getElementById('lblUrlRow').classList.toggle('iv-hide', document.getElementById('lblPayload').value!=='link');
+  saveLabelSettings();
+  renderLabelPreview();
+}
+function openLabelsPage(){
+  goToTab('labels');
+  restoreLabelSettings();
+  document.getElementById('lblUrlRow').classList.toggle('iv-hide', document.getElementById('lblPayload').value!=='link');
+  renderLabelList();
+  window.scrollTo(0,0);
+}
+
+function labelCandidates(){
+  const q = (document.getElementById('lblSearch').value||'').toLowerCase();
+  const onlyNoBc = document.getElementById('lblOnlyNoBc').checked;
+  const incExt = document.getElementById('lblIncludeExt').checked;
+  const pool = [...items.map(it=>({it, ext:false})), ...(incExt ? externalItems.map(it=>({it, ext:true})) : [])];
+  return pool.filter(({it})=> (!onlyNoBc || !(it.barcodes && it.barcodes.length)) && (it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)));
+}
+function renderLabelList(){
+  const rows = labelCandidates();
+  const el = document.getElementById('lblList');
+  if(rows.length===0){ el.innerHTML = `<div class="iv-empty"><div class="iv-empty-title">${t('labels_empty')}</div></div>`; renderLabelPreview(); return; }
+  const CAP = 300;
+  el.innerHTML = rows.slice(0,CAP).map(({it, ext})=>{
+    const on = labelSel.has(it.id);
+    return `<label class="iv-lbl-row">
+      <input type="checkbox" ${on?'checked':''} onchange="toggleLabelItem('${it.id}', this.checked)">
+      <div class="main"><div class="code">${it.itemNo}${ext?` <span class="iv-badge" style="font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>`:''}</div><div class="nm">${it.name}</div></div>
+      <input class="iv-input cp" type="number" min="1" max="99" value="${on?labelSel.get(it.id):1}" title="${t('lbl_copies')}" onclick="event.stopPropagation()" oninput="setLabelCopies('${it.id}', this.value)">
+    </label>`;
+  }).join('') + (rows.length>CAP ? `<div class="iv-hint" style="padding:10px 12px;">${t('labels_list_capped', {cap:CAP, total:rows.length})}</div>` : '');
+  renderLabelPreview();
+}
+function toggleLabelItem(id, on){
+  if(on){ if(!labelSel.has(id)) labelSel.set(id, 1); } else labelSel.delete(id);
+  renderLabelPreview();
+}
+function setLabelCopies(id, v){
+  const n = Math.max(1, Math.min(99, parseInt(v)||1));
+  if(labelSel.has(id)){ labelSel.set(id, n); renderLabelPreview(); }
+}
+function labelSelectShown(on){
+  labelCandidates().forEach(({it})=>{ if(on){ if(!labelSel.has(it.id)) labelSel.set(it.id,1); } else labelSel.delete(it.id); });
+  renderLabelList();
+}
+
+function labelPayload(it){
+  if(document.getElementById('lblPayload').value==='link'){
+    const base = (document.getElementById('lblUrl').value||'').trim().split('#')[0].split('?')[0] || location.href.split('#')[0].split('?')[0];
+    return base + '?item=' + encodeURIComponent(it.itemNo);
+  }
+  return it.itemNo;
+}
+function qrSvg(text){
+  try{
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    const qr = qrcode(0, 'M');
+    qr.addData(text, 'Byte');
+    qr.make();
+    const n = qr.getModuleCount(), m = 2;
+    let d = '';
+    for(let r=0;r<n;r++){
+      let col = 0;
+      while(col<n){
+        if(qr.isDark(r,col)){ const s = col; while(col<n && qr.isDark(r,col)) col++; d += `M${s+m} ${r+m}h${col-s}v1h${s-col}z`; }
+        else col++;
+      }
+    }
+    const size = n + 2*m;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges"><rect width="${size}" height="${size}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+  }catch(e){
+    return `<div style="font-size:7pt;color:#c00;">QR?</div>`;
+  }
+}
+function labelsToPrint(){
+  const out = [];
+  [...items, ...externalItems].forEach(it=>{
+    const n = labelSel.get(it.id);
+    if(n) for(let i=0;i<n;i++) out.push(it);
+  });
+  return out;
+}
+function buildLabelSheet(list, forPrint){
+  const sz = LABEL_SIZES[document.getElementById('lblSize').value] || LABEL_SIZES.m;
+  const roll = document.getElementById('lblPaper').value==='roll';
+  const gap = forPrint ? (roll ? 0 : (parseFloat(document.getElementById('lblGap').value)||0)) : (parseFloat(document.getElementById('lblGap').value)||1.5);
+  const bordered = forPrint ? (document.getElementById('lblBorder').checked && !roll) : true;
+  const style = `--w:${sz.w}mm;--h:${sz.h}mm;--fc:${sz.fc}pt;--fn:${sz.fn}pt;--gap:${gap}mm;`;
+  const cache = new Map();
+  const cells = list.map(it=>{
+    if(!cache.has(it.id)) cache.set(it.id, qrSvg(labelPayload(it)));
+    return `<div class="lbl${bordered?' bordered':''}"><div class="lbl-qr">${cache.get(it.id)}</div><div class="lbl-txt"><div class="lbl-code">${it.itemNo}</div><div class="lbl-name">${it.name}</div></div></div>`;
+  }).join('');
+  return `<div class="lbl-sheet${roll?' roll':''}" style="${style}">${cells}</div>`;
+}
+function renderLabelPreview(){
+  const list = labelsToPrint();
+  const box = document.getElementById('lblPreview'), note = document.getElementById('lblPreviewNote'), sum = document.getElementById('lblSummary');
+  if(!box) return;
+  const picked = new Set(list.map(i=>i.id)).size;
+  sum.textContent = t('labels_summary', {items:picked, labels:list.length});
+  document.getElementById('lblPrintBtn').disabled = list.length===0;
+  if(list.length===0){ box.innerHTML = `<div class="iv-hint">${t('toast_labels_none')}</div>`; note.textContent=''; return; }
+  const LIMIT = 24;
+  box.innerHTML = buildLabelSheet(list.slice(0,LIMIT), false).replace('lbl-sheet roll','lbl-sheet');
+  note.textContent = list.length>LIMIT ? t('labels_preview_note', {shown:LIMIT, total:list.length}) : '';
+}
+function printLabels(){
+  const list = labelsToPrint();
+  if(list.length===0){ showToast(t('toast_labels_none')); return; }
+  if(typeof qrcode==='undefined'){ showToast(t('toast_labels_lib'), true); return; }
+  const sz = LABEL_SIZES[document.getElementById('lblSize').value] || LABEL_SIZES.m;
+  const roll = document.getElementById('lblPaper').value==='roll';
+  ['labelPrintHost','labelPageStyle'].forEach(id=>{ const old = document.getElementById(id); if(old) old.remove(); });
+  const style = document.createElement('style');
+  style.id = 'labelPageStyle';
+  style.textContent = roll ? `@page{size:${sz.w}mm ${sz.h}mm;margin:0}` : `@page{size:A4;margin:8mm}`;
+  document.head.appendChild(style);
+  const host = document.createElement('div');
+  host.id = 'labelPrintHost';
+  host.innerHTML = buildLabelSheet(list, true);
+  document.body.appendChild(host);
+  document.body.classList.add('printing-labels');
+  window.addEventListener('afterprint', ()=>{ document.body.classList.remove('printing-labels'); }, {once:true});
+  setTimeout(()=>window.print(), 80);
+}
+
 function renderAll(){
   refreshCustomerSuggestions();
   renderStats();
@@ -4352,7 +4724,8 @@ function exportToExcel(){
 
 // tabs
 function goToTab(tabName){
-  document.querySelectorAll('.iv-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tabName));
+  const hl = tabName==='labels' ? 'items' : tabName;
+  document.querySelectorAll('.iv-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===hl));
   document.querySelectorAll('.iv-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tabName));
 }
 
