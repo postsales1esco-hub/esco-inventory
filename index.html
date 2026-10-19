@@ -1088,6 +1088,7 @@ window.storage = {
         const res = await fetch(`${GAS_API_URL}?key=${encodeURIComponent(key)}&_=${bust}`, { cache: 'no-store' });
         const text = await res.text();
         const data = JSON.parse(text);
+        if(data && data.error) throw new Error('storage.get server error: '+data.error);
         if(!data || data.value===undefined || data.value===null || data.value==='') return null;
         return {key: data.key, value: data.value, shared:true};
       }catch(e){
@@ -1111,15 +1112,10 @@ window.storage = {
         });
         if(!res.ok) throw new Error('storage.set got HTTP '+res.status);
         // some Apps Script deployments return 200 with an error payload instead of an HTTP error code — catch that too
-        try{
-          const text = await res.text();
-          if(text){
-            const data = JSON.parse(text);
-            if(data && (data.error || data.success===false)) throw new Error('storage.set reported failure: '+(data.error||'unknown'));
-          }
-        }catch(parseErr){
-          // response wasn't JSON (e.g. plain "OK") — that's fine, treat the OK HTTP status as success
-        }
+        let data = null;
+        try{ const text = await res.text(); data = text ? JSON.parse(text) : null; }
+        catch(parseErr){ data = null; /* not JSON (e.g. plain "OK") — treat the OK HTTP status as success */ }
+        if(data && (data.error || data.success===false)) throw new Error('storage.set reported failure: '+(data.error||(data.conflict?'conflict':'unknown')));
         return {key, value, shared:true};
       }catch(e){
         console.error('storage.set failed (attempt '+(attempt+1)+')', e);
