@@ -1119,6 +1119,7 @@ window.storage = {
         return {key, value, shared:true};
       }catch(e){
         console.error('storage.set failed (attempt '+(attempt+1)+')', e);
+        window.__lastStoreError = String((e && e.message) || e);
         if(attempt===1){ window.__gasOffline = true; return null; }
       }
     }
@@ -1435,7 +1436,7 @@ const I18N = {
   toast_save_conflict: '⚠️ {what}ถูกแก้ไขจากเครื่องอื่นไปแล้ว — ระบบไม่บันทึกเพื่อกันข้อมูลทับกัน กรุณากด "โหลดใหม่" ที่แท็บตั้งค่า แล้วทำรายการอีกครั้ง',
   sync_conflict_hint: 'ข้อมูล{what}ถูกแก้ไขจากเครื่องอื่นหลังจากที่คุณเปิดหน้านี้ ระบบจึงไม่บันทึกทับ (กันรายการของคนอื่นหาย) — กด "โหลดใหม่" แล้วทำรายการที่เพิ่งทำอีกครั้ง',
   badge_conflict: 'ข้อมูลไม่ตรงกัน',
-  toast_save_incomplete: '⚠️ เซิร์ฟเวอร์เก็บ{what}ไม่ครบ — รายการที่เพิ่งบันทึกอาจหายตอนรีโหลด กรุณาแจ้งผู้ดูแลระบบ (ขนาดข้อมูลอาจเกินที่ Apps Script/Sheet รับได้)',
+  toast_save_incomplete: '⚠️ เซิร์ฟเวอร์เก็บ{what}ไม่ครบ (ส่งไป {sent} ตัวอักษร แต่เซิร์ฟเวอร์เก็บได้ {stored}) — รายการที่เพิ่งบันทึกอาจหายตอนรีโหลด กรุณาแจ้งผู้ดูแลระบบ',
   tag_item_missing: 'ไม่พบสินค้านี้',
   hint_pick_replacement: 'ไม่พบสินค้านี้ในระบบ (รหัสเดิม: {code}) — เลือกสินค้าที่ถูกต้องในช่องด้านล่างแล้วกดบันทึก'
 },
@@ -1744,7 +1745,7 @@ const I18N = {
   toast_save_conflict: '⚠️ {what} was changed from another device — not saved so nothing gets overwritten. Press Reload in Settings and repeat the action',
   sync_conflict_hint: '{what} was changed from another device after you opened this page, so it wasn\'t saved over (to protect the other person\'s entries) — press Reload and repeat what you just did',
   badge_conflict: 'OUT OF SYNC',
-  toast_save_incomplete: '⚠️ The server stored {what} incompletely — what you just saved may disappear on reload. Tell the administrator (the data may be larger than Apps Script/Sheets accepts)',
+  toast_save_incomplete: '⚠️ The server stored {what} incompletely (sent {sent} characters, server kept {stored}) — what you just saved may disappear on reload. Tell the administrator',
   tag_item_missing: 'Item not found',
   hint_pick_replacement: 'This item no longer exists (old code: {code}) — pick the correct item below and save'
 }
@@ -2065,6 +2066,11 @@ function markConflict(label){
   showToast(t('toast_save_conflict', {what: label}), true);
 }
 
+function saveFailMsg(label){
+  const d = (window.__lastStoreError||'').replace(/^Error:\s*/,'').slice(0,160);
+  return t('toast_save_failed', {what: label}) + (d ? ' ['+d+']' : '');
+}
+
 async function saveAndWarn(key, value, label){
   if(loadFailedKeys.has(key)){
     // this data never loaded (or is out of date), so what's in memory is empty/partial — saving it would overwrite the real data on the server
@@ -2075,7 +2081,7 @@ async function saveAndWarn(key, value, label){
   if(guarded && (key in serverSnapshot)){
     let cur;
     try{ cur = await getRaw(key); }
-    catch(e){ showToast(t('toast_save_failed', {what: label}), true); setSyncBadge('save'); return false; }
+    catch(e){ showToast(saveFailMsg(label), true); setSyncBadge('save'); return false; }
     if(cur !== serverSnapshot[key]){
       loadFailedKeys.add(key); // our copy is stale — block further saves of it until reload
       markConflict(label);
@@ -2084,7 +2090,7 @@ async function saveAndWarn(key, value, label){
   }
   const res = await window.storage.set(key, value, true);
   if(!res){
-    showToast(t('toast_save_failed', {what: label}), true);
+    showToast(saveFailMsg(label), true);
     setSyncBadge('save');
     return false;
   }
@@ -2092,7 +2098,7 @@ async function saveAndWarn(key, value, label){
     try{
       const after = await getRaw(key);
       serverSnapshot[key] = after;
-      if(!sameJson(after, value)){ showToast(t('toast_save_incomplete', {what: label}), true); setSyncBadge('save'); return true; }
+      if(!sameJson(after, value)){ showToast(t('toast_save_incomplete', {what: label, sent: value.length.toLocaleString('en-US'), stored: (after ? after.length : 0).toLocaleString('en-US')}), true); setSyncBadge('save'); return true; }
     }catch(e){ delete serverSnapshot[key]; }
   }
   if(loadFailedKeys.size===0) setSyncBadge('ok');
