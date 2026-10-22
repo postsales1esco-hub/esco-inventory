@@ -218,6 +218,27 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-res-header-customer{font-size:14px;font-weight:700;color:var(--ink);}
 .iv-res-header-sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:4px;letter-spacing:.02em;}
 .iv-detail-card.borrow .iv-group-badge{color:var(--borrow);background:var(--borrow-soft);}
+.iv-bulk{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
+.iv-btn-xs.sell{border-color:var(--out);color:var(--out);background:#fff;}
+.iv-addline{margin:0 0 12px;}
+@media (max-width:600px){
+  /* phone: each part is a small card — code + name on top, qty and three equal buttons underneath */
+  #panel-pending .iv-card{padding:14px 10px;}
+  .iv-detail-card{padding:14px 12px;}
+  .iv-detail-card.group{padding-top:38px;}
+  .iv-group-badge{top:10px;right:12px;}
+  .iv-group-line{padding:10px;}
+  .iv-gl-row{flex-direction:column;align-items:stretch;gap:8px;}
+  .iv-gl-info{flex:none;display:block;width:100%;}
+  .iv-gl-code{display:block;margin-bottom:2px;font-size:11px;}
+  .iv-gl-name{display:block;font-size:14px;line-height:1.35;}
+  .iv-gl-info .iv-tag{display:inline-block;margin-top:5px;}
+  .iv-gl-right{margin-left:0;display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:6px;align-items:stretch;}
+  .iv-gl-right .iv-odo{display:flex;align-items:center;justify-content:center;padding:0 10px;}
+  .iv-gl-right .iv-btn-xs{padding:10px 4px;font-size:12px;text-align:center;}
+  .iv-res-header-main{padding-right:76px;}
+  .iv-bulk .iv-btn-sm{flex:1 1 auto;padding:10px 12px;}
+}
 .iv-group-line{padding:11px 12px;border-radius:9px;background:var(--bg);margin-top:8px;}
 .iv-group-line:first-of-type{margin-top:0;}
 .iv-gl-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;}
@@ -1438,7 +1459,17 @@ const I18N = {
   badge_conflict: 'ข้อมูลไม่ตรงกัน',
   toast_save_incomplete: '⚠️ เซิร์ฟเวอร์เก็บ{what}ไม่ครบ (ส่งไป {sent} ตัวอักษร แต่เซิร์ฟเวอร์เก็บได้ {stored}) — รายการที่เพิ่งบันทึกอาจหายตอนรีโหลด กรุณาแจ้งผู้ดูแลระบบ',
   tag_item_missing: 'ไม่พบสินค้านี้',
-  hint_pick_replacement: 'ไม่พบสินค้านี้ในระบบ (รหัสเดิม: {code}) — เลือกสินค้าที่ถูกต้องในช่องด้านล่างแล้วกดบันทึก'
+  hint_pick_replacement: 'ไม่พบสินค้านี้ในระบบ (รหัสเดิม: {code}) — เลือกสินค้าที่ถูกต้องในช่องด้านล่างแล้วกดบันทึก',
+  btn_sell_stock: 'ตัดสต็อก',
+  confirm_sell_one: 'ลูกค้าตกลงซื้อ "{name}" จำนวน {qty} — ตัดสต็อกเป็นการนำออกถาวร (ไม่ต้องคืนแล้ว) ใช่หรือไม่?',
+  confirm_sell_group: 'ตัดสต็อกทั้ง {count} รายการในกลุ่มนี้เป็นการนำออกถาวร (ลูกค้าตกลงซื้อ) ใช่หรือไม่?',
+  toast_sold_borrow: 'ตัดสต็อก {count} รายการจากการยืมแล้ว',
+  note_borrow_to_sale_return: 'รับคืนเพื่อตัดขาย (ลูกค้าตกลงซื้อ) จาก ',
+  note_borrow_sold: 'ตัดสต็อกจากการยืม (ลูกค้าตกลงซื้อ) ',
+  btn_add_part: 'เพิ่มอะไหล่',
+  btn_add_to_card: 'เพิ่มรายการ',
+  toast_line_added: 'เพิ่มรายการเข้าใบนี้แล้ว',
+  toast_scan_not_found: 'ไม่พบสินค้าตามบาร์โค้ดนี้'
 },
   en: {
   header_sub: '— IN · OUT · RESERVED · BORROW —',
@@ -1747,7 +1778,17 @@ const I18N = {
   badge_conflict: 'OUT OF SYNC',
   toast_save_incomplete: '⚠️ The server stored {what} incompletely (sent {sent} characters, server kept {stored}) — what you just saved may disappear on reload. Tell the administrator',
   tag_item_missing: 'Item not found',
-  hint_pick_replacement: 'This item no longer exists (old code: {code}) — pick the correct item below and save'
+  hint_pick_replacement: 'This item no longer exists (old code: {code}) — pick the correct item below and save',
+  btn_sell_stock: 'Cut Stock',
+  confirm_sell_one: 'The customer is buying "{name}" (qty {qty}) — cut it from stock as a permanent stock-out (no return)?',
+  confirm_sell_group: 'Cut all {count} lines in this group from stock as permanent stock-outs (customer is buying)?',
+  toast_sold_borrow: 'Cut {count} borrowed line(s) from stock',
+  note_borrow_to_sale_return: 'Returned to be sold (customer buying) from ',
+  note_borrow_sold: 'Cut from stock after borrow (customer buying) ',
+  btn_add_part: 'Add Part',
+  btn_add_to_card: 'Add',
+  toast_line_added: 'Part added',
+  toast_scan_not_found: 'No item matches this barcode'
 }
 };
 function t(key, vars){
@@ -3941,6 +3982,7 @@ function borLineHtml(b){
       <div class="iv-gl-right">
         <span class="iv-odo borrow sm">${b.qty} ${item?item.unit:''}</span>
         <button class="iv-btn-xs pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
+        <button class="iv-btn-xs sell" onclick="sellBorrow('${b.id}')">${t('btn_sell_stock')}</button>
         <button class="iv-btn-xs ghost" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
       </div>
     </div>
@@ -4048,11 +4090,14 @@ function renderPending(){
       const header = (hasSharedInfo || notes.length) ? resHeaderHtml(first, g.items.length, g.maxTs, notes) : '';
       const cls = isGroup ? 'iv-detail-card reserve group' : 'iv-detail-card reserve';
       const idsStr = g.items.map(x=>x.id).join(',');
-      const bulkAction = isGroup ? `<div style="margin:0 0 12px;"><button class="iv-btn-sm pos" onclick="fulfillReservationGroup('${idsStr}')">${t('btn_fulfill_all')}</button></div>` : '';
+      const anchorId = g.items[0].id;
+      const bulkAction = `<div class="iv-bulk">${isGroup ? `<button class="iv-btn-sm pos" onclick="fulfillReservationGroup('${idsStr}')">${t('btn_fulfill_all')}</button>` : ''}<button class="iv-btn-sm" onclick="toggleAddLine('reserve','${anchorId}')">➕ ${t('btn_add_part')}</button></div>`;
+      const addForm = (addLineOpen && addLineOpen.kind==='reserve' && addLineOpen.anchor===anchorId) ? addLineForm('reserve', anchorId) : '';
       return `<div class="${cls}">
         ${isGroup ? `<div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>` : ''}
         ${header}
         ${bulkAction}
+        ${addForm}
         ${lines}
       </div>`;
     }).join('');
@@ -4087,11 +4132,14 @@ function renderPending(){
       const isGroup = g.items.length>1;
       const notes = [...new Set(g.items.map(it=>(it.note||'').trim()).filter(Boolean))];
       const idsStr = g.items.map(x=>x.id).join(',');
-      const bulkAction = isGroup ? `<div style="margin:0 0 12px;"><button class="iv-btn-sm pos" onclick="returnBorrowGroup('${idsStr}')">${t('btn_return_all')}</button></div>` : '';
+      const anchorId = g.items[0].id;
+      const bulkAction = `<div class="iv-bulk">${isGroup ? `<button class="iv-btn-sm pos" onclick="returnBorrowGroup('${idsStr}')">${t('btn_return_all')}</button><button class="iv-btn-sm" onclick="sellBorrowGroup('${idsStr}')">${t('btn_fulfill_all')}</button>` : ''}<button class="iv-btn-sm" onclick="toggleAddLine('borrow','${anchorId}')">➕ ${t('btn_add_part')}</button></div>`;
+      const addForm = (addLineOpen && addLineOpen.kind==='borrow' && addLineOpen.anchor===anchorId) ? addLineForm('borrow', anchorId) : '';
       return `<div class="${isGroup ? 'iv-detail-card borrow group' : 'iv-detail-card borrow'}">
         ${isGroup ? `<div class="iv-group-badge">${g.items.length} ${t('word_items')}</div>` : ''}
         ${borHeaderHtml(g.items[0], notes)}
         ${bulkAction}
+        ${addForm}
         ${g.items.map(borLineHtml).join('')}
       </div>`;
     }).join('');
@@ -4532,6 +4580,134 @@ function printLabels(){
   document.body.classList.add('printing-labels');
   window.addEventListener('afterprint', ()=>{ document.body.classList.remove('printing-labels'); }, {once:true});
   setTimeout(()=>window.print(), 80);
+}
+
+// ---- customer bought what they borrowed: turn the borrow into a permanent stock-out ----
+async function sellBorrowIds(ids, bulk){
+  if(!requireEdit()) return;
+  const targets = ids.map(id=>borrows.find(x=>x.id===id)).filter(b=>b && b.status==='out');
+  if(targets.length===0) return;
+  const first = findItemRef(targets[0].itemId, targets[0].source);
+  const msg = bulk ? t('confirm_sell_group', {count: targets.length}) : t('confirm_sell_one', {name: first ? first.name : (targets[0].itemName||''), qty: targets[0].qty});
+  if(!confirm(msg)) return;
+  const now = Date.now();
+  targets.forEach(b=>{
+    b.status = 'sold';
+    b.soldTs = now;
+    const sum = borrowSummary(b);
+    // a borrow already took the item out of on-hand, so give it back and take it out again as a real stock-out (net balance unchanged;
+    // off-stock items keep their own quantity, so only the stock-out is logged for them)
+    if(b.source!=='external') ledger.push({id:uid(), itemId:b.itemId, type:'RETURN', qty:b.qty, note:t('note_borrow_to_sale_return')+b.borrower, ts:now, source:b.source});
+    ledger.push({id:uid(), itemId:b.itemId, type:'OUT', qty:b.qty, note:t('note_borrow_sold')+b.borrower+(sum?': '+sum:''), ts:now, source:b.source});
+  });
+  invalidateBalanceCache();
+  await saveBorrows();
+  await saveLedger();
+  showToast(t('toast_sold_borrow', {count: targets.length}));
+  renderAll();
+}
+function sellBorrow(id){ return sellBorrowIds([id], false); }
+function sellBorrowGroup(idsStr){ return sellBorrowIds(idsStr.split(','), true); }
+
+// ---- add another part to a reservation / borrow that already exists ----
+let addLineOpen = null; // {kind:'reserve'|'borrow', anchor: id of the card's first line}
+function toggleAddLine(kind, anchor){
+  addLineOpen = (addLineOpen && addLineOpen.kind===kind && addLineOpen.anchor===anchor) ? null : {kind, anchor};
+  renderPending();
+  if(addLineOpen){ const si = document.getElementById('addLineSearch_'+anchor); if(si) si.focus(); }
+}
+function addLineForm(kind, anchor){
+  return `<div class="iv-detail-edit-form iv-addline">
+    <label class="iv-label">${t('lbl_item')}</label>
+    <div style="display:flex;gap:8px;align-items:flex-start;">
+      <div class="iv-combo" style="flex:1;min-width:0;">
+        <input class="iv-input" type="text" id="addLineSearch_${anchor}" autocomplete="off" placeholder="${t('ph_item_search_wide')}"
+               oninput="filterAddLineOptions('${anchor}')" onfocus="filterAddLineOptions('${anchor}')"
+               onblur="setTimeout(()=>{const d=document.getElementById('addLineDrop_${anchor}'); if(d) d.classList.add('iv-hide');},150)">
+        <input type="hidden" id="addLineSelect_${anchor}">
+        <div id="addLineDrop_${anchor}" class="iv-combo-dropdown iv-hide"></div>
+      </div>
+      <button type="button" class="iv-btn-sm iv-scan-btn" onclick="scanAddLine('${anchor}')" title="${t('scan_title')}">📷</button>
+    </div>
+    <div class="iv-form-row" style="margin-top:10px;">
+      <div><label class="iv-label">${t('lbl_qty')}</label><input class="iv-input iv-qty-input" type="number" min="1" id="addLineQty_${anchor}" value="1"></div>
+    </div>
+    <div class="iv-detail-actions">
+      <button class="iv-btn-sm pos" onclick="submitAddLine('${kind}','${anchor}')">${t('btn_add_to_card')}</button>
+      <button class="iv-btn-sm ghost" onclick="toggleAddLine('${kind}','${anchor}')">${t('btn_cancel')}</button>
+    </div>
+  </div>`;
+}
+function filterAddLineOptions(anchor){
+  const input = document.getElementById('addLineSearch_'+anchor);
+  const hidden = document.getElementById('addLineSelect_'+anchor);
+  const dropdown = document.getElementById('addLineDrop_'+anchor);
+  const pool = [...items, ...externalItems];
+  const sel = pool.find(i=>i.id===hidden.value);
+  const raw = input.value;
+  const q = (sel && raw === `${sel.itemNo} — ${sel.name}`) ? '' : raw.toLowerCase();
+  const filtered = pool.filter(it=>it.itemNo.toLowerCase().includes(q) || it.name.toLowerCase().includes(q)).slice(0,50);
+  dropdown.innerHTML = filtered.length ? filtered.map(it=>`<div class="iv-combo-item" onmousedown="selectAddLineOption('${anchor}','${it.id}')">
+      <span class="iv-combo-item-no">${it.itemNo}</span><span class="iv-combo-item-name">${it.name}</span>
+      ${isExternalItemId(it.id) ? `<span class="iv-badge" style="margin-left:auto;flex-shrink:0;font-size:9px;padding:3px 7px;">${t('badge_off_stock')}</span>` : ''}
+    </div>`).join('') : `<div class="iv-combo-empty">${t('no_items_match', {q: raw})}</div>`;
+  dropdown.classList.remove('iv-hide');
+}
+function selectAddLineOption(anchor, itemId){
+  const it = [...items, ...externalItems].find(i=>i.id===itemId);
+  document.getElementById('addLineSelect_'+anchor).value = itemId;
+  document.getElementById('addLineSearch_'+anchor).value = it ? `${it.itemNo} — ${it.name}` : '';
+  document.getElementById('addLineDrop_'+anchor).classList.add('iv-hide');
+  const q = document.getElementById('addLineQty_'+anchor); if(q){ q.focus(); q.select(); }
+}
+function scanAddLine(anchor){
+  openScanner(code=>{
+    const found = findItemByCode(code);
+    if(found) selectAddLineOption(anchor, found.item.id);
+    else showToast(t('toast_scan_not_found'), true);
+  });
+}
+async function submitAddLine(kind, anchor){
+  if(!requireEdit()) return;
+  const a = (kind==='reserve' ? reservations : borrows).find(x=>x.id===anchor);
+  if(!a){ addLineOpen = null; renderPending(); return; }
+  const itemId = document.getElementById('addLineSelect_'+anchor).value;
+  const item = [...items, ...externalItems].find(i=>i.id===itemId);
+  if(!item){ showToast(t('toast_pick_item_first')); return; }
+  const qty = parseFloat(document.getElementById('addLineQty_'+anchor).value);
+  if(!(qty>0)){ showToast(t('toast_enter_valid_qty')); return; }
+  const source = isExternalItemId(itemId) ? 'external' : 'stock';
+  const avail = availableQty(itemId);
+  if(kind==='borrow' && qty > avail){ showToast(t('toast_avail_only_borrow', {name:item.name, avail:Math.max(avail,0), unit:item.unit})); return; }
+  if(kind==='reserve' && source==='external' && qty > avail){ showToast(t('toast_avail_only_reserve', {name:item.name, avail:Math.max(avail,0), unit:item.unit}), true); return; }
+  const now = Date.now();
+  const shared = {svso:a.svso||'', quotation:a.quotation||'', customerType:a.customerType||'direct', dealer:a.dealer||'', endUser:a.endUser||'', customer:a.customer||'', note:a.note||''};
+  if(kind==='reserve'){
+    reservations.push({id:uid(), itemId, itemNo:item.itemNo, itemName:item.name, qty, ...shared, requestedBy:a.requestedBy||'', ts:a.ts, addedTs:now, status:'active', source});
+    ledger.push({id:uid(), itemId, type:'RESERVE', qty, ts:now, source, note:[
+      shared.svso ? t('note_prefix_svso')+shared.svso : '',
+      shared.quotation ? t('note_prefix_quotation')+shared.quotation : '',
+      customerNoteText(shared),
+      a.requestedBy ? t('note_prefix_reserved_by')+a.requestedBy : '',
+      source==='external' ? t('note_off_stock_item') : '',
+      shared.note].filter(Boolean).join(' · ')});
+    invalidateBalanceCache();
+    await saveReservations();
+  }else{
+    borrows.push({id:uid(), itemId, itemNo:item.itemNo, itemName:item.name, qty, borrower:a.borrower, ...shared, dueDate:a.dueDate||'', borrowDate:a.borrowDate, ts:a.ts, addedTs:now, status:'out', source});
+    ledger.push({id:uid(), itemId, type:'BORROW', qty, ts:now, source, note:[a.borrower,
+      shared.svso ? t('note_prefix_svso')+shared.svso : '',
+      shared.quotation ? t('note_prefix_quotation')+shared.quotation : '',
+      customerNoteText(shared),
+      source==='external' ? t('note_off_stock_item') : '',
+      shared.note].filter(Boolean).join(' · ')});
+    invalidateBalanceCache();
+    await saveBorrows();
+  }
+  await saveLedger();
+  addLineOpen = null;
+  showToast(t('toast_line_added'));
+  renderAll();
 }
 
 function renderAll(){
