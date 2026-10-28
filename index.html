@@ -221,24 +221,6 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-bulk{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
 .iv-btn-xs.sell{border-color:var(--out);color:var(--out);background:#fff;}
 .iv-addline{margin:0 0 12px;}
-@media (max-width:600px){
-  /* phone: each part is a small card — code + name on top, qty and three equal buttons underneath */
-  #panel-pending .iv-card{padding:14px 10px;}
-  .iv-detail-card{padding:14px 12px;}
-  .iv-detail-card.group{padding-top:38px;}
-  .iv-group-badge{top:10px;right:12px;}
-  .iv-group-line{padding:10px;}
-  .iv-gl-row{flex-direction:column;align-items:stretch;gap:8px;}
-  .iv-gl-info{flex:none;display:block;width:100%;}
-  .iv-gl-code{display:block;margin-bottom:2px;font-size:11px;}
-  .iv-gl-name{display:block;font-size:14px;line-height:1.35;}
-  .iv-gl-info .iv-tag{display:inline-block;margin-top:5px;}
-  .iv-gl-right{margin-left:0;display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:6px;align-items:stretch;}
-  .iv-gl-right .iv-odo{display:flex;align-items:center;justify-content:center;padding:0 10px;}
-  .iv-gl-right .iv-btn-xs{padding:10px 4px;font-size:12px;text-align:center;}
-  .iv-res-header-main{padding-right:76px;}
-  .iv-bulk .iv-btn-sm{flex:1 1 auto;padding:10px 12px;}
-}
 .iv-group-line{padding:11px 12px;border-radius:9px;background:var(--bg);margin-top:8px;}
 .iv-group-line:first-of-type{margin-top:0;}
 .iv-gl-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;}
@@ -246,6 +228,7 @@ input.iv-input:focus,select.iv-input:focus,textarea.iv-input:focus{outline:none;
 .iv-gl-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;}
 .iv-gl-name{font-weight:600;font-size:13.5px;}
 .iv-gl-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto;}
+.iv-gl-btns{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .iv-gl-note{font-size:11.5px;color:var(--ink-soft);font-style:italic;margin-top:6px;}
 .iv-btn-xs{padding:7px 11px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-family:'Archivo',sans-serif;font-weight:700;font-size:11px;cursor:pointer;color:var(--ink-soft);white-space:nowrap;transition:filter .1s ease,background .1s ease;}
 .iv-btn-xs:hover{filter:brightness(0.97);}
@@ -364,6 +347,28 @@ table.iv-item-table tbody tr.zero td{background:var(--out-soft);}
 }
 @media (min-width:900px){
   .iv-stats{grid-template-columns:repeat(4,1fr);gap:14px;}
+}
+
+/* ---- phone layout for reserve / borrow cards (kept last on purpose) ---- */
+@media (max-width:600px){
+  #panel-pending > .iv-card{background:transparent;border:none;box-shadow:none;padding:0;margin-bottom:18px;}
+  #panel-pending > .iv-card > .iv-card-title{padding:0 4px;}
+  #panel-pending > .iv-card > .iv-hint{padding:0 4px;}
+  .iv-detail-card{padding:14px 12px 12px;border-radius:14px;}
+  .iv-detail-card.group{padding-top:42px;}
+  .iv-detail-card .iv-group-line{padding:11px 11px 10px;margin-top:8px;border-radius:12px;}
+  .iv-detail-card .iv-gl-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"info qty" "btns btns";gap:10px 8px;align-items:start;}
+  .iv-detail-card .iv-gl-info{grid-area:info;display:block;flex:none;width:auto;min-width:0;}
+  .iv-detail-card .iv-gl-right{display:contents;}
+  .iv-detail-card .iv-gl-right > .iv-odo{grid-area:qty;justify-self:end;align-self:start;margin:0;}
+  .iv-detail-card .iv-gl-btns{grid-area:btns;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .iv-detail-card .iv-gl-btns .iv-btn-xs{padding:11px 4px;font-size:12.5px;text-align:center;border-radius:8px;}
+  .iv-detail-card .iv-gl-btns .iv-btn-xs.ghost{border:1.5px solid var(--border);background:#fff;}
+  .iv-detail-card .iv-gl-code{display:block;font-size:11.5px;margin-bottom:3px;}
+  .iv-detail-card .iv-gl-name{display:block;font-size:14px;line-height:1.35;}
+  .iv-detail-card .iv-gl-info .iv-tag{display:inline-block;margin:6px 6px 0 0;}
+  .iv-detail-card .iv-res-header-main{padding-right:84px;}
+  .iv-detail-card .iv-bulk .iv-btn-sm{flex:1 1 auto;padding:11px 12px;font-size:13px;}
 }
 </style>
 </head>
@@ -3851,9 +3856,11 @@ function resLineHtml(r, suppressNote){
       </div>
       <div class="iv-gl-right">
         <span class="iv-odo reserve sm">${r.qty} ${item?item.unit:''}</span>
-        <button class="iv-btn-xs pos" onclick="fulfillReservation('${r.id}')">${t('btn_fulfill')}</button>
-        <button class="iv-btn-xs neg" onclick="releaseReservation('${r.id}')">${t('btn_release_reservation')}</button>
-        <button class="iv-btn-xs ghost" onclick="toggleEditReservation('${r.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+        <div class="iv-gl-btns">
+          <button class="iv-btn-xs pos" onclick="fulfillReservation('${r.id}')">${t('btn_fulfill')}</button>
+          <button class="iv-btn-xs neg" onclick="releaseReservation('${r.id}')">${t('btn_release_reservation')}</button>
+          <button class="iv-btn-xs ghost" onclick="toggleEditReservation('${r.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+        </div>
       </div>
     </div>
     ${(!suppressNote && r.note) ? `<div class="iv-gl-note">${r.note}</div>` : ''}
@@ -3981,9 +3988,11 @@ function borLineHtml(b){
       </div>
       <div class="iv-gl-right">
         <span class="iv-odo borrow sm">${b.qty} ${item?item.unit:''}</span>
-        <button class="iv-btn-xs pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
-        <button class="iv-btn-xs sell" onclick="sellBorrow('${b.id}')">${t('btn_sell_stock')}</button>
-        <button class="iv-btn-xs ghost" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+        <div class="iv-gl-btns">
+          <button class="iv-btn-xs pos" onclick="returnBorrow('${b.id}')">${t('btn_return_item')}</button>
+          <button class="iv-btn-xs sell" onclick="sellBorrow('${b.id}')">${t('btn_sell_stock')}</button>
+          <button class="iv-btn-xs ghost" onclick="toggleEditBorrow('${b.id}')">${isEditing?t('btn_close_edit'):t('btn_edit')}</button>
+        </div>
       </div>
     </div>
     ${isEditing ? borEditForm(b) : ''}
